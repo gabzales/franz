@@ -9,21 +9,19 @@ if (typeof window !== 'undefined') {
 }
 </script>
 
-<div class="min-h-screen flex items-center justify-center px-4 py-20" style="background:var(--bg-main);">
-    <div class="w-full max-w-md">
-        <div class="text-center mb-8">
+<main class="auth-page-shell">
+    <div class="auth-card">
+        <div class="auth-card-head">
             <% if (settings?.logoUrl) { %>
-            <img src="<%= settings.logoUrl %>" alt="Logo" class="h-14 w-auto mx-auto mb-4" style="object-fit:contain;">
+            <img src="<%= settings.logoUrl || '/uploads/logo-franzzstore.png' %>" alt="<%= settings?.siteName || 'FRANZZSTORE' %>" class="auth-card-logo" onerror="this.onerror=null;this.src='/uploads/logo-franzzstore.png';">
             <% } else { %>
-            <div class="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4" style="background:var(--blue);">
-                <iconify-icon icon="mdi:store" style="color:#fff;font-size:28px;"></iconify-icon>
-            </div>
+            <div class="auth-card-logo-fallback"><iconify-icon icon="mdi:store"></iconify-icon></div>
             <% } %>
-            <h1 style="font-family:'Inter',sans-serif;font-weight:900;font-size:20px;color:#ffffff;letter-spacing:.01em;margin-bottom:8px;"><%= settings?.siteName || 'FRANZZSTORE' %></h1>
-            <p class="text-sm" style="color:var(--text-3);">Masuk ke akun Anda</p>
+            <h1>Login Ke Akun Anda</h1>
+            <p>Masuk akun untuk mulai mendapatkan lebih banyak keuntungan dan poin.</p>
         </div>
 
-        <div class="card rounded-xl overflow-hidden">
+        <div class="auth-card-body">
             <div class="p-6">
                 <% if (error) { %>
                     <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-2">
@@ -86,7 +84,7 @@ if (typeof window !== 'undefined') {
             </div>
         </div>
     </div>
-</div>
+</main>
 
 <% if (turnstileSiteKey) { %>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
