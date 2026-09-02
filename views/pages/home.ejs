@@ -258,6 +258,30 @@ const pageTitle = 'Beranda';
     </div>
 </section>
 
+<!-- FLASH DEALS: PointGo one-row horizontal strip -->
+<section id="flash-deals" class="pointgo-flash-section">
+    <div class="pointgo-section-shell">
+        <div class="pointgo-flash-heading">
+            <h2>FLASH DEAL</h2>
+            <span class="pointgo-countdown"><iconify-icon icon="mdi:clock-outline"></iconify-icon> 00:14:55</span>
+        </div>
+        <div class="pointgo-flash-viewport">
+            <div class="pointgo-flash-track">
+                <% (products || []).slice(0, 12).forEach((product, i) => { const pricing = product.pricingOptions || product.items || []; const price = pricing.length ? Number(pricing[0].price ?? pricing[0].p ?? pricing[0]) : Number(product.price || 0); %>
+                <a href="/buy/<%= product.id %>" class="pointgo-deal-card">
+                    <div class="pointgo-deal-art">
+                        <% if (product.image) { %><img src="<%= product.image %>" alt="<%= product.name %>"><% } else { %><iconify-icon icon="mdi:gamepad-variant"></iconify-icon><% } %>
+                        <span class="pointgo-stock">Tersisa: <%= Math.max(1, 20 - i) %></span>
+                        <del>Rp <%= (price * 1.25).toLocaleString('id-ID') %></del>
+                    </div>
+                    <div class="pointgo-deal-copy"><strong><%= product.name %></strong><b>Rp <%= price.toLocaleString('id-ID') %></b><em>FLASH DEAL</em></div>
+                </a>
+                <% }) %>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- PRODUCTS -->
 <section id="games" class="relative py-10 sm:py-16 border-t border-white/[0.03]">
     <div class="relative max-w-7xl mx-auto px-3 sm:px-6">
