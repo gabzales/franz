@@ -79,7 +79,8 @@
 function toggleSidebar(open) {
   const sidebar = document.getElementById('pg-sidebar');
   if (!sidebar) return;
-  sidebar.classList.toggle('open', Boolean(open));
+  const nextOpen = typeof open === 'boolean' ? open : !sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', nextOpen);
   sidebar.removeAttribute('hidden');
   const button = document.querySelector('.header-icon-btn');
   button?.setAttribute('aria-expanded', String(Boolean(open)));

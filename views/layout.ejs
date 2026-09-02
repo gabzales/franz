@@ -615,6 +615,9 @@
         const sidebar = document.getElementById('pg-sidebar');
         if (sidebar) { sidebar.classList.toggle('open'); document.querySelector('.header-icon-btn')?.setAttribute('aria-expanded', String(sidebar.classList.contains('open'))); return; }
         const p = document.getElementById('menu-drawer');
+        if (!p) return;
+        const isOpen = p.style.display === 'block';
+        if (isOpen) { p.style.display = 'none'; return; }
         const navbar = document.getElementById('navbar') || document.querySelector('.site-header');
         const dashboardStart = document.getElementById('home') || document.querySelector('main');
         if (dashboardStart?.parentElement) dashboardStart.parentElement.insertBefore(p, dashboardStart);
