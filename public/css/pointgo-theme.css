@@ -73,13 +73,15 @@ nav.site-nav .green { color: var(--accent); }
 
 /* Sidebar mobile (dipakai untuk hamburger di layar sempit) */
   .pg-sidebar-overlay { display:none !important; }
-  .pg-sidebar { position:relative; top:auto; left:auto; right:auto; width:100%; max-width:none; max-height:0; overflow:hidden; background:#0c1218; z-index:10; transform:none; opacity:0; transition:max-height .32s ease, opacity .2s ease; display:flex; flex-direction:column; box-shadow:none; }
-  .pg-sidebar.open { max-height:560px; opacity:1; overflow-y:auto; }
+  .pg-sidebar { position:relative !important; top:auto !important; left:auto !important; right:auto !important; width:100% !important; max-width:none !important; max-height:0 !important; overflow:hidden !important; background:#0c1218 !important; z-index:10; transform:none !important; opacity:0; transition:max-height .32s ease, opacity .2s ease; display:flex !important; flex-direction:column; box-shadow:none; }
+  .pg-sidebar.open { max-height:560px !important; opacity:1 !important; overflow-y:auto !important; }
   .pg-sidebar-head { display:none; }
   .pg-sidebar-nav { display:flex; flex-direction:column; gap:0; padding:8px 10px 12px; }
   .pg-sidebar-link { min-height:38px; padding:8px 14px; font-size:12px; letter-spacing:.01em; }
   .pg-sidebar-divider, .pg-sidebar-foot { display:none; }
   .pg-sidebar-link:hover { background:#16202a; }
+  #menu-drawer.pointgo-menu-dropdown { position:relative !important; inset:auto !important; height:auto !important; min-height:0 !important; margin-top:56px !important; z-index:20 !important; }
+  #menu-drawer.pointgo-menu-dropdown .side-drawer { position:relative !important; inset:auto !important; width:100% !important; height:auto !important; max-height:none !important; transform:none !important; animation:slideDown .28s ease both !important; }
   .flash-title h1, .flash-title strong, .pg-tab.active, .nominal b, .deal-body b { font-weight: 800; font-style: italic; }
   .deal-grid { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 14px; padding: 16px; background: rgba(24,24,27,.4); border-radius: 1rem; }
   .deal-grid::-webkit-scrollbar { display: none; }
@@ -115,9 +117,8 @@ nav.site-nav .green { color: var(--accent); }
   .pointgo-flash-heading h2 { margin:0; color:#13D8FF; font-size:clamp(20px,4vw,30px); font-weight:900; font-style:italic; text-transform:uppercase; }
   .pointgo-countdown { display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:999px; background:#071016; border:1px solid #a3e635; color:#a3e635; font-size:10px; font-weight:800; }
   .pointgo-flash-viewport { overflow:hidden; border-radius:16px; background:rgba(24,24,27,.4); padding:16px; }
-  .pointgo-flash-track { display:flex; flex-wrap:nowrap; gap:12px; width:max-content; animation:pointgoFlash 14s ease-in-out infinite; will-change:transform; }
-  .pointgo-flash-track > .pointgo-deal-card:nth-child(n+3){display:none;}
-  @media(min-width:700px){.pointgo-flash-track > .pointgo-deal-card:nth-child(n+3){display:block;}}
+  .pointgo-flash-track { display:flex; flex-wrap:nowrap; gap:12px; width:max-content; animation:pointgoFlash 18s linear infinite; will-change:transform; }
+  .pointgo-flash-track > .pointgo-deal-card { display:block !important; }
   .pointgo-flash-viewport:hover .pointgo-flash-track { animation-play-state:paused; }
   .pointgo-deal-card { width:148px; flex:0 0 148px; overflow:hidden; border-radius:12px; background:#161c24; border:1px solid rgba(71,85,105,.8); color:#fff; text-decoration:none; }
   .pointgo-deal-art { height:118px; position:relative; overflow:hidden; background:#0f1720; }
@@ -129,7 +130,7 @@ nav.site-nav .green { color: var(--accent); }
   .pointgo-deal-copy strong { min-height:28px; font-size:10px; line-height:1.3; }
   .pointgo-deal-copy b { color:#13D8FF; font-size:12px; font-weight:900; font-style:italic; }
   .pointgo-deal-copy em { width:max-content; padding:2px 5px; border-radius:4px; background:#f97316; color:#fff; font-size:7px; font-style:normal; font-weight:900; }
-  @keyframes pointgoFlash { from { transform:translateX(0); } to { transform:translateX(-35%); } }
+  @keyframes pointgoFlash { from { transform:translateX(0); } to { transform:translateX(-50%); } }
   #games .game-card, #games .game-list a { position:relative; overflow:hidden; }
   #games .game-card::after, #games .game-list a::after { content:''; position:absolute; inset:35% 0 0; pointer-events:none; background:linear-gradient(to bottom,transparent,rgba(0,0,0,.94)); }
   #games .game-card span, #games .game-list a span { z-index:2; font-style:italic; font-weight:900; }
@@ -138,11 +139,11 @@ nav.site-nav .green { color: var(--accent); }
   @media(max-width:640px){
     .pointgo-flash-section{padding:18px 10px 6px;}
     .pointgo-deal-card{width:142px;flex-basis:142px;}
-    #carousel-wrap{height:auto !important; aspect-ratio:16/9; padding:0 7%; overflow:hidden; background:#121212 !important; border:0; box-shadow:none; margin-bottom:14px;}
+    #carousel-wrap{height:auto !important; aspect-ratio:16/9; padding:0 7%; margin:12px 10px 18px; overflow:hidden; background:#121212 !important; border:1px solid rgba(148,163,184,.22) !important; border-radius:20px !important; box-shadow:0 10px 30px rgba(0,0,0,.28); }
     #carousel-track{gap:12px; align-items:center;}
     #carousel-track .c-slide{flex:0 0 86%; width:86%; height:100%; border-radius:16px; overflow:hidden;}
     #carousel-track .c-slide:not(:first-child){display:none;}
-    #carousel-track .c-slide > .c-img{display:block !important; width:100%; height:100%; object-fit:cover;}
+    #carousel-track .c-slide > .c-img{display:block !important; width:100%; height:100%; object-fit:contain; background:#071018;}
     #carousel-track .c-slide-default{display:block !important;}
     #carousel-track .c-slide .c-body{display:none;}
     #carousel-track .c-slide .c-overlay{background:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.78));}
@@ -186,7 +187,7 @@ nav.site-nav .green { color: var(--accent); }
 .pg-sidebar-divider { height: 1px; background: var(--line); margin: 8px 16px; }
 .pg-sidebar-foot { padding: 16px; border-top: 1px solid var(--line); display: flex; gap: 8px; }
 
-/* ══════════════════════════════════════════════════════════════
+/* ════════��═════════════════════════════════════════════════════
    BUTTONS
    ══���═══════════════════════════════════════════════════════════ */
 .pg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 800; font-size: 13.5px; border-radius: var(--radius-sm); padding: 12px 22px; border: none; transition: transform .12s ease, opacity .12s ease; }

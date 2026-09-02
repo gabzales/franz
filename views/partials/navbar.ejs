@@ -77,8 +77,12 @@
 
 <script>
 function toggleSidebar(open) {
-  document.getElementById('pg-sidebar').classList.toggle('open', open);
-  document.getElementById('pg-sidebar-overlay').classList.toggle('open', false);
+  const sidebar = document.getElementById('pg-sidebar');
+  if (!sidebar) return;
+  sidebar.classList.toggle('open', Boolean(open));
+  sidebar.removeAttribute('hidden');
+  const button = document.querySelector('.header-icon-btn');
+  button?.setAttribute('aria-expanded', String(Boolean(open)));
   document.body.style.overflow = '';
 }
 // Search: enter untuk cari (redirect ke homepage dengan query filter produk)

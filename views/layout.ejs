@@ -612,7 +612,12 @@
     function closeTrack() { _closeTrack(); }
 
     function openMenu() {
+        const sidebar = document.getElementById('pg-sidebar');
+        if (sidebar) { sidebar.classList.toggle('open'); document.querySelector('.header-icon-btn')?.setAttribute('aria-expanded', String(sidebar.classList.contains('open'))); return; }
         const p = document.getElementById('menu-drawer');
+        const navbar = document.getElementById('navbar') || document.querySelector('.site-header');
+        const dashboardStart = document.getElementById('home') || document.querySelector('main');
+        if (dashboardStart?.parentElement) dashboardStart.parentElement.insertBefore(p, dashboardStart);
         p.style.display = 'block';
         const d = document.getElementById('menu-drawer-content');
         d.style.animation = 'none';
