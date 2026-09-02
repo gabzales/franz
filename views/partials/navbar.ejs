@@ -82,9 +82,10 @@ function toggleSidebar(open) {
   const nextOpen = typeof open === 'boolean' ? open : !sidebar.classList.contains('open');
   sidebar.classList.toggle('open', nextOpen);
   sidebar.removeAttribute('hidden');
-  const button = document.querySelector('.header-icon-btn');
-  button?.setAttribute('aria-expanded', String(Boolean(open)));
-  document.body.style.overflow = '';
+  const button = document.querySelector('.header-icon-btn, #mobile-menu-trigger');
+  button?.setAttribute('aria-expanded', String(nextOpen));
+  document.documentElement.classList.toggle('menu-open', nextOpen);
+  document.body.style.overflow = nextOpen ? 'hidden' : '';
 }
 // Search: enter untuk cari (redirect ke homepage dengan query filter produk)
 document.getElementById('pg-search-input')?.addEventListener('keydown', function(e) {

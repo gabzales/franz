@@ -73,8 +73,8 @@ nav.site-nav .green { color: var(--accent); }
 
 /* Sidebar mobile (dipakai untuk hamburger di layar sempit) */
   .pg-sidebar-overlay { display:none !important; }
-  .pg-sidebar { position:relative !important; top:auto !important; left:auto !important; right:auto !important; width:100% !important; max-width:none !important; max-height:0 !important; overflow:hidden !important; background:#0c1218 !important; z-index:10; transform:none !important; opacity:0; transition:max-height .32s ease, opacity .2s ease; display:flex !important; flex-direction:column; box-shadow:none; }
-  .pg-sidebar.open { max-height:560px !important; opacity:1 !important; overflow-y:auto !important; }
+  .pg-sidebar { position:fixed !important; top:74px !important; left:0 !important; right:0 !important; width:100% !important; max-width:none !important; max-height:0 !important; overflow:hidden !important; background:#0c1218 !important; z-index:9999 !important; transform:translateY(-10px) !important; opacity:0; transition:max-height .32s ease, opacity .2s ease, transform .22s ease; display:flex !important; flex-direction:column; box-shadow:0 16px 30px rgba(0,0,0,.35); }
+  .pg-sidebar.open { max-height:560px !important; opacity:1 !important; overflow-y:auto !important; transform:translateY(0) !important; }
   .pg-sidebar-head { display:none; }
   .pg-sidebar-nav { display:flex; flex-direction:column; gap:0; padding:8px 10px 12px; }
   .pg-sidebar-link { min-height:38px; padding:8px 14px; font-size:12px; letter-spacing:.01em; }
@@ -140,9 +140,10 @@ nav.site-nav .green { color: var(--accent); }
   @media(max-width:640px){
     .pointgo-flash-section{padding:18px 10px 6px;}
     .pointgo-deal-card{width:142px;flex-basis:142px;}
-    #carousel-wrap{height:auto !important; aspect-ratio:16/9; padding:0 7%; margin:12px 10px 18px; overflow:hidden; background:#121212 !important; border:1px solid rgba(148,163,184,.22) !important; border-radius:20px !important; box-shadow:0 10px 30px rgba(0,0,0,.28); }
+    #carousel-wrap{height:auto !important; aspect-ratio:16/9; padding:0 !important; margin:12px 10px 18px; overflow:hidden; background:#121212 !important; border:1px solid rgba(148,163,184,.22) !important; border-radius:20px !important; box-shadow:0 10px 30px rgba(0,0,0,.28); }
     #carousel-track{gap:12px; align-items:center;}
-    #carousel-track .c-slide{flex:0 0 86%; width:86%; height:100%; border-radius:16px; overflow:hidden;}
+    #carousel-track .c-slide{flex:0 0 100%; width:100%; height:100%; border-radius:20px; overflow:hidden;}
+    #carousel-track .c-slide .c-img{object-fit:contain !important; object-position:center; background:#071018; padding:0; border-radius:20px;}
     #carousel-track .c-slide:not(:first-child){display:none;}
     #carousel-track .c-slide > .c-img{display:block !important; width:100%; height:100%; object-fit:contain; background:#071018;}
     #carousel-track .c-slide-default{display:block !important;}
@@ -192,7 +193,11 @@ nav.site-nav .green { color: var(--accent); }
 /* ════════��══════��══════════════════════════════════════════════
    BUTTONS
    ══���═══════════════════════════════════════════════════════════ */
-  button, a[role="button"], .btn-primary, .pg-btn, .primary, .admin-heading button { transition: transform .18s ease, opacity .18s ease, box-shadow .18s ease; }
+  @keyframes v0FadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+  body > *, main > *, main section, .carousel, .flash, .pointgo-flash-section, .pointgo-deal-card, .product-card, .game-card, .game-list a, .pg-tab, .filter-scroll button, .site-footer, form, .card, .panel { animation:v0FadeIn .5s ease both; }
+  button, a[role="button"], .btn-primary, .pg-btn, .primary, .admin-heading button, .pg-tab, .filter-scroll button { transition:transform .18s ease, opacity .18s ease, box-shadow .18s ease; }
+  button:active:not(:disabled), a:active, .btn-primary:active, .pg-btn:active, .pg-tab:active, .filter-scroll button:active { transform:scale(.96); opacity:.82; }
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;scroll-behavior:auto !important;transition-duration:.01ms !important;}}
   button:hover:not(:disabled), a[role="button"]:hover, .btn-primary:hover, .pg-btn:hover, .primary:hover, .admin-heading button:hover { transform: scale(1.06); }
   button:focus-visible, a[role="button"]:focus-visible, .btn-primary:focus-visible, .pg-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
   .pg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 800; font-size: 13.5px; border-radius: var(--radius-sm); padding: 12px 22px; border: none; transition: transform .12s ease, opacity .12s ease; }
