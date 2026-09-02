@@ -78,8 +78,8 @@
 <script>
 function toggleSidebar(open) {
   document.getElementById('pg-sidebar').classList.toggle('open', open);
-  document.getElementById('pg-sidebar-overlay').classList.toggle('open', open);
-  document.body.style.overflow = open ? 'hidden' : '';
+  document.getElementById('pg-sidebar-overlay').classList.toggle('open', false);
+  document.body.style.overflow = '';
 }
 // Search: enter untuk cari (redirect ke homepage dengan query filter produk)
 document.getElementById('pg-search-input')?.addEventListener('keydown', function(e) {

@@ -231,14 +231,15 @@
         .modal-sheet::-webkit-scrollbar { width:3px; }
         .modal-sheet::-webkit-scrollbar-thumb { background:#16323D; }
 
-        /* ── Side drawer ── */
-        .side-drawer {
-            position:absolute; right:0; top:0; bottom:0;
-            width:280px; background:var(--bg-card);
-            border-left:1px solid var(--border);
-            overflow-y:auto;
-            animation:slideRight .22s ease both;
-        }
+  /* ── PointGo mobile dropdown: expands below the header and pushes content down ── */
+  .pointgo-menu-dropdown { position:relative; width:100%; background:#0b1117; border-bottom:1px solid rgba(255,255,255,.06); }
+  .pointgo-menu-dropdown .side-drawer { position:relative; right:auto; top:auto; bottom:auto; width:100%; max-height:none; background:#0b1117; border:0; overflow:visible; animation:slideDown .28s ease both; }
+  .pointgo-menu-dropdown .side-drawer > div:first-child { min-height:52px; padding:10px 16px; }
+  .pointgo-menu-dropdown .side-drawer > div:first-child button { display:none; }
+  .pointgo-menu-dropdown .side-drawer > div:nth-child(2) { display:none; }
+  .pointgo-menu-dropdown .side-drawer > div.p-3 { padding:10px 12px 14px; }
+  .pointgo-menu-dropdown .side-drawer > div.p-3 > a { min-height:36px; padding:8px 12px; border-radius:7px; }
+  @media(min-width:768px){ .pointgo-menu-dropdown { display:none !important; } }
 
         /* ── Payment modal ── */
         #paymentModal { position:fixed !important; z-index:99999 !important; }
@@ -429,8 +430,8 @@
     </div>
 
     <!-- ══ MENU DRAWER ══ -->
-    <div id="menu-drawer" class="fixed inset-0" style="display:none;z-index:8000;">
-        <div id="menu-drawer-overlay" onclick="closeMenu()" class="absolute inset-0" style="background:rgba(0,0,0,.7);animation:fadeIn .2s ease;"></div>
+    <div id="menu-drawer" class="pointgo-menu-dropdown" style="display:none;">
+        <div id="menu-drawer-overlay" onclick="closeMenu()" class="hidden"></div>
         <div class="side-drawer" id="menu-drawer-content">
 
             <!-- Header -->
@@ -617,7 +618,6 @@
         d.style.animation = 'none';
         void d.offsetWidth;
         d.style.animation = 'slideDown .28s ease both';
-        document.body.classList.add('no-scroll');
     }
     function closeMenu() { _closeMenu(); }
 

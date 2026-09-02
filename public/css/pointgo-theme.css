@@ -72,10 +72,14 @@ nav.site-nav .green { color: var(--accent); }
 .nav-spacer { flex: 1; }
 
 /* Sidebar mobile (dipakai untuk hamburger di layar sempit) */
-.pg-sidebar-overlay { position: fixed; inset: 0; background: rgba(4,8,13,0.7); z-index: 60; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
-.pg-sidebar-overlay.open { opacity: 1; pointer-events: auto; }
-  .pg-sidebar { position: fixed; top: 0; left: 0; right: 0; width: 100%; max-width: none; max-height: 85vh; background: var(--panel); z-index: 61; transform: translateY(-110%); transition: transform .3s ease; display: flex; flex-direction: column; box-shadow: 0 18px 40px rgba(0,0,0,.45); }
-  .pg-sidebar.open { transform: translateY(0); }
+  .pg-sidebar-overlay { display:none !important; }
+  .pg-sidebar { position:relative; top:auto; left:auto; right:auto; width:100%; max-width:none; max-height:0; overflow:hidden; background:#0c1218; z-index:10; transform:none; opacity:0; transition:max-height .32s ease, opacity .2s ease; display:flex; flex-direction:column; box-shadow:none; }
+  .pg-sidebar.open { max-height:560px; opacity:1; overflow-y:auto; }
+  .pg-sidebar-head { display:none; }
+  .pg-sidebar-nav { display:flex; flex-direction:column; gap:0; padding:8px 10px 12px; }
+  .pg-sidebar-link { min-height:38px; padding:8px 14px; font-size:12px; letter-spacing:.01em; }
+  .pg-sidebar-divider, .pg-sidebar-foot { display:none; }
+  .pg-sidebar-link:hover { background:#16202a; }
   .flash-title h1, .flash-title strong, .pg-tab.active, .nominal b, .deal-body b { font-weight: 800; font-style: italic; }
   .deal-grid { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 14px; padding: 16px; background: rgba(24,24,27,.4); border-radius: 1rem; }
   .deal-grid::-webkit-scrollbar { display: none; }
@@ -184,7 +188,7 @@ nav.site-nav .green { color: var(--accent); }
 
 /* ══════════════════════════════════════════════════════════════
    BUTTONS
-   ══════════════════════════════════════════════════════════════ */
+   ══���═══════════════════════════════════════════════════════════ */
 .pg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 800; font-size: 13.5px; border-radius: var(--radius-sm); padding: 12px 22px; border: none; transition: transform .12s ease, opacity .12s ease; }
 .pg-btn:active { transform: scale(0.97); }
 .pg-btn-primary { background: var(--accent); color: #08130a; }
