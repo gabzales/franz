@@ -504,7 +504,7 @@
                 </a>
                 <% } %>
 
-                <% if (!isAdmin) { %>
+                <% if (false && !isAdmin) { %>
                     <% if (typeof user !== 'undefined' && user && user.is_reseller) { %>
                     <a href="/reseller" onclick="closeMenu()" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold" style="color:#fbbf24;">
                         <iconify-icon icon="mdi:crown" style="font-size:18px;"></iconify-icon>
