@@ -98,13 +98,22 @@ nav.site-nav .green { color: var(--accent); }
   .pointgo-flash-dots { display:flex; justify-content:center; gap:5px; margin-top:10px; }
   .pointgo-flash-dots i { width:6px; height:6px; border-radius:50%; background:#64748b; }
   .pointgo-flash-dots i:first-child { background:#a3e635; box-shadow:0 0 7px #a3e635; }
-  .pointgo-flash-section { max-width:1180px; margin:0 auto; padding:22px 16px 8px; }
+  #carousel-wrap::after{content:'';position:absolute;left:0;bottom:0;width:110px;height:110px;background:#13D8FF;clip-path:polygon(0 100%,100% 100%,0 0);opacity:.16;pointer-events:none;z-index:3;}
+  .pointgo-flash-section { max-width:1180px; margin:0 auto; padding:22px 16px 8px; position:relative; }
+  .pointgo-flash-section::before{content:'';position:absolute;left:-4px;top:42px;width:70px;height:70px;background:#13D8FF;clip-path:polygon(0 0,100% 0,0 100%);opacity:.12;pointer-events:none;}
+  .pointgo-flash-section::after{content:'';position:absolute;right:-4px;bottom:0;width:82px;height:82px;background:#13D8FF;clip-path:polygon(100% 0,100% 100%,0 100%);opacity:.12;pointer-events:none;}
+  #purchase-toast, #purchase-notif-container {display:none !important;}
+  .pointgo-countdown iconify-icon{color:#ef4444 !important; filter:none !important; text-shadow:none !important;}
+  iconify-icon{filter:none !important; text-shadow:none !important;}
+  .c-dot.active{box-shadow:none !important; animation:none !important;}
   .pointgo-section-shell { width:100%; }
   .pointgo-flash-heading { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
   .pointgo-flash-heading h2 { margin:0; color:#13D8FF; font-size:clamp(20px,4vw,30px); font-weight:900; font-style:italic; text-transform:uppercase; }
   .pointgo-countdown { display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:999px; background:#071016; border:1px solid #a3e635; color:#a3e635; font-size:10px; font-weight:800; }
   .pointgo-flash-viewport { overflow:hidden; border-radius:16px; background:rgba(24,24,27,.4); padding:16px; }
-  .pointgo-flash-track { display:flex; flex-wrap:nowrap; gap:12px; width:max-content; animation:pointgoFlash 32s linear infinite; }
+  .pointgo-flash-track { display:flex; flex-wrap:nowrap; gap:12px; width:max-content; animation:pointgoFlash 14s ease-in-out infinite; will-change:transform; }
+  .pointgo-flash-track > .pointgo-deal-card:nth-child(n+3){display:none;}
+  @media(min-width:700px){.pointgo-flash-track > .pointgo-deal-card:nth-child(n+3){display:block;}}
   .pointgo-flash-viewport:hover .pointgo-flash-track { animation-play-state:paused; }
   .pointgo-deal-card { width:148px; flex:0 0 148px; overflow:hidden; border-radius:12px; background:#161c24; border:1px solid rgba(71,85,105,.8); color:#fff; text-decoration:none; }
   .pointgo-deal-art { height:118px; position:relative; overflow:hidden; background:#0f1720; }
@@ -143,6 +152,11 @@ nav.site-nav .green { color: var(--accent); }
   #leaderboard-home, #leaderboard-home ~ section {display:none !important;}
   #games .product-card .flex.justify-between.items-center {display:none !important;}
   #games .product-card .btn-primary {display:none !important;}
+  #games .product-card .card-img-wrap, #games .product-card .card-img-wrap img {border-radius:0 !important;}
+  #games .product-card .card-img-wrap img {filter:none !important; box-shadow:none !important;}
+  #games .product-card::after {display:none !important;}
+  #games .product-card h3 {color:#f1f5f9 !important; font-family:Inter,sans-serif !important; font-size:11px !important; font-style:italic; font-weight:800;}
+  #games .product-card .price, #games .product-card [class*="price"], #games .product-card .nominal, #games .product-card del {display:none !important;}
   .pointgo-flash-heading h2, #games h2 {font-family:Arial Black,Inter,sans-serif;font-style:italic;font-weight:900;letter-spacing:-.04em;}
   @media(min-width:640px){#product-grid .product-card{flex-basis:calc(33.333% - 7px);}}
   @media(min-width:900px){#product-grid .product-card{flex-basis:calc(25% - 8px);}}

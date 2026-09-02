@@ -590,7 +590,7 @@ const pageTitle = 'Beranda';
 </footer>
 
 <!-- REAL-TIME PURCHASE NOTIFICATION TOAST -->
-<div id="purchase-toast" class="purchase-toast">
+<div id="purchase-toast" class="purchase-toast" hidden>
     <div class="pt-icon">
         <iconify-icon icon="mdi:lightning-bolt" style="font-size:20px;color:#05070B;"></iconify-icon>
     </div>
@@ -1056,6 +1056,5 @@ const pageTitle = 'Beranda';
         }
     }
 
-    loadPurchaseNotifs();
-    setInterval(loadPurchaseNotifs, 10000); // polling tiap 10 detik supaya transaksi baru langsung muncul (near real-time)
+    // Purchase notifications disabled by product direction.
 </script>
