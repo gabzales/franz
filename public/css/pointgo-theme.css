@@ -16,8 +16,8 @@
   --panel: #18232d;
   --panel-soft: #121b24;
   --line: #35424c;
-  --accent: #2F6FED;
-  --accent-dim: #1d4ed8;
+  --accent: #13D8FF;
+  --accent-dim: #1FD9FF;
   --orange: #f08313;
   --text: #f4f6f8;
   --muted: #89939c;
@@ -74,8 +74,24 @@ nav.site-nav .green { color: var(--accent); }
 /* Sidebar mobile (dipakai untuk hamburger di layar sempit) */
 .pg-sidebar-overlay { position: fixed; inset: 0; background: rgba(4,8,13,0.7); z-index: 60; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
 .pg-sidebar-overlay.open { opacity: 1; pointer-events: auto; }
-.pg-sidebar { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; max-width: 85vw; background: var(--panel); z-index: 61; transform: translateX(100%); transition: transform .3s ease; display: flex; flex-direction: column; }
-.pg-sidebar.open { transform: translateX(0); }
+  .pg-sidebar { position: fixed; top: 0; left: 0; right: 0; width: 100%; max-width: none; max-height: 85vh; background: var(--panel); z-index: 61; transform: translateY(-110%); transition: transform .3s ease; display: flex; flex-direction: column; box-shadow: 0 18px 40px rgba(0,0,0,.45); }
+  .pg-sidebar.open { transform: translateY(0); }
+  .flash-title h1, .flash-title strong, .pg-tab.active, .nominal b, .deal-body b { font-weight: 800; font-style: italic; }
+  .deal-grid { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 14px; padding: 16px; background: rgba(24,24,27,.4); border-radius: 1rem; }
+  .deal-grid::-webkit-scrollbar { display: none; }
+  .deal { flex: 0 0 190px; }
+  .deal-grid { animation: dealAutoSwipe 26s linear infinite; }
+  .deal-grid:hover, .deal-grid:focus-within { animation-play-state: paused; }
+  @keyframes dealAutoSwipe { 0%, 18% { transform: translateX(0); } 82%, 100% { transform: translateX(-18%); } }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: translateY(0); } }
+  .side-drawer { position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; max-height: 90vh; overflow-y: auto; transform: translateY(-110%); }
+  .side-drawer[style*="animation"] { transform: translateY(0); }
+  .game-list { display: flex; flex-wrap: wrap; justify-content: center; }
+  .game-list a { flex: 0 1 calc(33.333% - 12px); min-width: 100px; }
+  .game-list span { background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.92) 100%); font-weight: 800; font-style: italic; }
+  .flash, .game-strip { max-width: 1180px; }
+  @media (min-width: 640px) { .game-list a { flex-basis: calc(25% - 12px); } }
+  @media (min-width: 900px) { .game-list a { flex-basis: calc(16.666% - 12px); } }
 .pg-sidebar-head { padding: 18px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
 .pg-sidebar-nav { padding: 8px 0; overflow-y: auto; flex: 1; }
 .pg-sidebar-link { display: flex; align-items: center; gap: 12px; padding: 13px 20px; font-size: 14px; font-weight: 600; color: var(--text); }
@@ -181,7 +197,10 @@ footer.site-footer { background: var(--panel-soft); padding: 40px 0 0; margin-to
 .footer-social a { width: 32px; height: 32px; border-radius: 50%; background: var(--panel); display: flex; align-items: center; justify-content: center; color: #fff; }
 .footer-payment { max-width: 1180px; margin: 0 auto; padding: 0 16px 24px; }
 .footer-payment-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.footer-payment-grid img { height: 22px; background: #fff; border-radius: 4px; padding: 3px 6px; }
+  .footer-payment-grid { align-items: center; }
+  .footer-payment-grid .payment-logo-box { background: #fff; border-radius: 4px; width: 72px; height: 36px; display: flex; align-items: center; justify-content: center; padding: 6px; }
+  .footer-payment-grid .payment-logo-box img { max-width: 100%; max-height: 22px; width: auto; height: auto; object-fit: contain; }
+  .footer-payment-grid img { height: 22px; background: #fff; border-radius: 4px; padding: 3px 6px; }
 .footer-bottom { border-top: 1px solid var(--line); padding: 18px 16px; text-align: center; font-size: 11px; }
 
 /* ══════════════════════════════════════════════════════════════
