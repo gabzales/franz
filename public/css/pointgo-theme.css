@@ -83,6 +83,10 @@ nav.site-nav .green { color: var(--accent); }
   .deal-grid { animation: dealAutoSwipe 26s linear infinite; }
   .dashboard-accent, .dashboard-accent * { color: #13D8FF !important; font-weight: 800; font-style: italic; }
   .dashboard-page h1, .dashboard-page h2, .dashboard-page h3 { color: #13D8FF; font-weight: 800; font-style: italic; }
+  .pointgo-home-search{height:34px;flex:1;min-width:0;max-width:680px;display:flex;align-items:center;gap:7px;padding:0 10px;border-radius:22px;background:#0b1118;color:#64748b;}
+  @media(max-width:639px){#navbar > div > div{gap:6px !important;} #navbar > div > div > a{min-width:92px;} #navbar > div > div > a span{font-size:11px !important;} .pointgo-home-search{display:flex !important; font-size:12px;} .pointgo-home-search input{font-size:10px;} #navbar .relative{display:none !important;} #navbar button{width:30px !important;height:30px !important;} }
+  .pointgo-home-search input{width:100%;border:0;outline:0;background:transparent;color:#fff;font-size:12px;}
+  .pointgo-home-search input::placeholder{color:#64748b;}
   .c-pointgo-brand { color:#fff; font-family:'Orbitron',sans-serif; font-size:clamp(24px,6vw,48px); font-weight:900; letter-spacing:.02em; text-transform:uppercase; text-shadow:0 3px 22px rgba(0,0,0,.8); }
   #popular-products { display:none; }
   .pointgo-flash-section { max-width:1180px; margin:0 auto; padding:22px 16px 8px; }
@@ -109,7 +113,27 @@ nav.site-nav .green { color: var(--accent); }
   #games .game-card span, #games .game-list a span { z-index:2; font-style:italic; font-weight:900; }
   #games .prod-filter, #games .filter-scroll button { font-weight:800; font-style:italic; }
   .site-footer { border-top:4px solid #13D8FF; }
-  @media(max-width:640px){ .pointgo-flash-section{padding-left:10px;padding-right:10px;} .pointgo-deal-card{width:142px;flex-basis:142px;} }
+  @media(max-width:640px){
+    .pointgo-flash-section{padding:18px 10px 6px;}
+    .pointgo-deal-card{width:142px;flex-basis:142px;}
+    #carousel-wrap{height:190px !important; padding:0 7%; overflow:hidden; background:#121212 !important; border:0; box-shadow:none;}
+    #carousel-track{gap:12px; align-items:center;}
+    #carousel-track .c-slide{flex:0 0 86%; width:86%; height:160px; border-radius:16px; overflow:hidden;}
+    #carousel-track .c-slide > .c-img{display:block !important; width:100%; height:100%; object-fit:cover;}
+    #carousel-track .c-slide-default{display:block !important;}
+    #carousel-track .c-slide .c-body{display:none;}
+    #carousel-track .c-slide .c-overlay{background:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.78));}
+    #carousel-dots{bottom:8px;}
+  }
+  #product-grid{display:flex !important; flex-wrap:wrap; justify-content:center; align-items:stretch; gap:10px;}
+  #product-grid .product-card{flex:0 1 calc(50% - 5px); min-width:0;}
+  #product-grid .product-card > div:first-child{height:150px !important;}
+  #product-grid .product-card h3{font-style:italic; font-weight:900;}
+  #product-grid .product-card .badge-tag{border-radius:0 0 7px 0;}
+  #leaderboard-home{display:none !important;}
+  @media(min-width:640px){#product-grid .product-card{flex-basis:calc(33.333% - 7px);}}
+  @media(min-width:900px){#product-grid .product-card{flex-basis:calc(25% - 8px);}}
+
 
   .deal-grid:hover, .deal-grid:focus-within { animation-play-state: paused; }
   @keyframes dealAutoSwipe { 0%, 18% { transform: translateX(0); } 82%, 100% { transform: translateX(-18%); } }

@@ -19,6 +19,12 @@ const pageTitle = 'Beranda';
                 <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;color:#ffffff;letter-spacing:.03em;line-height:1;"><%= settings?.siteName || 'FRANZZSTORE' %></span>
             </a>
 
+            <!-- Search matches PointGo desktop header and remains compact on mobile -->
+            <label class="pointgo-home-search hidden sm:flex" aria-label="Cari game atau voucher">
+                <iconify-icon icon="mdi:magnify"></iconify-icon>
+                <input type="search" placeholder="Cari game atau voucher disini...">
+            </label>
+
             <!-- Desktop links -->
             <div class="hidden md:flex items-center gap-1">
                 <a href="/invoice" class="px-3 py-1.5 rounded-lg text-sm transition-colors" style="color:var(--text-2);" onmouseover="this.style.color='var(--text-1)';this.style.background='rgba(255,255,255,.05)'" onmouseout="this.style.color='var(--text-2)';this.style.background='transparent'">Cek Pesanan</a>
@@ -59,6 +65,8 @@ const pageTitle = 'Beranda';
             <!-- DEFAULT SLIDE -->
             <div class="c-slide flex-shrink-0 relative" id="c-slide-default"
                  style="background:linear-gradient(135deg,#05070B 0%,#130929 55%,#05070B 100%);">
+                <img class="c-img" src="/uploads/banners/banner-1.jpg" alt="Promo FranzzStore" loading="eager">
+                <div class="c-overlay"></div>
                 <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 70% 60% at 15% 50%,rgba(19,216,255,.22) 0%,transparent 70%);animation:bannerPulse 4s ease-in-out infinite;z-index:1;"></div>
                 <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 50% 80% at 85% 50%,rgba(19,216,255,.12) 0%,transparent 70%);animation:bannerPulse 4s 2s ease-in-out infinite;z-index:1;"></div>
                 <div class="absolute inset-0 pointer-events-none" style="background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px);z-index:2;"></div>
@@ -231,7 +239,7 @@ const pageTitle = 'Beranda';
     <div class="pointgo-section-shell">
         <div class="pointgo-flash-heading">
             <h2>FLASH DEAL</h2>
-            <span class="pointgo-countdown"><iconify-icon icon="mdi:clock-outline"></iconify-icon> 00:14:55</span>
+            <span class="pointgo-countdown"><iconify-icon icon="mdi:clock-outline"></iconify-icon> <time id="pointgo-countdown">00:14:55</time></span>
         </div>
         <div class="pointgo-flash-viewport">
             <div class="pointgo-flash-track">
@@ -249,6 +257,14 @@ const pageTitle = 'Beranda';
         </div>
     </div>
 </section>
+<script>
+(function(){
+  const el=document.getElementById('pointgo-countdown'); if(!el) return;
+  let remaining=14*60+55;
+  const tick=()=>{ const m=Math.floor(remaining/60), s=remaining%60; el.textContent=`00:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; if(remaining>0) remaining--; };
+  tick(); setInterval(tick,1000);
+})();
+</script>
 
 <!-- PRODUCTS -->
 <section id="games" class="relative py-10 sm:py-16 border-t border-white/[0.03]">
@@ -350,7 +366,7 @@ const pageTitle = 'Beranda';
 </section>
 
 <!-- LEADERBOARD -->
-<section id="leaderboard-home" class="relative py-12 sm:py-20 border-y border-white/[0.03]">
+<section id="leaderboard-home" class="relative py-12 sm:py-20 border-y border-white/[0.03]" style="display:none !important;">
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-yellow-500/[0.02] rounded-full blur-[120px] pointer-events-none"></div>
     <div class="relative max-w-3xl mx-auto px-3 sm:px-6">
         <div class="text-center mb-8 sm:mb-14">
