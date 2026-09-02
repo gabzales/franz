@@ -7,7 +7,7 @@ const path = require('path');
 let supabase = null;
 let dbCache = {};
 let lastClientInitError = null; // pesan error asli kalau createClient() gagal, supaya bisa ditampilkan ke admin
-const DB_FILES = ['users.json','products.json','transactions.json','testimonials.json','notifications.json','settings.json','keyspool.json','vouchers.json','admin-lock.json'];
+const DB_FILES = ['users.json','products.json','transactions.json','testimonials.json','notifications.json','settings.json','keyspool.json','vouchers.json','admin-lock.json','accounts.json'];
 
 // File yang defaultnya object {} bukan array [] saat cache masih kosong
 const OBJECT_FILES = new Set(['settings.json', 'admin-lock.json']);
@@ -71,12 +71,7 @@ const readLocalBackup = (filename) => {
 
 // TTL tracking: catat kapan terakhir cache di-sync dari Supabase
 const cacheTimestamp = {}; // filename -> timestamp ms
-// 8 detik dirasa terlalu agresif untuk endpoint publik ber-traffic tinggi
-// (tiap 8 detik = full re-fetch blob dari Supabase kalau ada request masuk),
-// dan ini adalah penyebab utama cached-egress free tier kena limit. 60 detik
-// masih cukup responsif untuk data yang di-update lewat admin panel (produk,
-// settings, banner), tapi memangkas jumlah fetch ke Supabase secara drastis.
-const CACHE_TTL = 60000;   // 60 detik
+const CACHE_TTL = 8000;    // 8 detik — cukup cepat untuk konsistensi
 
 const readDB = (filename) => {
   return dbCache[filename] !== undefined
@@ -202,55 +197,15 @@ const seedSupabase = async (client) => {
 
 
 // ── UPLOAD IMAGE ke Supabase Storage ─────────────────────
-// FIX (bug performa 23 Agu 2026 -- PageSpeed: LCP 66 detik di mobile,
-// total payload halaman 14.389 KiB, hampir semuanya gambar / "Improve
-// image delivery: est. savings 14,158 KiB"): sebelumnya TIDAK ADA proses
-// kompres/resize sama sekali -- file yang diupload admin (produk, banner,
-// avatar, QRIS) disimpan & disajikan APA ADANYA. Kalau admin upload foto
-// dari HP (bisa 4000x3000px, beberapa MB), itu langsung jadi beban
-// download tiap pengunjung. Sekarang setiap upload lewat titik ini
-// otomatis: (1) di-resize maks 1600px sisi terpanjang (cukup lebar untuk
-// tampilan produk/banner manapun di situs ini, termasuk retina 2x pada
-// card ~800px), (2) dikonversi ke WebP kualitas 80 (jauh lebih kecil dari
-// PNG/JPG mentah pada kualitas visual yang hampir tidak beda), KECUALI
-// file yang sudah WebP/GIF (GIF animasi dibiarkan apa adanya supaya
-// animasinya tidak hilang -- sharp konversi GIF ke WebP akan flatten ke
-// frame pertama saja).
-const sharp = require('sharp');
-const MAX_IMAGE_DIMENSION = 1600;
-const WEBP_QUALITY = 80;
-
-const compressImage = async (fileBuffer, contentType, originalFilename) => {
-  // GIF dilewati apa adanya (lihat catatan di atas soal animasi).
-  if (contentType === 'image/gif') {
-    return { buffer: fileBuffer, contentType, ext: '.gif' };
-  }
-  try {
-    const compressed = await sharp(fileBuffer)
-      .resize({ width: MAX_IMAGE_DIMENSION, height: MAX_IMAGE_DIMENSION, fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: WEBP_QUALITY })
-      .toBuffer();
-    return { buffer: compressed, contentType: 'image/webp', ext: '.webp' };
-  } catch (err) {
-    // Kalau sharp gagal proses (file korup, format aneh, dll), jangan
-    // gagalkan upload -- kirim file asli daripada admin buntu total.
-    console.error('[uploadImage] Kompres gagal, pakai file asli:', err.message);
-    const fallbackExt = path.extname(originalFilename || '') || '.jpg';
-    return { buffer: fileBuffer, contentType, ext: fallbackExt };
-  }
-};
-
 const uploadImage = async (fileBuffer, filename, contentType) => {
   const client = getClient();
   if (!client) throw new Error('Supabase tidak terkonfigurasi');
 
-  const { buffer, contentType: finalContentType, ext } = await compressImage(fileBuffer, contentType, filename);
-  const baseName = filename.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9.-]/g, '_');
-  const cleanName = `${Date.now()}-${baseName}${ext}`;
+  const cleanName = `${Date.now()}-${filename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
   const { data, error } = await client.storage
     .from('product-images')
-    .upload(cleanName, buffer, {
-      contentType: finalContentType,
+    .upload(cleanName, fileBuffer, {
+      contentType,
       upsert: false
     });
 
@@ -372,4 +327,4 @@ const refreshFromDB = async (filename) => {
   } catch {}
 };
 
-module.exports = { readDB, writeDB, initializeDB, getDbStatus, uploadImage, refreshFromDB, readFresh, readSmart, getClient };
+module.exports = { readDB, writeDB, initializeDB, getDbStatus, uploadImage, refreshFromDB, readFresh, readSmart };

@@ -1,6 +1,6 @@
-# YOOSKY STORE - JSONBin.io + Vercel Deployment Guide
+# ViprneStore - JSONBin.io + Vercel Deployment Guide
 
-Panduan lengkap untuk deploy YOOSKY STORE ke Vercel dengan JSONBin.io sebagai database.
+Panduan lengkap untuk deploy ViprneStore ke Vercel dengan JSONBin.io sebagai database.
 
 ## Tahap 1: Setup JSONBin.io
 
@@ -22,14 +22,14 @@ Panduan lengkap untuk deploy YOOSKY STORE ke Vercel dengan JSONBin.io sebagai da
   "testimonials.json": [],
   "notifications.json": [],
   "settings.json": {
-    "siteName": "YOOSKY STORE",
-    "gamePanelName": "YOOSKY STORE",
-    "about": "YOOSKY STORE menyediakan layanan topup games dan key mod aplikasi premium terbaik #1 indonesia.",
+    "siteName": "ViprneStore",
+    "gamePanelName": "ViprneStore",
+    "about": "ViprneStore menyediakan layanan topup games dan key mod aplikasi premium terbaik #1 indonesia.",
     "marqueeText": "LAYANAN GAME MOD MENU PREMIUM - PROSES CEPAT & AMAN",
     "contact": {
       "whatsapp": "6281235690535",
       "telegram": "HEROO3STORE",
-      "email": "support@yooskystore.com"
+      "email": "support@viprnestore.com"
     },
     "pakasir": {
       "apiKey": "",
@@ -68,7 +68,7 @@ Buat file `.env` di folder backend:
 ```
 NODE_ENV=production
 PORT=3000
-SESSION_SECRET=yooskystore-secret-key-2025-change-this
+SESSION_SECRET=viprnestore-secret-key-2025-change-this
 
 # JSONBin.io
 JSONBIN_API_KEY=your_master_key_here
@@ -87,10 +87,10 @@ ADMIN_PASSWORD=admin123
 # Contact Info
 WHATSAPP_NUMBER=6281235690535
 TELEGRAM_USERNAME=HEROO3STORE
-SUPPORT_EMAIL=support@yooskystore.com
+SUPPORT_EMAIL=support@viprnestore.com
 
 # Site Config
-SITE_NAME=YOOSKY STORE
+SITE_NAME=ViprneStore
 MARQUEE_TEXT=LAYANAN GAME MOD MENU PREMIUM - PROSES CEPAT & AMAN
 ```
 
@@ -121,7 +121,7 @@ Buka http://localhost:3000
 git init
 git add .
 git commit -m "feat: setup JSONBin database dan Vercel deployment"
-git remote add origin https://github.com/username/yooskystore.git
+git remote add origin https://github.com/username/viprnestore.git
 git push -u origin main
 ```
 
@@ -141,7 +141,7 @@ vercel --prod
 
 Saat ditanya:
 - Scope: Pilih akun Vercel kamu
-- Project name: `yooskystore-backend` (atau nama lain)
+- Project name: `viprnestore-backend` (atau nama lain)
 - Root directory: `./backend_fixed` (atau folder root kalau structure berbeda)
 - Build command: npm install
 - Output directory: `.` (root)
@@ -179,7 +179,7 @@ Di Vercel Dashboard → Project Settings → Environment Variables, tambahkan:
 | `NODE_ENV` | `production` | Untuk Vercel |
 
 ### 4. Verifikasi Deployment
-- URL akan berupa: `https://yooskystore-backend.vercel.app`
+- URL akan berupa: `https://viprnestore-backend.vercel.app`
 - Test akses: https://your-vercel-url.vercel.app/login
 - Cek database di JSONBin.io dashboard
 
@@ -231,7 +231,7 @@ Update frontend (Vercel atau server lain) untuk pointing ke backend baru:
 
 ```javascript
 // Ganti di semua API calls
-const API_BASE = 'https://yooskystore-backend.vercel.app';
+const API_BASE = 'https://viprnestore-backend.vercel.app';
 // atau
 const API_BASE = 'https://api.dexxmewastore.my.id'; // custom domain
 ```

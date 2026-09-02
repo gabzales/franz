@@ -1,4 +1,4 @@
-# 📝 Ringkasan Perbaikan Admin Panel - YOOSKY STORE
+# 📝 Ringkasan Perbaikan Admin Panel - ViprneStore
 
 ## 🐛 Masalah yang Ditemukan
 

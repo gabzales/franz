@@ -1,0 +1,162 @@
+<%
+const pageTitle = 'Jual Akun Kamu';
+%>
+
+<!-- NAVBAR -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background:rgba(36,39,43,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);">
+    <div class="max-w-2xl mx-auto px-4">
+        <div class="flex items-center justify-between h-14">
+            <a href="/" class="flex items-center gap-2" style="text-decoration:none;">
+                <% if (settings?.logoUrl) { %>
+                <img src="<%= settings.logoUrl %>" alt="Logo" class="w-auto object-contain flex-shrink-0" style="height:44px;">
+                <% } %>
+            </a>
+            <a href="/jual-beli-akun" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors" style="color:var(--text-2);border:1px solid var(--border);">
+                <iconify-icon icon="mdi:arrow-left" class="text-sm"></iconify-icon> Kembali
+            </a>
+        </div>
+    </div>
+</nav>
+
+<section class="pt-20 pb-24 max-w-2xl mx-auto px-4">
+    <div class="mb-5">
+        <h1 class="font-display font-black text-white leading-tight" style="font-size:clamp(18px,4vw,26px);">Jual Akun Kamu</h1>
+        <p class="text-xs mt-1" style="color:var(--text-2);">Isi detail akun dengan jujur & jelas. Listing akan tayang setelah diverifikasi admin.</p>
+    </div>
+
+    <form id="jualAkunForm" class="card rounded-xl p-5 space-y-4" onsubmit="return false;">
+        <!-- GAME -->
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-1.5 block">GAME</label>
+            <select id="gameInput" required
+                class="w-full px-4 py-3 rounded-xl text-sm text-white outline-none transition-all"
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);">
+                <option value="" disabled selected style="color:#000;">Pilih game</option>
+                <option style="color:#000;">Free Fire</option>
+                <option style="color:#000;">Mobile Legends</option>
+                <option style="color:#000;">PUBG Mobile</option>
+                <option style="color:#000;">Genshin Impact</option>
+                <option style="color:#000;">Valorant</option>
+                <option style="color:#000;">Lainnya</option>
+            </select>
+        </div>
+
+        <!-- TITLE -->
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-1.5 block">JUDUL LISTING</label>
+            <input type="text" id="titleInput" required maxlength="80"
+                class="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/25 outline-none transition-all"
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"
+                onfocus="this.style.borderColor='rgba(19,216,255,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+                placeholder="Contoh: Akun FF Full Skin + 500 Diamond">
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-1.5 block">DESKRIPSI</label>
+            <textarea id="descInput" required rows="5" maxlength="1000"
+                class="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/25 outline-none transition-all resize-none"
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"
+                onfocus="this.style.borderColor='rgba(19,216,255,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+                placeholder="Jelaskan detail akun: rank, item, skin, level, bind, dsb."></textarea>
+        </div>
+
+        <!-- PRICE -->
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-1.5 block">HARGA (RP)</label>
+            <input type="number" id="priceInput" required min="1" step="1"
+                class="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/25 outline-none transition-all"
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"
+                onfocus="this.style.borderColor='rgba(19,216,255,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+                placeholder="Contoh: 150000">
+        </div>
+
+        <!-- WHATSAPP -->
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-1.5 block">NOMOR WHATSAPP</label>
+            <input type="tel" id="waInput" required
+                class="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/25 outline-none transition-all"
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"
+                onfocus="this.style.borderColor='rgba(19,216,255,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+                placeholder="Contoh: 081234567890">
+            <p class="text-[10px] mt-1" style="color:var(--text-3);">Calon pembeli akan menghubungi kamu lewat nomor ini.</p>
+        </div>
+
+        <!-- IMAGES -->
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-1.5 block">FOTO AKUN (MAKS 5)</label>
+            <input type="file" id="imagesInput" accept="image/jpeg,image/png,image/webp" multiple required
+                class="w-full px-4 py-3 rounded-xl text-xs text-white outline-none transition-all file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:cursor-pointer"
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);">
+            <p class="text-[10px] mt-1" style="color:var(--text-3);">Format JPEG/PNG/WebP, maks 4MB per foto. Minimal 1 foto.</p>
+            <div id="imgPreview" class="flex gap-2 mt-2 flex-wrap"></div>
+        </div>
+
+        <button type="button" id="submitBtn" onclick="handleSubmitAkun()"
+            class="btn-primary w-full py-3.5 rounded-2xl text-sm font-black text-white flex items-center justify-center gap-2">
+            <iconify-icon icon="mdi:upload"></iconify-icon> Submit Listing
+        </button>
+    </form>
+</section>
+
+<script>
+document.getElementById('imagesInput').addEventListener('change', function() {
+    const preview = document.getElementById('imgPreview');
+    preview.innerHTML = '';
+    const files = Array.from(this.files).slice(0, 5);
+    files.forEach(file => {
+        const url = URL.createObjectURL(file);
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.cssText = 'width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,0.1);';
+        preview.appendChild(img);
+    });
+});
+
+async function handleSubmitAkun() {
+    const game        = document.getElementById('gameInput').value;
+    const title       = document.getElementById('titleInput').value.trim();
+    const description = document.getElementById('descInput').value.trim();
+    const price       = document.getElementById('priceInput').value;
+    const sellerWa    = document.getElementById('waInput').value.trim().replace(/[\s\-()]/g,'');
+    const files       = document.getElementById('imagesInput').files;
+
+    if (!game)        { showToast('Pilih game dulu!','error'); return; }
+    if (!title)       { showToast('Judul listing wajib diisi!','error'); return; }
+    if (!description) { showToast('Deskripsi wajib diisi!','error'); return; }
+    if (!price || Number(price) <= 0) { showToast('Masukkan harga yang valid!','error'); return; }
+    if (!sellerWa)     { showToast('Masukkan nomor WhatsApp!','error'); return; }
+    if (!/^(\+62|62|0)[0-9]{8,13}$/.test(sellerWa)) { showToast('Format WhatsApp tidak valid!','error'); return; }
+    if (!files || files.length === 0) { showToast('Upload minimal 1 foto akun!','error'); return; }
+    if (files.length > 5) { showToast('Maksimal 5 foto!','error'); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<iconify-icon icon="mdi:loading" class="text-lg animate-spin"></iconify-icon> Mengirim...';
+
+    try {
+        const fd = new FormData();
+        fd.append('game', game);
+        fd.append('title', title);
+        fd.append('description', description);
+        fd.append('price', price);
+        fd.append('sellerWa', sellerWa);
+        Array.from(files).forEach(f => fd.append('images', f));
+
+        const res = await fetch('/jual-beli-akun-jual', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message || 'Listing berhasil disubmit, menunggu verifikasi admin.', 'success');
+            setTimeout(() => { window.location.href = '/dashboard/jual-akun'; }, 1200);
+        } else {
+            showToast(data.message || 'Gagal submit listing.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<iconify-icon icon="mdi:upload"></iconify-icon> Submit Listing';
+        }
+    } catch (e) {
+        showToast('Terjadi kesalahan, coba lagi.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<iconify-icon icon="mdi:upload"></iconify-icon> Submit Listing';
+    }
+}
+</script>

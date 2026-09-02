@@ -1,764 +1,424 @@
 <%
 const pageTitle = 'Beli ' + product.name;
-// SEO (diminta client 22 Agu 2026): description dinamis per-produk, biar
-// tiap halaman /buy/:id punya snippet unik di hasil pencarian Google
-// (bukan cuma pakai deskripsi toko generik yang sama untuk semua produk).
-const pageDescription = `Beli ${product.name} murah & terpercaya di ${settings?.siteName || 'FranzzStore'}. Proses instan, pembayaran QRIS aman. Harga mulai dari Rp ${(product.pricingOptions?.[0]?.price || product.items?.[0]?.p || 0).toLocaleString('id-ID')}.`;
-
-// SEO: Schema.org Product structured data (diminta client 22 Agu 2026) --
-// bikin Google bisa nampilkan rich snippet (harga, ketersediaan stok)
-// langsung di hasil pencarian, bukan cuma teks biasa.
-const schemaMinPrice = product.pricingOptions?.length
-  ? Math.min(...product.pricingOptions.map(o => o.price))
-  : (product.items?.[0]?.p || 0);
-const schemaProduct = {
-  '@context': 'https://schema.org',
-  '@type': 'Product',
-  name: product.name,
-  description: product.description ? product.description.replace(/\n/g, ' ').slice(0, 300) : pageDescription,
-  image: product.image ? (product.image.startsWith('http') ? product.image : siteUrl + product.image) : undefined,
-  offers: {
-    '@type': 'Offer',
-    price: schemaMinPrice,
-    priceCurrency: 'IDR',
-    availability: (product.stockCount > 0) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-    url: siteUrl + '/buy/' + product.id,
-  },
-};
 %>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= pageTitle %></title>
-  <meta name="description" content="<%= pageDescription %>">
-  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
 
-  <!-- SEO: Schema.org Product structured data -->
-  <script type="application/ld+json"><%- safeJson(schemaProduct) %></script>
-
-  <link rel="stylesheet" href="/css/pointgo-theme.css">
-  <script>
-    window.IconifyPreload = <%- iconBundle %>;
-  </script>
-  <script src="/js/iconify-icon.min.js" defer></script>
-
-  <style>
-    /* ══════════════════════════════════════════════════════════════
-       Helper lokal untuk buy page (redesign PointGo 1 Sep 2026).
-       1) pkg-option-label: radio pilihan nominal disembunyikan, yang
-          disorot adalah kartu .nominal-nya (border accent saat checked).
-       2) Utility classes minimal -- dipakai oleh innerHTML string yang
-          di-generate dari JavaScript (showPaymentModal, loadReviews,
-          checkPay, applyVoucher dll). Utility ini "dipetakan" versi
-          gelap-friendly supaya HTML JS itu render rapi di tema PointGo.
-       ══════════════════════════════════════════════════════════════ */
-    .step-heading { display:flex; align-items:center; gap:10px; font-size:13px; color:#fff; font-weight:800; margin:0 0 14px; text-transform:uppercase; letter-spacing:.08em; }
-    .step-heading > b { width:24px; height:24px; border-radius:50%; background:var(--accent); color:#08130a; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
-    .pg-panel { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-md); padding:20px; }
-    .pg-card-tabs { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-md); padding:16px; margin-top:20px; }
-    .pg-wallet-banner { display:flex; align-items:center; justify-content:space-between; gap:12px; background:rgba(240,131,19,.08); border:1px solid rgba(240,131,19,.25); border-radius:var(--radius-md); padding:16px; margin-top:20px; }
-    .pg-wallet-banner > div { display:flex; align-items:center; gap:12px; }
-    .pg-wallet-icon { width:40px; height:40px; border-radius:var(--radius-md); background:rgba(240,131,19,.15); border:1px solid rgba(240,131,19,.3); color:var(--orange); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
-    .pg-wallet-label { font-size:10px; color:var(--muted); }
-    .pg-wallet-balance { font-size:16px; font-weight:900; color:var(--orange); }
-
-    /* kartu nominal -- radio pilihan duration */
+<style>
     .pkg-option-label { display:block; cursor:pointer; }
     .pkg-option-label input[type=radio] { display:none; }
-    .pkg-option-label input[type=radio]:checked + .nominal { border-color:var(--accent); background:rgba(47,111,237,.08); }
-
-    /* input tanpa ikon (data akun) */
-    .pg-input-plain { padding:13px 14px 13px 14px !important; }
-    .pg-textarea { width:100%; background:var(--bg-soft); border:1px solid var(--line); color:#fff; font-size:13px; font-family:'Inter',Arial,sans-serif; border-radius:var(--radius-sm); padding:12px 14px; resize:none; outline:none; }
-    .pg-textarea:focus { border-color:var(--accent); }
-    .voucher-row { display:flex; gap:8px; }
-    .voucher-row .pg-input-wrap { flex:1; }
-
-    .order-summary { background:var(--bg-soft); border:1px solid var(--line); border-radius:var(--radius-md); padding:16px; display:flex; flex-direction:column; gap:10px; font-size:12px; margin-top:16px; }
-    .summary-divider { height:1px; background:var(--line); }
-    .summary-price { font-size:22px; font-weight:900; color:var(--accent); font-family:'Inter',Arial,sans-serif; }
-
-    .rstar-btn { background:none; border:none; font-size:22px; color:#3a4450; cursor:pointer; padding:0 2px; transition:color .15s; }
-    .rstar-btn:hover { color:#eab308; }
-    .game-hero-fallback { width:110px; height:110px; border-radius:var(--radius-md); background:rgba(47,111,237,.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; z-index:1; }
-
-    /* Modal QRIS (bawah, bottom-sheet) */
-    .pg-modal { position:fixed!important; inset:0; z-index:99999; top:0; left:0; right:0; bottom:0; }
-    .pg-modal-overlay { position:absolute; inset:0; background:rgba(0,0,0,.85); backdrop-filter:blur(4px); }
-    .pg-modal-sheet { position:absolute; left:0; right:0; bottom:0; pointer-events:auto; background:var(--panel); border-top:1px solid var(--line); border-radius:18px 18px 0 0; max-height:95dvh; overflow-y:auto; padding-bottom:calc(20px + env(safe-area-inset-bottom)); }
-    .pg-modal-close { width:32px; height:32px; border-radius:10px; background:rgba(255,255,255,.05); border:1px solid var(--line); color:var(--muted); display:flex; align-items:center; justify-content:center; }
-    .pg-modal-close:hover { color:#fff; }
-    .pg-modal-box { background:var(--bg-soft); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px; text-align:center; }
-    .pg-modal-box small { display:block; color:var(--muted); font-size:10px; margin-bottom:4px; }
-    .pg-modal-value { font-size:14px; font-weight:900; color:var(--accent); font-family:monospace; letter-spacing:1px; }
-
-    /* ── Utility classes dipakai HTML hasil generate JS ── */
-    .hidden { display:none !important; }
-    .flex { display:flex; }
-    .flex-col { flex-direction:column; }
-    .flex-1 { flex:1; }
-    .flex-shrink-0 { flex-shrink:0; }
-    .items-center { align-items:center; }
-    .items-start { align-items:flex-start; }
-    .justify-center { justify-content:center; }
-    .justify-between { justify-content:space-between; }
-    .grid { display:grid; }
-    .grid-cols-2 { grid-template-columns:repeat(2,1fr); }
-    .block { display:block; }
-    .inline-block { display:inline-block; }
-    .relative { position:relative; }
-    .absolute { position:absolute; }
-    .inset-0 { inset:0; }
-    .pointer-events-none { pointer-events:none; }
-    .pointer-events-auto { pointer-events:auto; }
-    .backdrop-blur-sm { backdrop-filter:blur(4px); }
-    .overflow-hidden { overflow:hidden; }
-    .object-cover { object-fit:cover; }
-    .cursor-not-allowed { cursor:not-allowed; }
-    .whitespace-nowrap { white-space:nowrap; }
-
-    .gap-0\.5 { gap:2px; }
-    .gap-1 { gap:4px; }
-    .gap-1\.5 { gap:6px; }
-    .gap-2 { gap:8px; }
-    .gap-3 { gap:12px; }
-    .gap-4 { gap:16px; }
-    .gap-5 { gap:20px; }
-    .p-3 { padding:12px; }
-    .p-4 { padding:16px; }
-    .p-5 { padding:20px; }
-    .p-6 { padding:24px; }
-    .px-3 { padding-left:12px; padding-right:12px; }
-    .px-4 { padding-left:16px; padding-right:16px; }
-    .px-5 { padding-left:20px; padding-right:20px; }
-    .py-2 { padding-top:8px; padding-bottom:8px; }
-    .py-2\.5 { padding-top:10px; padding-bottom:10px; }
-    .py-3 { padding-top:12px; padding-bottom:12px; }
-    .py-4 { padding-top:16px; padding-bottom:16px; }
-    .py-8 { padding-top:32px; padding-bottom:32px; }
-    .mt-0\.5 { margin-top:2px; }
-    .mt-1 { margin-top:4px; }
-    .mt-1\.5 { margin-top:6px; }
-    .mt-2 { margin-top:8px; }
-    .mt-3 { margin-top:12px; }
-    .mt-4 { margin-top:16px; }
-    .mt-5 { margin-top:20px; }
-    .mb-0\.5 { margin-bottom:2px; }
-    .mb-1 { margin-bottom:4px; }
-    .mb-1\.5 { margin-bottom:6px; }
-    .mb-2 { margin-bottom:8px; }
-    .mb-3 { margin-bottom:12px; }
-    .mb-4 { margin-bottom:16px; }
-    .mb-5 { margin-bottom:20px; }
-    .my-4 { margin-top:16px; margin-bottom:16px; }
-    .mx-auto { margin-left:auto; margin-right:auto; }
-
-    .w-2 { width:8px; }
-    .w-3 { width:12px; }
-    .w-4 { width:16px; }
-    .w-8 { width:32px; }
-    .w-10 { width:40px; }
-    .w-full { width:100%; }
-    .h-1 { height:4px; }
-    .h-1\.5 { height:6px; }
-    .h-2 { height:8px; }
-    .h-8 { height:32px; }
-    .h-10 { height:40px; }
-    .h-px { height:1px; }
-    .h-full { height:100%; }
-
-    .text-\[9px\] { font-size:9px; }
-    .text-\[10px\] { font-size:10px; }
-    .text-\[11px\] { font-size:11px; }
-    .text-xs { font-size:12px; }
-    .text-sm { font-size:13px; }
-    .text-base { font-size:16px; }
-    .text-lg { font-size:18px; }
-    .text-xl { font-size:20px; }
-    .text-2xl { font-size:24px; }
-    .text-3xl { font-size:30px; }
-    .text-4xl { font-size:36px; }
-    .text-5xl { font-size:48px; }
-    .font-bold { font-weight:700; }
-    .font-semibold { font-weight:600; }
-    .font-black { font-weight:900; }
-    .font-mono { font-family:ui-monospace,monospace; }
-    .leading-tight { line-height:1.25; }
-    .leading-relaxed { line-height:1.6; }
-    .text-center { text-align:center; }
-    .text-right { text-align:right; }
-    .uppercase { text-transform:uppercase; }
-    .line-through { text-decoration:line-through; }
-    .tracking-wider { letter-spacing:.05em; }
-    .transition-colors { transition:color .2s ease, border-color .2s ease, background-color .2s ease; }
-    .transition-all { transition:all .2s ease; }
-    .animate-spin { animation:pg-spin 1s linear infinite; display:inline-block; }
-    @keyframes pg-spin { to { transform:rotate(360deg); } }
-
-    .text-white { color:#fff; }
-    .text-white\/15 { color:rgba(255,255,255,.15); }
-    .text-white\/20 { color:rgba(255,255,255,.2); }
-    .text-white\/25 { color:rgba(255,255,255,.25); }
-    .text-white\/30 { color:rgba(255,255,255,.3); }
-    .text-white\/40 { color:rgba(255,255,255,.4); }
-    .text-white\/50 { color:rgba(255,255,255,.5); }
-    .text-white\/60 { color:rgba(255,255,255,.6); }
-    .text-white\/70 { color:rgba(255,255,255,.7); }
-    .text-zinc-400 { color:#a1a1aa; }
-    .text-zinc-500 { color:#71717a; }
-    .text-zinc-600 { color:#52525b; }
-    .text-zinc-700 { color:#3f3f46; }
-    .text-yellow-400 { color:#fbbf24; }
-    .text-amber-400 { color:#fbbf24; }
-    .text-blue-300 { color:#93c5fd; }
-    .text-blue-400 { color:#60a5fa; }
-    .text-emerald-400 { color:#34d399; }
-    .text-green-400 { color:#4ade80; }
-    .text-red-400 { color:#f87171; }
-
-    .bg-white { background:#fff; }
-    .bg-yellow-400 { background:#eab308; }
-    .bg-blue-600 { background:#2563eb; }
-    .bg-sky-500 { background:#0ea5e9; }
-    .bg-orange-500 { background:#f97316; }
-    .bg-emerald-500 { background:#10b981; }
-    .bg-pink-500 { background:#ec4899; }
-    .bg-black\/85 { background:rgba(0,0,0,.85); }
-    .bg-white\/5 { background:rgba(255,255,255,.05); }
-    .bg-white\/10 { background:rgba(255,255,255,.1); }
-    .bg-white\/15 { background:rgba(255,255,255,.15); }
-    .bg-blue-500\/5 { background:rgba(47,111,237,.05); }
-    .bg-blue-500\/10 { background:rgba(47,111,237,.1); }
-
-    .border { border:1px solid var(--line); }
-    .border-white\/5 { border-color:rgba(255,255,255,.05); }
-    .border-white\/10 { border-color:rgba(255,255,255,.1); }
-    .border-white\/15 { border-color:rgba(255,255,255,.15); }
-    .border-blue-500\/25 { border-color:rgba(47,111,237,.25); }
-    .rounded-lg { border-radius:10px; }
-    .rounded-xl { border-radius:var(--radius-md); }
-    .rounded-2xl { border-radius:16px; }
-    .rounded-full { border-radius:999px; }
-    .rounded-t-2xl { border-radius:16px 16px 0 0; }
-
-    /* kartu ulasan yang dibuat lewat loadReviews */
-    .glass { background:var(--panel-soft); border:1px solid var(--line); border-radius:var(--radius-md); }
-    .glass:hover { border-color:rgba(47,111,237,.25); }
-
-    .btn-ghost { background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:var(--radius-sm); padding:10px 14px; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:600; cursor:pointer; }
-    .btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
+    .pkg-option-label input[type=radio]:checked + .pkg-card {
+        border-color: rgba(19,216,255,0.5) !important;
+        background: rgba(19,216,255,0.08) !important;
+    }
+    .pkg-card {
+        background:var(--bg-hover);
+        border:1px solid var(--border);
+        border-radius:10px;
+        padding:12px 14px;
+        transition:border-color .15s;
+    }
+    .pkg-card:hover { border-color:var(--border-md); }
     .count-up { opacity:1; }
-  </style>
-</head>
-<body>
+</style>
 
-<%- include('../partials/navbar', { active: 'home' }) %>
-
-<!-- ══ PRODUCT HERO ══ -->
-<section class="game-hero">
-  <% if (product.image) { %>
-  <img src="<%= product.image %>" alt="<%= product.name %>" onerror="this.onerror=null;this.src='/uploads/logo-main.png';">
-  <% } else { %>
-  <div class="game-hero-fallback"><iconify-icon icon="mdi:gamepad-variant" style="font-size:44px;"></iconify-icon></div>
-  <% } %>
-  <div class="game-hero-body">
-    <h1><%= product.name %></h1>
-    <div>
-      <% if (product.badge) { %>
-      <span style="background:rgba(240,131,19,.15);color:var(--orange);"><iconify-icon icon="mdi:star" style="font-size:11px;"></iconify-icon> <%= product.badge %></span>
-      <% } %>
-      <!-- FIX (diminta client 22 Agu 2026): label kategori sekarang
-           dinamis dari `categories` (bisa lebih dari satu, bukan cuma
-           Android/iOS/PC hardcode), backward-compat ke data lama
-           (`platforms` array atau `category` string tunggal). -->
-      <% const prodCategories = Array.isArray(product.categories) ? product.categories
-           : (Array.isArray(product.platforms) ? product.platforms
-           : (product.category ? [product.category] : [])); %>
-      <% prodCategories.forEach(cat => { %>
-      <span><iconify-icon icon="mdi:tag-outline" style="font-size:11px;"></iconify-icon> <%= (categoryLabels?.[cat] || cat).toUpperCase() %></span>
-      <% }) %>
-    </div>
-    <p>
-      <iconify-icon icon="mdi:cube-outline"></iconify-icon> v<%= product.version || '1.0' %>
-      <span style="color:var(--line);">|</span>
-      <iconify-icon icon="mdi:fire"></iconify-icon> Terjual <%= (product.sold||0).toLocaleString('id-ID') %>
-    </p>
-  </div>
-</section>
-
-<!-- ══ SHOWCASE & INFORMATION TAB (diminta client 22 Agu 2026,
-     referensi screenshot vipibmstore.com) ══ -->
-<% const desc = parseProductDescription(product.description); %>
-<% const hasShowcase = !!product.videoUrl; %>
-<% const hasInfo = !!(product.compatibility || (product.featureList && product.featureList.length) || desc.paragraphs.length || desc.bullets.length); %>
-<% if (hasShowcase || hasInfo || product.channelUrl) { %>
-<div class="pg-card-tabs">
-  <% if (hasShowcase && hasInfo) { %>
-  <!-- Tab selector: cuma tampil kalau DUA-DUANYA ada isinya. Kalau
-       cuma salah satu, langsung tampilkan tanpa tab (tidak perlu
-       navigasi kalau isinya cuma 1 section). -->
-  <div class="tabs">
-    <button onclick="switchProductTab('showcase')" id="tabBtnShowcase" class="active">
-      <iconify-icon icon="mdi:play-circle"></iconify-icon> SHOWCASE
-    </button>
-    <button onclick="switchProductTab('info')" id="tabBtnInfo">
-      <iconify-icon icon="mdi:information"></iconify-icon> INFORMATION
-    </button>
-  </div>
-  <% } %>
-
-  <% if (hasShowcase) { %>
-  <div id="tabPaneShowcase">
-    <% const ytMatch = product.videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/); %>
-    <% if (ytMatch) { %>
-    <div style="position:relative;padding-top:56.25%;border-radius:10px;overflow:hidden;background:#000;">
-      <iframe src="https://www.youtube.com/embed/<%= ytMatch[1] %>" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen loading="lazy"></iframe>
-    </div>
-    <% } else { %>
-    <video src="<%= product.videoUrl %>" controls style="width:100%;border-radius:10px;background:#000;max-height:360px;"></video>
-    <% } %>
-  </div>
-  <% } %>
-
-  <% if (hasInfo) { %>
-  <div id="tabPaneInfo" style="<%= hasShowcase ? 'display:none;' : '' %>margin-top:14px;">
-    <% if (product.compatibility) { %>
-    <div class="mb-3">
-      <div class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color:#eab308;">System Compatibility:</div>
-      <p class="text-xs text-zinc-400"><%= product.compatibility %></p>
-    </div>
-    <% } %>
-    <% if (product.featureList && product.featureList.length) { %>
-    <div class="mb-3">
-      <div class="text-[10px] font-bold uppercase tracking-wider mb-2" style="color:#eab308;">Feature List:</div>
-      <div class="flex-col" style="display:flex;gap:4px;">
-        <% product.featureList.forEach(feat => { %>
-        <div class="flex items-start" style="gap:8px;">
-          <span class="text-zinc-500" style="font-size:8px;margin-top:3px;">&#9679;</span>
-          <span class="text-xs text-zinc-400"><%= feat %></span>
+<!-- NAVBAR -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background:rgba(5,7,11,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);">
+    <div class="max-w-3xl mx-auto px-4">
+        <div class="flex items-center justify-between h-14">
+            <a href="/" class="flex items-center gap-2" style="text-decoration:none;">
+                <% if (settings?.logoUrl) { %>
+                <img src="<%= settings.logoUrl %>" alt="<%= settings?.siteName || 'FRANZZSTORE' %>" class="w-auto object-contain flex-shrink-0" style="height:44px;">
+                <% } else { %>
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--blue);">
+                    <iconify-icon icon="mdi:store" style="color:#fff;font-size:18px;"></iconify-icon>
+                </div>
+                <span style="font-family:'Inter',sans-serif;font-weight:900;font-size:15px;color:#ffffff;letter-spacing:.01em;line-height:1;"><%= settings?.siteName || 'FRANZZSTORE' %></span>
+                <% } %>
+            </a>
+            <a href="/" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors" style="color:var(--text-2);border:1px solid var(--border);" onmouseover="this.style.color='var(--text-1)';this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.color='var(--text-2)';this.style.background='transparent'">
+                <iconify-icon icon="mdi:arrow-left" class="text-sm"></iconify-icon> Kembali
+            </a>
         </div>
-        <% }) %>
-      </div>
     </div>
-    <% } %>
-    <% desc.paragraphs.forEach(p => { %>
-    <p class="text-xs text-zinc-400 leading-relaxed mb-2"><%= p %></p>
-    <% }) %>
-    <% if (desc.bullets.length > 0) { %>
-    <div class="flex-col" style="display:flex;gap:6px;margin-top:8px;">
-      <% desc.bullets.forEach(b => { %>
-      <div class="flex items-center" style="gap:8px;">
-        <iconify-icon icon="mdi:check-circle" style="color:#34d399;font-size:13px;flex-shrink:0;"></iconify-icon>
-        <span class="text-xs text-zinc-400"><%= b %></span>
-      </div>
-      <% }) %>
-    </div>
-    <% } %>
-  </div>
-  <% } %>
+</nav>
 
-  <!-- Tombol download -- SATU tombol saja di bawah (diminta client
-       22 Agu 2026), bukan menyebar per-section. -->
-  <% if (product.channelUrl) { %>
-  <div style="margin-top:16px;">
-    <a href="<%= product.channelUrl %>" target="_blank" rel="noopener" class="pg-btn pg-btn-primary pg-btn-block">
-      <iconify-icon icon="mdi:download"></iconify-icon> Download
-    </a>
-  </div>
-  <% } %>
-</div>
-<script>
-function switchProductTab(tab) {
-    const showcaseBtn = document.getElementById('tabBtnShowcase');
-    const infoBtn = document.getElementById('tabBtnInfo');
-    const showcasePane = document.getElementById('tabPaneShowcase');
-    const infoPane = document.getElementById('tabPaneInfo');
-    if (!showcaseBtn || !infoBtn) return; // tidak ada tab (cuma 1 section)
-    const isShowcase = tab === 'showcase';
-    showcaseBtn.classList.toggle('active', isShowcase);
-    infoBtn.classList.toggle('active', !isShowcase);
-    if (showcasePane) showcasePane.style.display = isShowcase ? '' : 'none';
-    if (infoPane) infoPane.style.display = isShowcase ? 'none' : '';
-}
-</script>
-<% } %>
+<div class="min-h-screen pt-16 pb-8 px-4">
+<div class="max-w-3xl mx-auto space-y-4">
 
-<!-- ══ SALDO WALLET (khusus reseller) ══ -->
-<% if (isReseller) { %>
-<div class="pg-wallet-banner">
-  <div>
-    <div class="pg-wallet-icon"><iconify-icon icon="mdi:wallet"></iconify-icon></div>
-    <div>
-      <div class="pg-wallet-label">Saldo Wallet Reseller</div>
-      <div class="pg-wallet-balance" id="walletBalanceShow">Rp <%= (user?.balance||0).toLocaleString('id-ID') %></div>
-    </div>
-  </div>
-  <a href="/dashboard#wallet" class="pg-btn pg-btn-outline" style="flex-shrink:0;">
-    <iconify-icon icon="mdi:plus-circle"></iconify-icon> Top Up
-  </a>
-</div>
-<% } %>
-
-<!-- ══ FORM ORDER: utama (data akun + nominal + kontak) vs aside ══ -->
-<div class="product-layout">
-  <div class="products">
-
-    <!-- ── DATA AKUN GAME (User ID / Zone ID) ── -->
-    <!-- Diminta owner 31 Agu 2026: fokus topup diamond/asset game, jadi
-         field ini WAJIB muncul sebelum pilih nominal -- alur "Data Akun ->
-         Pilih Nominal" (referensi PointGo.id). Hanya tampil kalau produk
-         memang butuh (requiresGameId/requiresZoneId, diatur admin
-         per-produk di Admin Panel > Produk > Edit) -- produk non-game
-         (premium app) tidak menampilkan section ini sama sekali. -->
-    <% if (product.requiresGameId || product.requiresZoneId) { %>
-    <div class="pg-data-akun" style="margin-bottom:18px;">
-      <h2 class="step-heading"><b>1</b> Data Akun</h2>
-      <% if (product.requiresGameId) { %>
-      <div class="pg-field">
-        <label class="pg-field-label" for="gameUserIdInput"><%= product.gameIdLabel || 'User ID' %></label>
-        <input type="text" id="gameUserIdInput" required
-            class="pg-input pg-input-plain"
-            placeholder="<%= product.gameIdPlaceholder || 'Masukkan User ID kamu' %>" maxlength="40">
-      </div>
-      <% } %>
-      <% if (product.requiresZoneId) { %>
-      <div class="pg-field">
-        <label class="pg-field-label" for="gameZoneIdInput"><%= product.zoneIdLabel || 'Zone ID' %></label>
-        <input type="text" id="gameZoneIdInput" required
-            class="pg-input pg-input-plain"
-            placeholder="<%= product.zoneIdPlaceholder || 'Masukkan Zone ID kamu' %>" maxlength="20">
-      </div>
-      <% } %>
-      <p class="pg-data-akun-hint">
-        <iconify-icon icon="mdi:information-outline" style="flex-shrink:0;margin-top:1px;font-size:12px;"></iconify-icon>
-        Pastikan data akun benar. Kesalahan input jadi tanggung jawab pembeli.
-      </p>
-    </div>
-    <% } %>
-
-    <div style="margin-bottom:18px;">
-      <h2 class="step-heading"><b><%= (product.requiresGameId || product.requiresZoneId) ? 2 : 1 %></b> Pilih Durasi</h2>
-      <div class="nominal-grid" id="pkg-grid">
-        <% if (product.items && product.items.length > 0) { %>
-            <% product.items.forEach((item, idx) => { %>
-            <% const itemStock = (item.stok || 0); %>
-            <% const isOutOfStock = itemStock === 0; %>
-            <% const displayPrice = (isReseller && item.reseller_price) ? item.reseller_price : item.p; %>
-            <label class="pkg-option-label" style="<%= isOutOfStock ? 'opacity:0.5;cursor:not-allowed;' : '' %>">
-                <input type="radio" name="pkg" value="<%= idx %>"
-                       onchange="selectPkg('<%= item.l.replace(/'/g, "\\'") %>', <%= displayPrice %>, <%= itemStock %>, <%= item.durationValue||'null' %>, '<%= String(item.durationUnit||'d').replace(/'/g, "\\'") %>')"
-                       <%= idx===0 && !isOutOfStock ? 'checked' : '' %>
-                       <%= isOutOfStock ? 'disabled' : '' %>>
-                <div class="nominal">
-                    <% if (isOutOfStock) { %><small>Habis</small><% } %>
-                    <strong><%= item.l %></strong>
-                    <b>Rp <%= displayPrice.toLocaleString('id-ID') %></b>
-                    <% if (isReseller && item.reseller_price) { %>
-                        <del>Rp <%= item.p.toLocaleString('id-ID') %></del>
-                    <% } else if (item.strike_price && item.strike_price > item.p) { %>
-                        <!-- Harga coret per-durasi (diminta client 22 Agu 2026, referensi screenshot produk "SENJU") -->
-                        <del>Rp <%= item.strike_price.toLocaleString('id-ID') %></del>
+    <!-- ── PRODUCT HEADER ── -->
+    <div class="card rounded-xl overflow-hidden mt-4 fade-in-up">
+        <div class="h-px w-full" style="background:var(--border-md);"></div>
+        <div class="flex items-center gap-3 p-4">
+            <div class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-white/10">
+                <% if (product.image) { %>
+                    <img src="<%= product.image %>" alt="<%= product.name %>" class="w-full h-full object-cover"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="w-full h-full items-center justify-center bg-blue-500/10" style="display:none">
+                        <iconify-icon icon="solar:gamepad-bold" class="text-2xl text-blue-400"></iconify-icon>
+                    </div>
+                <% } else { %>
+                    <div class="w-full h-full flex items-center justify-center bg-blue-500/10">
+                        <iconify-icon icon="solar:gamepad-bold" class="text-2xl text-blue-400"></iconify-icon>
+                    </div>
+                <% } %>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                    <% if (product.badge || product.category) { %>
+                    <span class="badge-tag bg-yellow-500/80 text-black"><%= product.badge || product.category.toUpperCase() %></span>
+                    <% } %>
+                    <% if ((product.platforms||[]).includes('android') && (product.platforms||[]).includes('ios')) { %>
+                        <span class="platform-label">ANDROID</span>
+                        <span class="platform-label">IOS</span>
+                    <% } else if ((product.platforms||[]).includes('android')) { %>
+                        <span class="platform-label">ANDROID</span>
+                    <% } else if ((product.platforms||[]).includes('ios')) { %>
+                        <span class="platform-label">IOS</span>
+                    <% } else if ((product.platforms||[]).includes('pc')) { %>
+                        <span class="platform-label">PC</span>
                     <% } %>
                 </div>
-            </label>
-            <% }) %>
-        <% } %>
-      </div>
+                <h1 class="text-sm font-black text-white font-display leading-tight"><%= product.name %></h1>
+                <div class="text-[10px] text-white/30 mt-0.5">
+                    v<%= product.version || '1.0' %> · Terjual <%= (product.sold||0).toLocaleString('id-ID') %>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- ── KONTAK & PEMBAYARAN ── -->
-    <div class="pg-panel">
-      <h2 class="step-heading"><b><%= (product.requiresGameId || product.requiresZoneId) ? 3 : 2 %></b> Kontak &amp; Pembayaran</h2>
-
-      <!-- WHATSAPP -->
-      <div class="pg-field">
-        <label class="pg-field-label" for="waInput">WHATSAPP</label>
-        <div class="pg-input-wrap">
-          <span class="pg-input-icon"><iconify-icon icon="mdi:whatsapp"></iconify-icon></span>
-          <input type="tel" id="waInput" required
-              class="pg-input"
-              placeholder="08xxxxxxxxxx"
-              value="<%= user?.wa || '' %>" maxlength="15">
+    <!-- ── PILIH DURASI ── -->
+    <div class="fade-in-up">
+        <div class="mb-3">
+            <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40">PILIH DURASI</p>
         </div>
-      </div>
-
-      <!-- NAMA -->
-      <div class="pg-field">
-        <label class="pg-field-label" for="customerName">NAMA</label>
-        <div class="pg-input-wrap">
-          <span class="pg-input-icon"><iconify-icon icon="mdi:account-outline"></iconify-icon></span>
-          <input type="text" id="customerName" required
-              class="pg-input"
-              placeholder="Nama kamu"
-              value="<%= user?.username && !user?.isGuest ? user.username : '' %>" maxlength="60">
+        <div class="grid grid-cols-2 gap-2" id="pkg-grid">
+            <% if (product.items && product.items.length > 0) { %>
+                <% product.items.forEach((item, idx) => { %>
+                <% const itemStock = (item.stok || 0); %>
+                <% const isOutOfStock = itemStock === 0; %>
+                <% const displayPrice = (isReseller && item.reseller_price) ? item.reseller_price : item.p; %>
+                <label class="pkg-option-label" style="<%= isOutOfStock ? 'opacity:0.5;cursor:not-allowed;' : '' %>">
+                    <input type="radio" name="pkg" value="<%= idx %>"
+                           onchange="selectPkg('<%= item.l %>', <%= displayPrice %>, <%= itemStock %>)"
+                           <%= idx===0 && !isOutOfStock ? 'checked' : '' %>
+                           <%= isOutOfStock ? 'disabled' : '' %>>
+                    <div class="pkg-card rounded-2xl p-3">
+                        <div class="text-xs font-semibold text-white/70 mb-0.5">
+                            <%= item.l %>
+                        </div>
+                        <div class="text-sm font-black <%= isReseller && item.reseller_price ? 'text-yellow-400' : 'text-white' %>">
+                            Rp <%= displayPrice.toLocaleString('id-ID') %>
+                        </div>
+                        <% if (isReseller && item.reseller_price) { %>
+                            <div class="text-[9px] text-zinc-500 line-through">Rp <%= item.p.toLocaleString('id-ID') %></div>
+                        <% } %>
+                    </div>
+                </label>
+                <% }) %>
+            <% } %>
         </div>
-      </div>
+    </div>
 
-      <!-- VOUCHER -->
-      <div class="pg-field">
-        <label class="pg-field-label" for="voucherInput">KODE VOUCHER (opsional)</label>
-        <div class="voucher-row">
-          <div class="pg-input-wrap">
-            <span class="pg-input-icon"><iconify-icon icon="mdi:ticket-percent-outline"></iconify-icon></span>
-            <input type="text" id="voucherInput" placeholder="Masukkan kode voucher"
-                class="pg-input uppercase font-mono"
-                maxlength="30" oninput="this.value=this.value.toUpperCase(); clearVoucher()">
-          </div>
-          <button onclick="applyVoucher()" id="voucherBtn"
-              class="pg-btn" style="background:rgba(240,131,19,.15);border:1px solid rgba(240,131,19,.3);color:var(--orange);flex-shrink:0;">
-              Pakai
-          </button>
+    <!-- ── ORDER FORM ── -->
+    <div class="card rounded-xl p-5 space-y-4 fade-in-up">
+        <% if (product.category !== 'akun') { %>
+        <!-- ID SERVER / USER ID -->
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-1.5 block">ID SERVER / USER ID</label>
+            <input type="text" id="gameUserIdInput" required
+                class="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/25 outline-none transition-all"
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"
+                onfocus="this.style.borderColor='rgba(19,216,255,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+                placeholder="Contoh: 123456789 (10)" maxlength="60">
         </div>
-        <div id="voucherStatus" class="hidden" style="margin-top:8px;"></div>
-      </div>
 
-      <!-- ORDER SUMMARY TABLE -->
-      <div class="order-summary">
-        <div class="flex justify-between">
-          <span class="text-zinc-500">Produk</span>
-          <strong style="color:#fff;"><%= product.name %></strong>
+        <!-- NICKNAME -->
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-1.5 block">NICKNAME</label>
+            <input type="text" id="gameNicknameInput" required
+                class="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/25 outline-none transition-all"
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"
+                onfocus="this.style.borderColor='rgba(19,216,255,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+                placeholder="Nickname in-game kamu" maxlength="60">
         </div>
-        <div class="flex justify-between">
-          <span class="text-zinc-500">Durasi</span>
-          <strong style="color:#fff;" id="selectedLabel"><%= product.items?.[0]?.l || '-' %></strong>
-        </div>
-        <div id="voucherRow" class="hidden flex justify-between">
-          <span class="text-zinc-500">Diskon</span>
-          <b class="text-emerald-400" id="discountShow">-</b>
-        </div>
-        <div class="summary-divider"></div>
-        <div class="flex justify-between items-center">
-          <span class="text-zinc-400" style="font-size:13px;font-weight:600;">Total</span>
-          <span class="summary-price" id="totalPrice">
-              Rp <%= ((isReseller && product.items?.[0]?.reseller_price) ? product.items[0].reseller_price : (product.items?.[0]?.p||0)).toLocaleString('id-ID') %>
-          </span>
-        </div>
-        <div id="originalPriceShow" class="hidden text-right text-[10px] text-zinc-500 line-through"></div>
-      </div>
+        <% } %>
 
-      <!-- DOWNLOAD APK BUTTON -->
-      <% if (settings.contact?.downloadUrl) { %>
-      <a href="<%= settings.contact.downloadUrl %>"
-         target="_blank" rel="noopener"
-         class="pg-btn pg-btn-outline pg-btn-block" style="padding:14px;margin-top:16px;">
-          <iconify-icon icon="mdi:download-circle-outline"></iconify-icon>Download APK / Channel FranzzStore
-      </a>
-      <% } %>
+        <!-- WHATSAPP -->
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-1.5 block">WHATSAPP</label>
+            <input type="tel" id="waInput" required
+                class="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/25 outline-none transition-all"
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"
+                onfocus="this.style.borderColor='rgba(19,216,255,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+                placeholder="08xxxxxxxxxx"
+                value="<%= user?.wa || '' %>" maxlength="15">
+        </div>
 
-      <!-- KONFIRMASI / ORDER BUTTON -->
-      <% const hasStock = (product.stockCount || 0) > 0; %>
-      <% if (hasStock) { %>
-          <button id="submitBtn" onclick="handleOrder()"
-              class="pg-btn pg-btn-primary pg-btn-block" style="padding:16px;margin-top:16px;">
-              <% if (isReseller) { %>
-              <iconify-icon icon="mdi:wallet" class="text-lg"></iconify-icon>Beli dengan Saldo
-              <% } else { %>
-              <iconify-icon icon="solar:bag-check-bold" class="text-lg"></iconify-icon>Konfirmasi
-              <% } %>
-          </button>
-          <button onclick="addProductToCart()"
-              class="pg-btn pg-btn-outline pg-btn-block" style="padding:13px;margin-top:10px;">
-              <iconify-icon icon="mdi:cart-plus"></iconify-icon>Simpan ke Keranjang
-          </button>
-      <% } else { %>
-          <button disabled class="pg-btn pg-btn-block" style="margin-top:16px;background:var(--panel);color:var(--muted);cursor:not-allowed;border:1px solid var(--line);">
-              <iconify-icon icon="mdi:close-circle"></iconify-icon>Stok Habis
-          </button>
-      <% } %>
+        <!-- EMAIL / NAMA -->
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-1.5 block">EMAIL</label>
+            <input type="email" id="customerName" required
+                class="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/25 outline-none transition-all"
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"
+                onfocus="this.style.borderColor='rgba(19,216,255,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+                placeholder="email@example.com"
+                value="<%= user?.email || '' %>" maxlength="60">
+        </div>
 
-      <!-- WA CS + CHANNEL WA -->
-      <div class="flex" style="gap:8px;margin-top:10px;">
-        <a href="https://wa.me/<%= settings.contact?.whatsapp || '6285181236886' %>" target="_blank" rel="noopener"
-           class="pg-btn pg-btn-outline flex-1" style="padding:12px;">
-            <iconify-icon icon="mdi:whatsapp" style="color:#4ade80;"></iconify-icon>WA CS
-        </a>
-        <% if (settings.contact?.waChannel) { %>
-        <a href="<%= settings.contact.waChannel %>"
+        <!-- VOUCHER -->
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-1.5 block">KODE VOUCHER (opsional)</label>
+            <div class="flex gap-2">
+                <input type="text" id="voucherInput" placeholder="Masukkan kode voucher"
+                    class="flex-1 px-4 py-3 rounded-xl text-sm text-white placeholder-white/25 outline-none uppercase font-mono transition-all"
+                    style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"
+                    onfocus="this.style.borderColor='rgba(19,216,255,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+                    maxlength="30" oninput="this.value=this.value.toUpperCase(); clearVoucher()">
+                <button onclick="applyVoucher()" id="voucherBtn"
+                    class="px-4 py-3 rounded-xl text-xs font-bold transition-all flex-shrink-0"
+                    style="background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.3);color:#fbbf24;">
+                    Pakai
+                </button>
+            </div>
+            <div id="voucherStatus" class="mt-1.5 hidden"></div>
+        </div>
+
+        <!-- ORDER SUMMARY TABLE -->
+        <div class="rounded-xl p-4 space-y-2 text-xs" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+            <div class="flex justify-between text-white/40">
+                <span>Produk</span>
+                <span class="text-white font-semibold"><%= product.name %></span>
+            </div>
+            <div class="flex justify-between text-white/40">
+                <span>Durasi</span>
+                <span class="text-white font-semibold" id="selectedLabel"><%= product.items?.[0]?.l || '-' %></span>
+            </div>
+            <div id="voucherRow" class="hidden flex justify-between text-white/40">
+                <span>Diskon</span>
+                <span class="text-emerald-400 font-semibold" id="discountShow">-</span>
+            </div>
+            <div class="h-px" style="background:rgba(255,255,255,0.06)"></div>
+            <div class="flex justify-between items-center">
+                <span class="text-white/50 text-sm font-semibold">Total</span>
+                <span class="text-2xl font-display font-black text-blue-300" id="totalPrice">
+                    Rp <%= ((isReseller && product.items?.[0]?.reseller_price) ? product.items[0].reseller_price : (product.items?.[0]?.p||0)).toLocaleString('id-ID') %>
+                </span>
+            </div>
+            <div id="originalPriceShow" class="hidden text-right text-[10px] text-zinc-500 line-through"></div>
+        </div>
+
+        <!-- DOWNLOAD APK BUTTON -->
+        <a href="https://whatsapp.com/channel/<%= settings.contact?.telegram || '0029VbC4ZyhCcW4sLQRefe3s' %>"
            target="_blank" rel="noopener"
-           class="pg-btn pg-btn-outline flex-1" style="padding:12px;">
-            <iconify-icon icon="mdi:send" style="color:#4ade80;"></iconify-icon>Channel WA
+           class="btn-ghost w-full py-3 rounded-xl text-white/70 text-sm font-medium flex items-center justify-center gap-2">
+            <iconify-icon icon="solar:download-minimalistic-bold" class="text-base text-blue-400"></iconify-icon>Download APK / Channel FRANZZSTORE
         </a>
+
+        <!-- KONFIRMASI / ORDER BUTTON -->
+        <% if ((product.keys||[]).length > 0) { %>
+            <button id="submitBtn" onclick="handleOrder()"
+                class="btn-primary w-full py-4 rounded-2xl text-sm font-black text-white flex items-center justify-center gap-2">
+                <iconify-icon icon="solar:bag-check-bold" class="text-lg"></iconify-icon>Konfirmasi
+            </button>
+            <button onclick="addProductToCart()"
+                class="btn-ghost w-full py-3 rounded-xl text-sm font-medium text-white/60 flex items-center justify-center gap-2">
+                <iconify-icon icon="solar:cart-plus-bold" class="text-base text-blue-400"></iconify-icon>Simpan ke Keranjang
+            </button>
+        <% } else { %>
+            <button disabled class="w-full py-4 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 cursor-not-allowed"
+                style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.06);">
+                <iconify-icon icon="solar:close-circle-bold"></iconify-icon>Stok Habis
+            </button>
         <% } %>
-      </div>
-    </div>
-  </div>
 
-  <!-- ── ASIDE: cara order + keamanan ── -->
-  <aside>
-    <h3><iconify-icon icon="mdi:clipboard-text-outline" style="vertical-align:-2px;"></iconify-icon> Cara Order</h3>
-    <ol>
-      <li>Isi data akun game &amp; kontak dengan benar</li>
-      <li>Pilih durasi / nominal paket yang diinginkan</li>
-      <li>Klik <b>Konfirmasi</b> lalu bayar via QRIS</li>
-      <li>Pesanan diproses otomatis setelah pembayaran sukses</li>
-    </ol>
-    <div class="safe">
-      <span><iconify-icon icon="mdi:shield-check-outline"></iconify-icon> Pembayaran 100% Aman</span>
-      <span><iconify-icon icon="mdi:timer-outline"></iconify-icon> Proses Instan Otomatis</span>
-      <span><iconify-icon icon="mdi:lock-check-outline"></iconify-icon> Data Kamu Terlindungi</span>
-      <span><iconify-icon icon="mdi:headset"></iconify-icon> CS Online 24/7</span>
-    </div>
-  </aside>
-</div>
-
-<!-- ══ ULASAN & RATING ══ -->
-<div class="pg-container">
-  <div class="pg-panel" style="margin-top:24px;">
-    <div class="flex items-center justify-between" style="margin-bottom:16px;">
-      <h2 class="flex items-center" style="gap:8px;font-size:14px;color:#fff;font-weight:800;">
-        <iconify-icon icon="mdi:star" style="color:#fbbf24;font-size:16px;"></iconify-icon>
-        Ulasan &amp; Rating
-      </h2>
-      <div class="flex items-center" style="gap:6px;padding:6px 12px;border-radius:12px;background:rgba(240,131,19,.1);border:1px solid rgba(240,131,19,.2);">
-        <iconify-icon icon="mdi:star" style="color:#fbbf24;font-size:12px;"></iconify-icon>
-        <span style="font-size:12px;font-weight:900;color:#fbbf24;" id="avgRatingDisplay">—</span>
-        <span style="font-size:10px;color:var(--muted);" id="reviewCountDisplay"></span>
-      </div>
-    </div>
-
-    <!-- Rating bars -->
-    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px;">
-      <% for(let s=5;s>=1;s--) { %>
-      <div class="flex items-center" style="gap:8px;">
-        <span style="font-size:10px;color:var(--muted);width:12px;"><%= s %></span>
-        <iconify-icon icon="mdi:star" style="color:#eab308;font-size:10px;flex-shrink:0;"></iconify-icon>
-        <div style="flex:1;height:6px;border-radius:999px;background:var(--line);overflow:hidden;">
-          <div id="bar-<%= s %>" style="height:100%;border-radius:999px;background:#eab308;width:0%;transition:width .7s;"></div>
+        <!-- WA CS + TELEGRAM CS -->
+        <div class="flex gap-2">
+            <a href="https://wa.me/<%= settings.contact?.whatsapp || '6285181236886' %>" target="_blank" rel="noopener"
+               class="flex-1 btn-ghost py-3 rounded-xl text-white/60 text-xs font-medium flex items-center justify-center gap-1.5">
+                <iconify-icon icon="solar:chat-round-bold" class="text-sm text-green-400"></iconify-icon>WA CS
+            </a>
+            <a href="https://whatsapp.com/channel/<%= settings.contact?.telegram || '0029VbC4ZyhCcW4sLQRefe3s' %>"
+               target="_blank" rel="noopener"
+               class="flex-1 btn-ghost py-3 rounded-xl text-white/60 text-xs font-medium flex items-center justify-center gap-1.5">
+                <iconify-icon icon="mdi:whatsapp" class="text-sm text-green-400"></iconify-icon>Channel WA
+            </a>
         </div>
-        <span style="font-size:10px;color:var(--muted);width:16px;text-align:right;" id="rcount-<%= s %>">0</span>
-      </div>
-      <% } %>
     </div>
 
-    <!-- Review list -->
-    <div id="reviewsList">
-      <div class="text-center py-6" style="color:rgba(255,255,255,.35);">
-        <iconify-icon icon="mdi:loading" class="animate-spin" style="font-size:24px;color:var(--accent);display:block;margin:0 auto 8px;"></iconify-icon>
-        <p class="text-xs">Memuat ulasan...</p>
-      </div>
+    <!-- ── ULASAN & RATING ── -->
+    <div class="card rounded-xl p-5 fade-in-up">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                <iconify-icon icon="solar:star-bold" class="text-yellow-400 text-base"></iconify-icon>
+                Ulasan & Rating
+            </h2>
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl" style="background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.2);">
+                <iconify-icon icon="solar:star-bold" class="text-yellow-400 text-xs"></iconify-icon>
+                <span class="text-xs font-black text-yellow-400" id="avgRatingDisplay">—</span>
+                <span class="text-[10px] text-white/30" id="reviewCountDisplay"></span>
+            </div>
+        </div>
+
+        <!-- Rating bars -->
+        <div class="space-y-1.5 mb-5">
+            <% for(let s=5;s>=1;s--) { %>
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] text-white/30 w-3"><%= s %></span>
+                <iconify-icon icon="solar:star-bold" class="text-yellow-400 text-[10px] flex-shrink-0"></iconify-icon>
+                <div class="flex-1 h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.06)">
+                    <div class="h-full rounded-full bg-gradient-to-r from-yellow-500 to-yellow-400 transition-all duration-700"
+                         id="bar-<%= s %>" style="width:0%"></div>
+                </div>
+                <span class="text-[10px] text-white/25 w-4 text-right" id="rcount-<%= s %>">0</span>
+            </div>
+            <% } %>
+        </div>
+
+        <!-- Review list -->
+        <div id="reviewsList">
+            <div class="text-center py-6 text-white/20">
+                <iconify-icon icon="mdi:loading" class="text-2xl text-blue-400 animate-spin block mx-auto mb-2"></iconify-icon>
+                <p class="text-xs">Memuat ulasan...</p>
+            </div>
+        </div>
+
+        <div class="h-px my-4" style="background:linear-gradient(to right,transparent,rgba(19,216,255,0.3),transparent)"></div>
+
+        <!-- Write review -->
+        <% if (hasPurchased) { %>
+        <h3 class="text-xs font-bold text-white mb-3 flex items-center gap-2">
+            <iconify-icon icon="solar:pen-new-square-bold" class="text-blue-400"></iconify-icon>
+            Tulis Ulasan Kamu
+        </h3>
+        <div class="flex gap-1 mb-3">
+            <% for(let i=1;i<=5;i++) { %>
+                <button type="button" onclick="setRating(<%= i %>)" id="rstar-<%= i %>"
+                    class="text-2xl text-white/15 transition-colors hover:text-yellow-400">
+                    <iconify-icon icon="solar:star-bold"></iconify-icon>
+                </button>
+            <% } %>
+        </div>
+        <textarea id="reviewText"
+            class="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/25 outline-none resize-none mb-2 transition-all"
+            style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"
+            onfocus="this.style.borderColor='rgba(19,216,255,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+            rows="3" placeholder="Bagikan pengalaman kamu dengan produk ini..."></textarea>
+        <button onclick="submitReview()"
+            class="btn-ghost w-full py-2.5 rounded-xl text-xs font-bold text-blue-400 flex items-center justify-center gap-2">
+            <iconify-icon icon="solar:plain-bold" class="text-sm"></iconify-icon>Kirim Ulasan
+        </button>
+        <% } else { %>
+        <div class="text-center py-4 px-3 rounded-xl text-xs text-white/40" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+            <iconify-icon icon="solar:lock-keyhole-bold" class="text-lg block mx-auto mb-1.5 text-white/25"></iconify-icon>
+            Hanya pembeli produk ini yang bisa memberikan rating &amp; ulasan.
+        </div>
+        <% } %>
     </div>
 
-    <div style="height:1px;background:var(--line);margin:16px 0;"></div>
-
-    <!-- Write review -->
-    <% if (hasPurchased) { %>
-    <h3 class="flex items-center" style="gap:8px;font-size:12px;color:#fff;font-weight:700;margin-bottom:12px;">
-      <iconify-icon icon="mdi:pencil-outline" style="color:var(--accent);"></iconify-icon>
-      Tulis Ulasan Kamu
-    </h3>
-    <div class="flex" style="gap:4px;margin-bottom:12px;">
-      <% for(let i=1;i<=5;i++) { %>
-          <button type="button" onclick="setRating(<%= i %>)" id="rstar-<%= i %>" class="rstar-btn">
-              <iconify-icon icon="mdi:star"></iconify-icon>
-          </button>
-      <% } %>
-    </div>
-    <textarea id="reviewText"
-        class="pg-textarea"
-        rows="3" placeholder="Bagikan pengalaman kamu dengan produk ini..." style="margin-bottom:10px;"></textarea>
-    <button onclick="submitReview()"
-        class="pg-btn pg-btn-outline pg-btn-block">
-        <iconify-icon icon="mdi:send"></iconify-icon>Kirim Ulasan
-    </button>
-    <% } else { %>
-    <div class="text-center" style="padding:16px 12px;border-radius:var(--radius-md);font-size:12px;color:var(--muted);background:var(--bg-soft);border:1px solid var(--line);">
-      <iconify-icon icon="mdi:lock-outline" style="font-size:18px;display:block;margin:0 auto 6px;color:var(--muted);"></iconify-icon>
-      Hanya pembeli produk ini yang bisa memberikan rating &amp; ulasan.
-    </div>
-    <% } %>
-  </div>
+</div><!-- max-w -->
 </div>
 
 <!-- PAYMENT MODAL -->
-<div id="paymentModal" class="hidden pg-modal">
-  <div class="pg-modal-overlay" onclick="closePayment()"></div>
-  <div class="pg-modal-sheet">
-    <!-- drag handle -->
-    <div class="flex justify-center" style="padding:10px 0 4px;">
-      <div style="width:40px;height:4px;border-radius:999px;background:rgba(255,255,255,.15);"></div>
+<div id="paymentModal" class="inset-0 hidden" style="position:fixed!important;z-index:99999;top:0;left:0;right:0;bottom:0;">
+    <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" onclick="closePayment()"></div>
+    <div class="absolute inset-0 flex flex-col justify-end pointer-events-none">
+        <div class="pointer-events-auto rounded-t-2xl w-full"
+             style="background:var(--bg-card);border-top:1px solid var(--border);max-height:95dvh;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom));">
+            <!-- top bar -->
+            <div class="h-px w-full" style="background:var(--border-md);"></div>
+            <!-- drag handle -->
+            <div class="flex justify-center pt-3 pb-1"><div class="w-10 h-1 rounded-full bg-white/15"></div></div>
+            <!-- header -->
+            <div class="flex items-center justify-between px-5 py-3 border-b border-white/5">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <iconify-icon icon="mdi:qrcode-scan" class="text-blue-400"></iconify-icon>
+                    Pembayaran QRIS
+                </h3>
+                <button onclick="closePayment()" class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+                    <iconify-icon icon="mdi:close"></iconify-icon>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4">
+                <!-- QR CODE -->
+                <div class="flex flex-col items-center">
+                    <div id="qrCodeWrap" class="flex items-center justify-center" style="min-height:80px;">
+                        <iconify-icon icon="mdi:loading" class="text-4xl text-blue-400 animate-spin"></iconify-icon>
+                    </div>
+                    <p class="text-[10px] text-zinc-500 mt-2">Scan dengan aplikasi mobile banking / e-wallet</p>
+                </div>
+
+                <!-- INFO BARIS -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="rounded-xl p-3 text-center" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07)">
+                        <div class="text-[10px] text-zinc-500 mb-0.5">Kode Pesanan</div>
+                        <div class="text-sm font-mono font-black text-blue-400 tracking-wider" id="orderCodeShow">—</div>
+                    </div>
+                    <div class="rounded-xl p-3 text-center" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07)">
+                        <div class="text-[10px] text-zinc-500 mb-0.5">Total Bayar</div>
+                        <div class="text-sm font-black text-emerald-400" id="payAmountShow">—</div>
+                    </div>
+                </div>
+
+                <!-- TIMER -->
+                <div id="timerWrap" class="hidden rounded-xl p-3 text-center" style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2)">
+                    <div class="text-[10px] text-zinc-500 mb-0.5 flex items-center justify-center gap-1">
+                        <iconify-icon icon="mdi:clock-outline" class="text-yellow-400 text-xs"></iconify-icon>
+                        Batas Waktu Pembayaran
+                    </div>
+                    <div class="text-xl font-black font-bold text-yellow-400" id="timerDisplay">--:--</div>
+                </div>
+
+                <!-- STATUS -->
+                <div id="payStatusRow" class="flex items-center justify-center gap-2 py-2">
+                    <div class="w-2 h-2 rounded-full bg-yellow-400 "></div>
+                    <span class="text-xs text-zinc-400">Menunggu pembayaran...</span>
+                </div>
+
+                <!-- TOMBOL KONFIRMASI MANUAL (static) -->
+                <div id="staticNote" class="hidden text-center rounded-xl p-3" style="background:rgba(19,216,255,.07);border:1px solid rgba(19,216,255,.2)">
+                    <p class="text-xs text-blue-300">Setelah transfer, kirim bukti ke admin via WhatsApp / Telegram</p>
+                    <div class="flex gap-2 mt-2 justify-center">
+                        <a id="waConfirmBtn" href="#" target="_blank"
+                           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white"
+                           style="background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.35)">
+                            <iconify-icon icon="mdi:whatsapp" class="text-green-400 text-sm"></iconify-icon> WhatsApp
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CEK ULANG -->
+                <button id="recheckBtn" onclick="recheckNow()" class="hidden w-full py-2.5 rounded-xl text-xs font-bold text-blue-400 border border-blue-500/25 bg-blue-500/5 hover:bg-blue-500/10 transition-all flex items-center justify-center gap-2">
+                    <iconify-icon icon="mdi:refresh" class="text-sm"></iconify-icon> Cek Status Sekarang
+                </button>
+            </div>
+        </div>
     </div>
-    <!-- header -->
-    <div class="flex items-center justify-between" style="padding:12px 20px;border-bottom:1px solid var(--line);">
-      <h3 class="flex items-center" style="gap:8px;font-size:14px;font-weight:800;color:#fff;">
-        <iconify-icon icon="mdi:qrcode-scan" style="color:var(--accent);"></iconify-icon>
-        Pembayaran QRIS
-      </h3>
-      <button onclick="closePayment()" class="pg-modal-close" aria-label="Tutup">
-        <iconify-icon icon="mdi:close"></iconify-icon>
-      </button>
-    </div>
-
-    <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
-      <!-- QR CODE -->
-      <div class="flex flex-col items-center">
-        <div id="qrCodeWrap" class="flex items-center justify-center" style="min-height:80px;">
-          <iconify-icon icon="mdi:loading" class="animate-spin" style="font-size:36px;color:var(--accent);"></iconify-icon>
-        </div>
-        <p class="text-[10px] text-zinc-500" style="margin-top:8px;">Scan dengan aplikasi mobile banking / e-wallet</p>
-      </div>
-
-      <!-- INFO BARIS -->
-      <div class="grid grid-cols-2" style="gap:8px;">
-        <div class="pg-modal-box">
-          <small>Kode Pesanan</small>
-          <div class="pg-modal-value" id="orderCodeShow">—</div>
-        </div>
-        <div class="pg-modal-box">
-          <small>Total Bayar</small>
-          <div class="pg-modal-value" style="color:#34d399;" id="payAmountShow">—</div>
-        </div>
-      </div>
-
-      <!-- TIMER -->
-      <div id="timerWrap" class="hidden" style="border-radius:var(--radius-md);padding:12px;text-align:center;background:rgba(240,131,19,.08);border:1px solid rgba(240,131,19,.25);">
-        <div class="text-[10px] text-zinc-500 flex items-center justify-center" style="gap:4px;margin-bottom:4px;">
-          <iconify-icon icon="mdi:clock-outline" style="color:#eab308;font-size:12px;"></iconify-icon>
-          Batas Waktu Pembayaran
-        </div>
-        <div id="timerDisplay" style="font-size:22px;font-weight:900;color:#eab308;font-family:monospace;">--:--</div>
-      </div>
-
-      <!-- STATUS -->
-      <div id="payStatusRow" class="flex items-center justify-center" style="gap:8px;padding:8px 0;">
-        <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
-        <span class="text-xs text-zinc-400">Menunggu pembayaran...</span>
-      </div>
-
-      <!-- TOMBOL KONFIRMASI MANUAL (static) -->
-      <div id="staticNote" class="hidden text-center" style="border-radius:var(--radius-md);padding:12px;background:rgba(47,111,237,.1);border:1px solid rgba(47,111,237,.25);">
-        <p class="text-xs" style="color:#93c5fd;">Setelah transfer, kirim bukti ke admin via WhatsApp / Telegram</p>
-        <div class="flex justify-center" style="gap:8px;margin-top:8px;">
-          <a id="waConfirmBtn" href="#" target="_blank"
-             class="pg-btn flex items-center" style="gap:6px;padding:10px 14px;font-size:12px;font-weight:700;color:#fff;background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.35);">
-              <iconify-icon icon="mdi:whatsapp" style="color:#4ade80;font-size:14px;"></iconify-icon> WhatsApp
-          </a>
-        </div>
-      </div>
-
-      <!-- CEK ULANG -->
-      <button id="recheckBtn" onclick="recheckNow()" class="hidden pg-btn pg-btn-outline pg-btn-block">
-        <iconify-icon icon="mdi:refresh"></iconify-icon> Cek Status Sekarang
-      </button>
-    </div>
-  </div>
 </div>
 
-<%- include('../partials/footer') %>
-
 <script>
-    let selPkg = { label:'<%= (product.items?.[0]?.l||"") %>', price:<%= (isReseller && product.items?.[0]?.reseller_price) ? product.items[0].reseller_price : (product.items?.[0]?.p||0) %>, durationValue: <%= product.items?.[0]?.durationValue||'null' %>, durationUnit: '<%= product.items?.[0]?.durationUnit||'d' %>' };
+    // SECURITY: escape HTML sebelum inject ke innerHTML — mencegah stored XSS
+    // dari input user (nama, teks ulasan) yang dirender lewat template string.
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    let selPkg = { label:'<%= (product.items?.[0]?.l||"") %>', price:<%= (isReseller && product.items?.[0]?.reseller_price) ? product.items[0].reseller_price : (product.items?.[0]?.p||0) %> };
     let myRating = 0;
     let payInterval = null;
     let currentRefId = null;
     let appliedVoucher = null;   // { code, discount, finalPrice }
     const PID   = '<%= product.id %>';
     const PNAME = '<%= product.name %>';
-    const IS_RESELLER = <%= isReseller ? 'true' : 'false' %>;
+    const PCATEGORY = '<%= product.category || "" %>';
 
-    function selectPkg(label, price, stock, durationValue, durationUnit) {
-        selPkg = { label, price, stock, durationValue, durationUnit: durationUnit || 'd' };
+    function selectPkg(label, price, stock) {
+        selPkg = { label, price, stock };
         document.getElementById('selectedLabel').textContent = label;
         clearVoucher();
         updateTotalDisplay(price);
@@ -799,7 +459,7 @@ function switchProductTab(tab) {
             const d = await res.json();
             if (d.valid) {
                 appliedVoucher = { code: d.code, discount: d.discount, finalPrice: d.finalPrice };
-                statusEl.innerHTML = `<div class="flex items-center gap-2 text-xs text-emerald-400"><iconify-icon icon="mdi:check-circle" class="text-sm"></iconify-icon> Voucher <strong>${esc(d.code)}</strong> berhasil! Hemat Rp ${d.discount.toLocaleString('id-ID')}</div>`;
+                statusEl.innerHTML = `<div class="flex items-center gap-2 text-xs text-emerald-400"><iconify-icon icon="mdi:check-circle" class="text-sm"></iconify-icon> Voucher <strong>${d.code}</strong> berhasil! Hemat Rp ${d.discount.toLocaleString('id-ID')}</div>`;
                 statusEl.classList.remove('hidden');
                 updateTotalDisplay(selPkg.price);
                 showToast('Voucher berhasil dipakai!', 'success');
@@ -826,22 +486,21 @@ function switchProductTab(tab) {
     }
 
     async function handleOrder() {
-        if (IS_RESELLER) return handleWalletOrder();
-
-        const name = document.getElementById('customerName').value.trim();
-        const wa    = document.getElementById('waInput').value.trim().replace(/[\s\-()]/g,'');
+        const email        = document.getElementById('customerName').value.trim();
+        const wa            = document.getElementById('waInput').value.trim().replace(/[\s\-()]/g,'');
+        const gameUserIdEl   = document.getElementById('gameUserIdInput');
+        const gameNicknameEl = document.getElementById('gameNicknameInput');
+        const gameUserId    = gameUserIdEl ? gameUserIdEl.value.trim() : '';
+        const gameNickname  = gameNicknameEl ? gameNicknameEl.value.trim() : '';
+        if (PCATEGORY !== 'akun') {
+            if (!gameUserId) { showToast('Masukkan ID Server / User ID!','error'); gameUserIdEl.focus(); return; }
+            if (!gameNickname) { showToast('Masukkan Nickname!','error'); gameNicknameEl.focus(); return; }
+        }
         if (!wa)    { showToast('Masukkan nomor WhatsApp!','error'); document.getElementById('waInput').focus(); return; }
         if (!/^(\+62|62|0)[0-9]{8,13}$/.test(wa)) { showToast('Format WhatsApp tidak valid!','error'); return; }
-        if (!name) { showToast('Masukkan nama kamu!','error'); document.getElementById('customerName').focus(); return; }
-
-        // Data akun game (User ID / Zone ID) -- lihat section "DATA AKUN" di
-        // atas, hanya ada di DOM kalau product.requiresGameId/requiresZoneId.
-        const gameUserIdEl = document.getElementById('gameUserIdInput');
-        const gameZoneIdEl = document.getElementById('gameZoneIdInput');
-        const gameUserId = gameUserIdEl ? gameUserIdEl.value.trim() : undefined;
-        const gameZoneId = gameZoneIdEl ? gameZoneIdEl.value.trim() : undefined;
-        if (gameUserIdEl && !gameUserId) { showToast(gameUserIdEl.previousElementSibling.textContent + ' wajib diisi!','error'); gameUserIdEl.focus(); return; }
-        if (gameZoneIdEl && !gameZoneId) { showToast(gameZoneIdEl.previousElementSibling.textContent + ' wajib diisi!','error'); gameZoneIdEl.focus(); return; }
+        if (!email) { showToast('Masukkan email!','error'); document.getElementById('customerName').focus(); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Format email tidak valid!','error'); return; }
+        const name = email;
 
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
@@ -850,11 +509,11 @@ function switchProductTab(tab) {
         try {
             const res  = await fetch('/create-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
                 productId: PID,
-                duration: selPkg.durationValue != null ? selPkg.durationValue : selPkg.label,
-                durationUnit: selPkg.durationUnit || 'd',
+                duration: selPkg.label,
                 customerName: name,
                 wa,
-                gameUserId, gameZoneId,
+                gameUserId,
+                gameNickname,
                 voucherCode: appliedVoucher ? appliedVoucher.code : undefined
             })});
             const data = await res.json();
@@ -871,55 +530,6 @@ function switchProductTab(tab) {
         finally {
             btn.disabled = false;
             btn.innerHTML = '<iconify-icon icon="solar:bag-check-bold" class="text-lg"></iconify-icon> Konfirmasi';
-        }
-    }
-
-    async function handleWalletOrder() {
-        const name = document.getElementById('customerName').value.trim();
-        const wa    = document.getElementById('waInput').value.trim().replace(/[\s\-()]/g,'');
-        if (!wa)    { showToast('Masukkan nomor WhatsApp!','error'); document.getElementById('waInput').focus(); return; }
-        if (!/^(\+62|62|0)[0-9]{8,13}$/.test(wa)) { showToast('Format WhatsApp tidak valid!','error'); return; }
-        if (!name) { showToast('Masukkan nama kamu!','error'); document.getElementById('customerName').focus(); return; }
-
-        const gameUserIdEl = document.getElementById('gameUserIdInput');
-        const gameZoneIdEl = document.getElementById('gameZoneIdInput');
-        const gameUserId = gameUserIdEl ? gameUserIdEl.value.trim() : undefined;
-        const gameZoneId = gameZoneIdEl ? gameZoneIdEl.value.trim() : undefined;
-        if (gameUserIdEl && !gameUserId) { showToast(gameUserIdEl.previousElementSibling.textContent + ' wajib diisi!','error'); gameUserIdEl.focus(); return; }
-        if (gameZoneIdEl && !gameZoneId) { showToast(gameZoneIdEl.previousElementSibling.textContent + ' wajib diisi!','error'); gameZoneIdEl.focus(); return; }
-
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<iconify-icon icon="mdi:loading" class="text-lg animate-spin"></iconify-icon> Memproses...';
-
-        try {
-            const res  = await fetch('/wallet/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-                productId: PID,
-                duration: selPkg.durationValue != null ? selPkg.durationValue : selPkg.label,
-                durationUnit: selPkg.durationUnit || 'd',
-                customerName: name,
-                wa,
-                gameUserId, gameZoneId,
-                voucherCode: appliedVoucher ? appliedVoucher.code : undefined
-            })});
-            const data = await res.json();
-            if (data.success) {
-                showToast('Pembelian berhasil! Key sudah didapat.','success');
-                setTimeout(() => { window.location.href = '/invoice?code=' + data.code; }, 900);
-                return;
-            } else if (data.redirect) {
-                showToast('Silakan login terlebih dahulu','error');
-                setTimeout(() => window.location.href = data.redirect, 1000);
-            } else if (data.message === 'insufficient_balance') {
-                showToast(data.plainMessage || 'Saldo tidak cukup, top up dulu yuk!','error');
-                setTimeout(() => { window.location.href = '/dashboard#wallet'; }, 1400);
-            } else {
-                showToast(data.message||'Gagal melakukan pembelian','error');
-            }
-        } catch(e) { showToast('Koneksi error: ' + e.message,'error'); }
-        finally {
-            btn.disabled = false;
-            btn.innerHTML = '<iconify-icon icon="mdi:wallet" class="text-lg"></iconify-icon> Beli dengan Saldo';
         }
     }
 
@@ -1006,7 +616,7 @@ function switchProductTab(tab) {
             if (diff <= 0) {
                 clearInterval(timerInterval);
                 el.textContent = '00:00';
-                el.style.color = <%- safeJson(settings?.theme?.accentColor || '#60a5fa') %>;
+                el.style.color = '#f87171';
                 document.getElementById('payStatusRow').innerHTML =
                     '<iconify-icon icon="mdi:clock-alert" class="text-red-400"></iconify-icon>' +
                     '<span class="text-xs text-red-400">Waktu pembayaran habis</span>';
@@ -1015,8 +625,8 @@ function switchProductTab(tab) {
             const m = Math.floor(diff / 60000);
             const s = Math.floor((diff % 60000) / 1000);
             el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
-            // Warna aksen tema kalau < 2 menit (urgensi)
-            el.style.color = diff < 120000 ? <%- safeJson(settings?.theme?.accentColor || '#60a5fa') %> : '#fbbf24';
+            // Warna merah kalau < 2 menit
+            el.style.color = diff < 120000 ? '#f87171' : '#fbbf24';
         }, 1000);
     }
 
@@ -1074,7 +684,7 @@ function switchProductTab(tab) {
         myRating = val;
         for (let i=1;i<=5;i++) {
             const el = document.getElementById(`rstar-${i}`);
-            if (el) el.style.color = i <= val ? '#fbbf24' : '#d4d4d8';
+            if (el) el.style.color = i <= val ? '#fbbf24' : 'rgba(255,255,255,0.15)';
         }
     }
 
@@ -1102,8 +712,6 @@ function switchProductTab(tab) {
         }
     }
 
-    function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-
     async function loadReviews() {
         const el = document.getElementById('reviewsList');
         try {
@@ -1129,17 +737,17 @@ function switchProductTab(tab) {
                 return;
             }
 
-            const avatarGrads = ['bg-blue-600','bg-sky-500','bg-orange-500','bg-emerald-500','bg-pink-500'];
+            const avatarGrads = ['from-blue-600 to-indigo-700','from-blue-500 to-cyan-500','from-red-500 to-orange-500','from-green-500 to-emerald-500','from-pink-500 to-fuchsia-500'];
             el.innerHTML = reviews.slice(0,8).map((r,i) => {
-                const date  = new Date(r.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
-                const name  = esc(r.name||r.username||'Anonymous');
+                const date  = new Date(r.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Jakarta'});
+                const name  = escapeHtml(r.name||r.username||'Anonymous');
                 const starsHtml = Array.from({length:5},(_,si) =>
-                    `<iconify-icon icon="solar:star-bold" style="font-size:10px;color:${si<r.rating?'#fbbf24':'#e4e4e7'};"></iconify-icon>`
+                    `<iconify-icon icon="solar:star-bold" style="font-size:10px;color:${si<r.rating?'#fbbf24':'rgba(255,255,255,0.1)'};"></iconify-icon>`
                 ).join('');
                 return `<div class="glass rounded-xl p-3 mb-2 hover:border-blue-500/20 transition-colors count-up">
                     <div class="flex items-start justify-between gap-2 mb-2">
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-xl ${avatarGrads[i%5]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0">${name.charAt(0).toUpperCase()}</div>
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br ${avatarGrads[i%5]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0">${name.charAt(0).toUpperCase()}</div>
                             <div>
                                 <div class="text-xs font-semibold text-white leading-tight">${name}</div>
                                 <div class="flex items-center gap-0.5 mt-0.5">${starsHtml}${r.verified ? '<iconify-icon icon="solar:verified-check-bold" style="font-size:10px;color:#34d399;margin-left:3px;"></iconify-icon>' : ''}</div>
@@ -1147,7 +755,7 @@ function switchProductTab(tab) {
                         </div>
                         <span class="text-[9px] text-white/25 flex-shrink-0">${date}</span>
                     </div>
-                    <p class="text-[11px] text-white/50 leading-relaxed">"${esc(r.text)}"</p>
+                    <p class="text-[11px] text-white/50 leading-relaxed">"${escapeHtml(r.text)}"</p>
                 </div>`;
             }).join('')
             + (reviews.length>8 ? `<button onclick="loadAllReviews()" class="btn-ghost w-full py-2.5 rounded-xl text-xs text-white/40 flex items-center justify-center gap-1 mt-1">Lihat semua ${reviews.length} ulasan <iconify-icon icon="solar:alt-arrow-down-linear" style="font-size:12px;"></iconify-icon></button>` : '');
@@ -1160,17 +768,17 @@ function switchProductTab(tab) {
         const res = await fetch(`/api/testimonials?product=${encodeURIComponent(PID)}`);
         let reviews = await res.json();
         const el = document.getElementById('reviewsList');
-        const avatarGrads2 = ['bg-blue-600','bg-sky-500','bg-orange-500','bg-emerald-500','bg-pink-500'];
+        const avatarGrads2 = ['from-blue-600 to-indigo-700','from-blue-500 to-cyan-500','from-red-500 to-orange-500','from-green-500 to-emerald-500','from-pink-500 to-fuchsia-500'];
         el.innerHTML = reviews.map((r,i) => {
-            const date  = new Date(r.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
-            const name  = esc(r.name||r.username||'Anonymous');
+            const date  = new Date(r.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Jakarta'});
+            const name  = escapeHtml(r.name||r.username||'Anonymous');
             const starsHtml = Array.from({length:5},(_,si) =>
-                `<iconify-icon icon="solar:star-bold" style="font-size:10px;color:${si<r.rating?'#fbbf24':'#e4e4e7'};"></iconify-icon>`
+                `<iconify-icon icon="solar:star-bold" style="font-size:10px;color:${si<r.rating?'#fbbf24':'rgba(255,255,255,0.1)'};"></iconify-icon>`
             ).join('');
             return `<div class="glass rounded-xl p-3 mb-2 hover:border-blue-500/20 transition-colors count-up">
                 <div class="flex items-start justify-between gap-2 mb-2">
                     <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-xl ${avatarGrads2[i%5]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0">${name.charAt(0).toUpperCase()}</div>
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br ${avatarGrads2[i%5]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0">${name.charAt(0).toUpperCase()}</div>
                         <div>
                             <div class="text-xs font-semibold text-white leading-tight">${name}</div>
                             <div class="flex items-center gap-0.5 mt-0.5">${starsHtml}${r.verified ? '<iconify-icon icon="solar:verified-check-bold" style="font-size:10px;color:#34d399;margin-left:3px;"></iconify-icon>' : ''}</div>
@@ -1178,12 +786,10 @@ function switchProductTab(tab) {
                     </div>
                     <span class="text-[9px] text-white/25 flex-shrink-0">${date}</span>
                 </div>
-                <p class="text-[11px] text-white/50 leading-relaxed">"${esc(r.text)}"</p>
+                <p class="text-[11px] text-white/50 leading-relaxed">"${escapeHtml(r.text)}"</p>
             </div>`;
         }).join('');
     }
 
     document.addEventListener('DOMContentLoaded', loadReviews);
 </script>
-</body>
-</html>

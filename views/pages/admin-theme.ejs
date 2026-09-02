@@ -1,17 +1,13 @@
 <%
 const pageTitle = 'Pengaturan Tema';
-const noIndex = true; // halaman admin, jangan di-index Google
 %>
-<div class="min-h-screen pt-24 pb-20" style="background:var(--bg-main);">
+<div class="min-h-screen bg-gradient-to-br from-[var(--bg-main)] to-[var(--bg-card)] pt-24 pb-20">
   <div class="max-w-2xl mx-auto px-4">
     
     <!-- Header -->
-    <div class="admin-heading flex items-center justify-between mb-6">
-      <div>
-        <small class="block text-xs font-bold uppercase tracking-widest" style="color:var(--accent,#2F6FED);">Admin Panel</small>
-        <h1 class="text-3xl font-black text-white flex items-center gap-2 mt-1"><iconify-icon icon="mdi:cog" style="color:var(--accent,#2F6FED);"></iconify-icon> Pengaturan Tema</h1>
-      </div>
-      <a href="/admin" class="pg-btn pg-btn-outline px-4 py-2 rounded-lg border border-blue-500/25 text-blue-400 hover:bg-blue-500/10 transition-all flex items-center gap-2">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-3xl font-black text-white">⚙️ Pengaturan Tema</h1>
+      <a href="/admin" class="px-4 py-2 rounded-lg border border-blue-500/25 text-blue-400 hover:bg-blue-500/10 transition-all flex items-center gap-2">
         <iconify-icon icon="mdi:arrow-left" class="text-lg"></iconify-icon> Kembali
       </a>
     </div>
@@ -19,13 +15,13 @@ const noIndex = true; // halaman admin, jangan di-index Google
     <!-- Main Card -->
     <div class="neon-card p-6 rounded-xl space-y-6">
       
-      <p class="text-zinc-500 text-sm">Ubah warna tema website. Perubahan akan diterapkan secara real-time ke seluruh halaman.</p>
+      <p class="text-zinc-400 text-sm">Ubah warna tema website. Perubahan akan diterapkan secara real-time ke seluruh halaman.</p>
 
       <!-- Color Inputs Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         
         <div class="space-y-2">
-          <label class="block text-sm font-bold text-zinc-700 flex items-center gap-1.5"><iconify-icon icon="mdi:palette"></iconify-icon> Warna Utama (Primary)</label>
+          <label class="block text-sm font-bold text-zinc-300">🎨 Warna Utama (Primary)</label>
           <div class="flex items-center gap-3">
             <input type="color" id="primaryColor" class="w-16 h-12 rounded-lg cursor-pointer border-2 border-blue-500/25">
             <input type="text" id="primaryValue" class="hm-input flex-1" readonly>
@@ -34,16 +30,16 @@ const noIndex = true; // halaman admin, jangan di-index Google
         </div>
 
         <div class="space-y-2">
-          <label class="block text-sm font-bold text-zinc-700 flex items-center gap-1.5"><iconify-icon icon="mdi:palette-swatch"></iconify-icon> Warna Sekunder</label>
+          <label class="block text-sm font-bold text-zinc-300">💜 Warna Sekunder</label>
           <div class="flex items-center gap-3">
             <input type="color" id="secondaryColor" class="w-16 h-12 rounded-lg cursor-pointer border-2 border-blue-500/25">
             <input type="text" id="secondaryValue" class="hm-input flex-1" readonly>
           </div>
-          <p class="text-xs text-zinc-500">Warna pelengkap untuk elemen sekunder di halaman</p>
+          <p class="text-xs text-zinc-500">Warna gradient & glow</p>
         </div>
 
         <div class="space-y-2">
-          <label class="block text-sm font-bold text-zinc-700 flex items-center gap-1.5"><iconify-icon icon="mdi:auto-fix"></iconify-icon> Warna Aksen</label>
+          <label class="block text-sm font-bold text-zinc-300">✨ Warna Aksen</label>
           <div class="flex items-center gap-3">
             <input type="color" id="accentColor" class="w-16 h-12 rounded-lg cursor-pointer border-2 border-blue-500/25">
             <input type="text" id="accentValue" class="hm-input flex-1" readonly>
@@ -52,7 +48,7 @@ const noIndex = true; // halaman admin, jangan di-index Google
         </div>
 
         <div class="space-y-2">
-          <label class="block text-sm font-bold text-zinc-700 flex items-center gap-1.5"><iconify-icon icon="mdi:image-outline"></iconify-icon> Background</label>
+          <label class="block text-sm font-bold text-zinc-300">🌙 Background</label>
           <div class="flex items-center gap-3">
             <input type="color" id="backgroundColor" class="w-16 h-12 rounded-lg cursor-pointer border-2 border-blue-500/25">
             <input type="text" id="backgroundValue" class="hm-input flex-1" readonly>
@@ -61,7 +57,7 @@ const noIndex = true; // halaman admin, jangan di-index Google
         </div>
 
         <div class="space-y-2">
-          <label class="block text-sm font-bold text-zinc-700 flex items-center gap-1.5"><iconify-icon icon="mdi:card-outline"></iconify-icon> Card Background</label>
+          <label class="block text-sm font-bold text-zinc-300">🎭 Card Background</label>
           <div class="flex items-center gap-3">
             <input type="color" id="cardBackground" class="w-16 h-12 rounded-lg cursor-pointer border-2 border-blue-500/25">
             <input type="text" id="cardValue" class="hm-input flex-1" readonly>
@@ -74,7 +70,7 @@ const noIndex = true; // halaman admin, jangan di-index Google
 
       <!-- Preview Section -->
       <div>
-        <h2 class="text-lg font-bold text-zinc-900 mb-4 flex items-center gap-2">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <iconify-icon icon="mdi:eye" class="text-blue-400 text-xl"></iconify-icon>
           Preview Tema
         </h2>
@@ -82,7 +78,7 @@ const noIndex = true; // halaman admin, jangan di-index Google
         <div id="themePreview" class="p-6 rounded-xl space-y-4" style="background-color: var(--preview-bg); border: 2px solid var(--preview-border);">
           <!-- Header Preview -->
           <div class="flex items-center gap-3 pb-4 border-b" style="border-color: var(--preview-border);">
-            <div class="w-12 h-12 rounded-lg" style="background: var(--preview-primary);"></div>
+            <div class="w-12 h-12 rounded-lg" style="background: linear-gradient(135deg, var(--preview-primary), var(--preview-secondary)); box-shadow: 0 0 20px rgba(45,238,255, 0.3);"></div>
             <div>
               <div class="font-bold text-white">Preview Heading</div>
               <div class="text-sm" style="color: var(--preview-accent);">Subtitle dengan warna aksen</div>
@@ -91,8 +87,8 @@ const noIndex = true; // halaman admin, jangan di-index Google
 
           <!-- Buttons Preview -->
           <div class="flex flex-col gap-2">
-            <button class="w-full py-2 rounded-lg font-bold text-white" style="background: var(--preview-primary);">
-              Tombol Utama
+            <button class="w-full py-2 rounded-lg font-bold text-white" style="background: linear-gradient(135deg, var(--preview-primary), var(--preview-secondary)); box-shadow: 0 0 20px rgba(45,238,255, 0.3);">
+              Tombol Utama (Glow Effect)
             </button>
             <button class="w-full py-2 rounded-lg font-bold border-2" style="border-color: var(--preview-primary); color: var(--preview-primary); background: transparent;">
               Tombol Secondary
@@ -100,8 +96,8 @@ const noIndex = true; // halaman admin, jangan di-index Google
           </div>
 
           <!-- Card Preview -->
-          <div class="p-3 rounded-lg border-2" style="border-color: var(--preview-border); background: var(--preview-bg);">
-            <p class="text-sm text-white">Contoh Card</p>
+          <div class="p-3 rounded-lg border-2" style="border-color: var(--preview-border); background: linear-gradient(135deg, var(--preview-bg), transparent); opacity: 0.8;">
+            <p class="text-sm text-white">Contoh Card dengan Border Glow</p>
           </div>
         </div>
       </div>
@@ -110,23 +106,23 @@ const noIndex = true; // halaman admin, jangan di-index Google
 
       <!-- Preset Colors -->
       <div>
-        <h3 class="text-sm font-bold text-zinc-700 mb-3">Preset Warna</h3>
+        <h3 class="text-sm font-bold text-zinc-300 mb-3">Preset Warna</h3>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <button onclick="applyPreset('purple')" class="p-3 rounded-lg border-2 border-blue-500/25 hover:border-blue-500/50 transition-all hover:bg-blue-500/10">
-            <div class="w-8 h-8 rounded mx-auto mb-2" style="background:#1d4ed8;"></div>
-            <span class="text-xs font-bold text-blue-300">FranzzStore</span>
+            <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-cyan-500 mx-auto mb-2"></div>
+            <span class="text-xs font-bold text-blue-300">Cyan Electric</span>
           </button>
           <button onclick="applyPreset('blue')" class="p-3 rounded-lg border-2 border-blue-500/25 hover:border-blue-500/50 transition-all hover:bg-blue-500/10">
-            <div class="w-8 h-8 rounded mx-auto mb-2" style="background:#3b82f6;"></div>
-            <span class="text-xs font-bold text-blue-300">Sky</span>
+            <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-cyan-500 mx-auto mb-2"></div>
+            <span class="text-xs font-bold text-blue-300">Blue</span>
           </button>
           <button onclick="applyPreset('green')" class="p-3 rounded-lg border-2 border-blue-500/25 hover:border-blue-500/50 transition-all hover:bg-blue-500/10">
-            <div class="w-8 h-8 rounded mx-auto mb-2" style="background:#22c55e;"></div>
+            <div class="w-8 h-8 rounded bg-gradient-to-br from-green-500 to-emerald-500 mx-auto mb-2"></div>
             <span class="text-xs font-bold text-green-300">Green</span>
           </button>
           <button onclick="applyPreset('red')" class="p-3 rounded-lg border-2 border-blue-500/25 hover:border-blue-500/50 transition-all hover:bg-blue-500/10">
-            <div class="w-8 h-8 rounded mx-auto mb-2" style="background:#ef4444;"></div>
-            <span class="text-xs font-bold text-blue-300">Red</span>
+            <div class="w-8 h-8 rounded bg-gradient-to-br from-red-500 to-orange-500 mx-auto mb-2"></div>
+            <span class="text-xs font-bold text-red-300">Red</span>
           </button>
         </div>
       </div>
@@ -149,64 +145,29 @@ const noIndex = true; // halaman admin, jangan di-index Google
 
 <style>
 :root {
-  --preview-primary: #1e3a8a;
-  --preview-secondary: #3b82f6;
-  --preview-accent: #60a5fa;
-  --preview-bg: rgba(21, 21, 24, 0.5);
-  --preview-border: rgba(37, 99, 235, 0.25);
+  --preview-primary: #0E7C93;
+  --preview-secondary: #2DEEFF;
+  --preview-accent: #4CF5FF;
+  --preview-bg: rgba(10,17,24, 0.5);
+  --preview-border: rgba(45,238,255, 0.25);
 }
-/* ══ DARK-BLUE THEME (pointgo) — admin theme settings ══
-   Fragment dibungkus layout.ejs (tema terang). Blok ini memaksa palet
-   gelap-biru dengan mendefinisikan ulang variable layout + me-remap class
-   utility. --preview-* tetap dipakai JS untuk preview swatch di atas.
-   Semua id/name/onclick/fetch & logika JS di bawah TIDAK diubah. */
-:root, html.dark {
-  --bg-main: #080e14;
-  --bg-section: #0a1016;
-  --bg-card: #18232d;
-  --bg-hover: #121b24;
-  --border: #35424c;
-  --border-md: #495760;
-  --text-1: #f4f6f8;
-  --text-2: #aab2ba;
-  --text-3: #89939c;
-  --blue: #2F6FED;
-}
-body { background: var(--bg-main) !important; color: var(--text-1) !important; }
-.neon-card { background: var(--panel,#18232d) !important; border: 1px solid var(--line,#35424c) !important; border-radius: var(--radius-lg,18px) !important; box-shadow: 0 8px 28px rgba(0,0,0,.35) !important; }
-.text-zinc-900 { color: #f4f6f8 !important; }
-.text-zinc-700 { color: #d3d9de !important; }
-.text-zinc-500 { color: #89939c !important; }
-.text-zinc-600 { color: #84909b !important; }
-.text-white { color: #f4f6f8 !important; }
-.text-blue-400 { color: #6ea8ff !important; }
-.text-blue-300 { color: #93b8ff !important; }
-.text-green-300 { color: #6ee7b7 !important; }
-.border-blue-500\/25 { border-color: rgba(47,111,237,.3) !important; }
-.hover\:border-blue-500\/50:hover { border-color: rgba(47,111,237,.55) !important; }
-.hover\:bg-blue-500\/10:hover { background: rgba(47,111,237,.18) !important; }
-.hm-input { background: var(--bg-section) !important; border-color: var(--border) !important; color: var(--text-1) !important; }
-.hm-input:focus { border-color: var(--accent,#2F6FED) !important; background: rgba(47,111,237,.1) !important; }
-.btn-gaming { background: var(--accent,#2F6FED) !important; color: #08130a !important; }
-.btn-gaming:hover { opacity: .9; }
-input[type="color"] { background: var(--bg-section) !important; }
 </style>
 
 <script>
 const presets = {
   purple: {
-    primaryColor: '#2563eb',
-    secondaryColor: '#71717a',
-    accentColor: '#60a5fa',
-    backgroundColor: 'var(--bg-main)',
-    cardBackground: 'var(--bg-card)'
+    primaryColor: '#2DEEFF',
+    secondaryColor: '#4CF5FF',
+    accentColor: '#78FFFF',
+    backgroundColor: '#05070B',
+    cardBackground: '#111B26'
   },
   blue: {
-    primaryColor: '#3b82f6',
-    secondaryColor: '#38bdf8',
-    accentColor: '#7dd3fc',
-    backgroundColor: '#1c1c1f',
-    cardBackground: '#27272a'
+    primaryColor: '#0066ff',
+    secondaryColor: '#0099ff',
+    accentColor: '#00ccff',
+    backgroundColor: '#000814',
+    cardBackground: '#001240'
   },
   green: {
     primaryColor: '#10b981',
@@ -271,7 +232,7 @@ function applyPreset(name) {
   document.getElementById('backgroundColor').value = preset.backgroundColor;
   document.getElementById('cardBackground').value = preset.cardBackground;
   updatePreview();
-  showToast(`Preset ${name} diterapkan`, 'success');
+  showToast(`✓ Preset ${name} diterapkan`, 'success');
 }
 
 async function saveTheme() {
@@ -290,14 +251,14 @@ async function saveTheme() {
     
     const data = await res.json();
     if (data.success) {
-      showToast('Tema berhasil disimpan!', 'success');
+      showToast('✓ Tema berhasil disimpan!', 'success');
       // Apply theme to page
       applyThemeToBrowser(data.data);
     } else {
-      showToast(data.message, 'error');
+      showToast('✗ ' + data.message, 'error');
     }
   } catch (error) {
-    showToast('Error: ' + error.message, 'error');
+    showToast('✗ Error: ' + error.message, 'error');
   }
 }
 
@@ -310,7 +271,7 @@ function applyThemeToBrowser(theme) {
 
 function resetTheme() {
   applyPreset('purple');
-  showToast('Tema direset ke default', 'success');
+  showToast('✓ Tema direset ke default', 'success');
 }
 
 // Initialize

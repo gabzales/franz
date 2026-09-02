@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# YOOSKY STORE - Quick Setup Script
+# ViprneStore - Quick Setup Script
 
-echo "🎮 YOOSKY STORE - JSONBin.io + Vercel Setup"
+echo "🎮 ViprneStore - JSONBin.io + Vercel Setup"
 echo "=========================================="
 echo ""
 
@@ -40,7 +40,7 @@ USE_LOCAL_DB=false
 # Server
 NODE_ENV=development
 PORT=3000
-SESSION_SECRET=yooskystore-secret-key-2025-change-this
+SESSION_SECRET=viprnestore-secret-key-2025-change-this
 
 # PakKasir Payment
 PAKASIR_API_KEY=your_pakasir_key
@@ -54,10 +54,10 @@ ADMIN_PASSWORD=admin123
 # Contact
 WHATSAPP_NUMBER=6281235690535
 TELEGRAM_USERNAME=HEROO3STORE
-SUPPORT_EMAIL=support@yooskystore.com
+SUPPORT_EMAIL=support@viprnestore.com
 
 # Site
-SITE_NAME=YOOSKY STORE
+SITE_NAME=ViprneStore
 MARQUEE_TEXT=LAYANAN GAME MOD MENU PREMIUM - PROSES CEPAT & AMAN
 EOF
 

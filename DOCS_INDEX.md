@@ -1,4 +1,4 @@
-# 📚 YOOSKY STORE - Documentation Index
+# 📚 ViprneStore - Documentation Index
 
 **Last Updated**: June 3, 2026  
 **Version**: 1.0.0 (JSONBin.io + Vercel Ready)  

@@ -1,4 +1,4 @@
-# 🎉 RINGKASAN LENGKAP - YOOSKY STORE BACKEND
+# 🎉 RINGKASAN LENGKAP - ViprneStore BACKEND
 
 ## ✅ **SEMUA FITUR YANG SUDAH DIBUAT**
 
@@ -337,6 +337,6 @@ Password: admin123
 
 ---
 
-**Dibuat dengan ❤️ untuk YOOSKY STORE**
+**Dibuat dengan ❤️ untuk ViprneStore**
 
-© 2025 YOOSKY STORE. All rights reserved.
+© 2025 ViprneStore. All rights reserved.

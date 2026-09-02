@@ -1,0 +1,44 @@
+<%
+const pageTitle = account.title;
+%>
+
+<!-- NAVBAR -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background:rgba(36,39,43,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);">
+    <div class="max-w-3xl mx-auto px-4">
+        <div class="flex items-center justify-between h-14">
+            <a href="/" class="flex items-center gap-2" style="text-decoration:none;">
+                <% if (settings?.logoUrl) { %>
+                <img src="<%= settings.logoUrl %>" alt="Logo" class="w-auto object-contain flex-shrink-0" style="height:44px;">
+                <% } %>
+            </a>
+            <a href="/jual-beli-akun" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors" style="color:var(--text-2);border:1px solid var(--border);">
+                <iconify-icon icon="mdi:arrow-left" class="text-sm"></iconify-icon> Kembali
+            </a>
+        </div>
+    </div>
+</nav>
+
+<section class="pt-20 pb-24 max-w-3xl mx-auto px-4 space-y-4">
+    <div class="rounded-xl overflow-hidden" style="background:var(--bg-card);border:1px solid var(--border);">
+        <div class="flex gap-2 overflow-x-auto p-2" style="-ms-overflow-style:none;scrollbar-width:none;">
+            <% (account.images||[]).forEach(img => { %>
+            <img src="<%= img %>" style="width:220px;height:165px;object-fit:cover;border-radius:10px;flex-shrink:0;">
+            <% }) %>
+        </div>
+    </div>
+
+    <div class="card rounded-xl p-5">
+        <span class="platform-label" style="background:rgba(45,238,255,.12);"><%= account.game %></span>
+        <h1 class="text-lg font-bold text-white mt-2"><%= account.title %></h1>
+        <div class="text-2xl font-display font-black mt-1" style="color:#8EF9FF;">Rp <%= (account.price||0).toLocaleString('id-ID') %></div>
+        <div class="h-px my-4" style="background:var(--border);"></div>
+        <div class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--text-2);">Deskripsi</div>
+        <p class="text-sm whitespace-pre-line" style="color:var(--text-1);"><%= account.description %></p>
+    </div>
+
+    <a href="https://wa.me/<%= (account.sellerWa||'').replace(/^0/,'62') %>?text=<%= encodeURIComponent('Halo, saya tertarik dengan akun ' + account.game + ' - ' + account.title + ' yang kamu jual di ' + (settings?.siteName||'')) %>"
+       target="_blank" rel="noopener"
+       class="btn-primary w-full py-3.5 rounded-2xl text-sm font-black text-white flex items-center justify-center gap-2">
+        <iconify-icon icon="mdi:whatsapp" class="text-lg"></iconify-icon> Hubungi Penjual
+    </a>
+</section>

@@ -1,0 +1,71 @@
+<%
+const pageTitle = 'Listing Akun Saya';
+const statusMeta = {
+  pending:  { label: 'MENUNGGU', bg: 'bg-yellow-500/15', text: 'text-yellow-400', border: 'border-yellow-500/25' },
+  approved: { label: 'TAYANG',   bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/25' },
+  rejected: { label: 'DITOLAK',  bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/25' },
+  sold:     { label: 'TERJUAL',  bg: 'bg-zinc-500/15', text: 'text-zinc-400', border: 'border-zinc-500/25' }
+};
+%>
+
+<!-- NAVBAR -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background:rgba(36,39,43,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);">
+    <div class="max-w-2xl mx-auto px-4">
+        <div class="flex items-center justify-between h-14">
+            <a href="/" class="flex items-center gap-2" style="text-decoration:none;">
+                <% if (settings?.logoUrl) { %>
+                <img src="<%= settings.logoUrl %>" alt="Logo" class="w-auto object-contain flex-shrink-0" style="height:44px;">
+                <% } %>
+            </a>
+            <a href="/jual-beli-akun-jual" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-bold transition-all" style="background:linear-gradient(135deg,#13D8FF,#66F5FF);color:#fff;">
+                <iconify-icon icon="mdi:plus-circle" class="text-sm"></iconify-icon> Jual Akun
+            </a>
+        </div>
+    </div>
+</nav>
+
+<section class="pt-20 pb-24 max-w-2xl mx-auto px-4">
+    <div class="mb-5 flex items-center justify-between">
+        <div>
+            <h1 class="font-display font-black text-white leading-tight" style="font-size:clamp(18px,4vw,26px);">Listing Akun Saya</h1>
+            <p class="text-xs mt-1" style="color:var(--text-2);">Riwayat & status akun yang kamu jual.</p>
+        </div>
+        <a href="/dashboard" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors flex-shrink-0" style="color:var(--text-2);border:1px solid var(--border);">
+            <iconify-icon icon="mdi:arrow-left" class="text-sm"></iconify-icon> Dashboard
+        </a>
+    </div>
+
+    <% if (!accounts.length) { %>
+        <div class="text-center py-20" style="color:var(--text-3);">
+            <iconify-icon icon="mdi:tag-outline" style="font-size:48px;" class="block mb-3 mx-auto"></iconify-icon>
+            <p class="text-sm mb-4">Kamu belum punya listing akun.</p>
+            <a href="/jual-beli-akun-jual" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold" style="background:linear-gradient(135deg,#13D8FF,#66F5FF);color:#fff;">
+                <iconify-icon icon="mdi:plus-circle"></iconify-icon> Jual Akun Sekarang
+            </a>
+        </div>
+    <% } else { %>
+    <div class="space-y-3">
+        <% accounts.forEach(acc => {
+            const meta = statusMeta[acc.status] || statusMeta.pending;
+        %>
+        <div class="card rounded-xl p-3 flex gap-3">
+            <div class="flex-shrink-0" style="width:72px;height:72px;border-radius:10px;overflow:hidden;background:var(--bg-hover);">
+                <img src="<%= acc.images?.[0] || '' %>" alt="<%= acc.title %>" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.opacity=0">
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                    <span class="platform-label" style="background:rgba(45,238,255,.12);"><%= acc.game %></span>
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded <%= meta.bg %> <%= meta.text %> border <%= meta.border %>"><%= meta.label %></span>
+                </div>
+                <div class="text-xs font-bold text-white mt-1 truncate"><%= acc.title %></div>
+                <div class="text-sm font-black mt-0.5" style="color:#8EF9FF;">Rp <%= (acc.price||0).toLocaleString('id-ID') %></div>
+                <% if (acc.status === 'rejected' && acc.rejectReason) { %>
+                <div class="text-[10px] text-red-400 mt-1">Alasan: <%= acc.rejectReason %></div>
+                <% } %>
+                <div class="text-[10px] mt-1" style="color:var(--text-3);"><%= new Date(acc.createdAt).toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' }) %></div>
+            </div>
+        </div>
+        <% }) %>
+    </div>
+    <% } %>
+</section>

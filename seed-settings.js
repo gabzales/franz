@@ -26,116 +26,52 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
 
-// ── KREDENSIAL — bisa override via .env ──
-const ADMIN_USERNAME = process.env.SEED_ADMIN_USERNAME || 'Abdurahman Mulvi Tarakan';
-const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'Tarakan11#';
-
-const SITE_NAME   = 'FranzzStore';
-const WA_NUMBER   = '6282253090432';
-const WA_TELEGRAM = 'FranzzStoreOfficial';
-const WA_CHANNEL  = ''; // isi manual lewat admin panel — Pengaturan > Kontak > Link Saluran WA
-const WA_GROUP    = ''; // isi manual lewat admin panel — Pengaturan > Kontak > Link Grup WA
-const YOUTUBE_URL = ''; // isi manual lewat admin panel kalau ada
+// ── KREDENSIAL DIAMBIL DARI .env, JANGAN DI-HARDCODE DI SINI ──
+// Isi ADMIN_USERNAME dan ADMIN_PASSWORD di file .env lokal kamu
+// (file .env tidak ikut ke-push ke GitHub karena ada di .gitignore).
+const ADMIN_USERNAME = process.env.SEED_ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD;
+if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
+  console.error('❌ Set SEED_ADMIN_USERNAME dan SEED_ADMIN_PASSWORD di file .env lokal dulu (jangan di-hardcode di script ini).');
+  process.exit(1);
+}
+const SITE_NAME      = 'FRANZZSTORE';
+const WA_NUMBER      = '6285133408356';
+const WA_CHANNEL     = '0029VbC4ZyhCcW4sLQRefe3s';
+const APK_CHANNEL    = '0029VbChj7435fM1YttT8n40';
+const TIKTOK_USER    = 'franzzstore';
 // ─────────────────────────────────────────────────────────
 
 async function uploadLogo() {
-  const logoPath = path.join(__dirname, 'public', 'uploads', 'logo-main.png');
+  const logoPath = path.join(__dirname, 'public', 'uploads', 'logo-franzzstore.png');
   if (!fs.existsSync(logoPath)) {
-    console.log('⚠️  Logo file tidak ditemukan di public/uploads/logo-main.png, skip upload.');
+    console.log('⚠️  Logo file tidak ditemukan di public/uploads/logo-franzzstore.png, skip upload.');
     return null;
   }
   const fileBuffer = fs.readFileSync(logoPath);
 
-  // Selalu upload ulang logo (upsert: true) agar logo baru menimpa yang lama
+  // Cek apakah sudah ada di storage
+  const { data: existList } = await supabase.storage
+    .from('product-images').list('', { search: 'logo-franzzstore.png' });
+  if (existList && existList.length > 0) {
+    const { data: { publicUrl } } = supabase.storage
+      .from('product-images').getPublicUrl('logo-franzzstore.png');
+    console.log('ℹ️  Logo sudah ada di storage:', publicUrl);
+    return publicUrl;
+  }
+
   const { error } = await supabase.storage
     .from('product-images')
-    .upload('logo-main.png', fileBuffer, { contentType: 'image/png', upsert: true });
+    .upload('logo-franzzstore.png', fileBuffer, { contentType: 'image/png', upsert: true });
 
   if (error) {
     console.error('⚠️  Gagal upload logo ke storage:', error.message);
     return null;
   }
   const { data: { publicUrl } } = supabase.storage
-    .from('product-images').getPublicUrl('logo-main.png');
+    .from('product-images').getPublicUrl('logo-franzzstore.png');
   console.log('✅ Logo diupload ke Supabase Storage:', publicUrl);
   return publicUrl;
-}
-
-async function uploadLogoText() {
-  // Logo text sekarang di-render sebagai teks dinamis (siteName), bukan gambar,
-  // supaya otomatis ikut berubah kalau siteName diganti dari admin panel dan
-  // tidak ada nama brand lama yang "nyantol" di gambar statis.
-  return null;
-}
-
-async function uploadBanner() {
-  const bannerPath = path.join(__dirname, 'public', 'uploads', 'banner-reseller.jpg');
-  if (!require('fs').existsSync(bannerPath)) {
-    console.log('⚠️  Banner file tidak ditemukan di public/uploads/banner-reseller.jpg, skip upload.');
-    return null;
-  }
-  const fileBuffer = require('fs').readFileSync(bannerPath);
-  const { data: existList } = await supabase.storage.from('product-images').list('', { search: 'banner-reseller.jpg' });
-  if (existList && existList.length > 0) {
-    const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl('banner-reseller.jpg');
-    console.log('ℹ️  Banner sudah ada di storage:', publicUrl);
-    return publicUrl;
-  }
-  const { error } = await supabase.storage.from('product-images').upload('banner-reseller.jpg', fileBuffer, { contentType: 'image/jpeg', upsert: true });
-  if (error) { console.error('⚠️  Gagal upload banner:', error.message); return null; }
-  const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl('banner-reseller.jpg');
-  console.log('✅ Banner diupload ke Supabase Storage:', publicUrl);
-  return publicUrl;
-}
-
-// Upload gambar produk (game populer) ke Supabase Storage supaya bisa diakses
-// publik lewat product.image -- dipakai untuk seed products.json (lihat seed.js)
-// dan sebagai sumber gambar row "Produk Populer" di homepage.
-// CATATAN: ini PLACEHOLDER netral (nama game di atas warna aksen), BUKAN logo
-// resmi tiap game -- logo resmi berhak cipta pemilik masing-masing, jadi tidak
-// di-hardcode di sini. Ganti via Admin Panel > Produk > Edit Gambar kalau mau
-// pakai artwork resmi/lisensi sendiri.
-async function uploadProductPlaceholders() {
-  const dir = path.join(__dirname, 'public', 'uploads', 'products');
-  if (!fs.existsSync(dir)) { console.log('⚠️  Folder public/uploads/products tidak ditemukan, skip upload.'); return {}; }
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.png'));
-  const urls = {};
-  for (const file of files) {
-    const buf = fs.readFileSync(path.join(dir, file));
-    const key = `products/${file}`;
-    const { error } = await supabase.storage.from('product-images').upload(key, buf, { contentType: 'image/png', upsert: true });
-    if (error) { console.error(`⚠️  Gagal upload ${file}:`, error.message); continue; }
-    const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(key);
-    urls[file.replace('.png', '')] = publicUrl;
-  }
-  console.log(`✅ ${Object.keys(urls).length} gambar produk diupload ke Supabase Storage`);
-  return urls;
-}
-
-// Upload badge metode pembayaran (footer "Metode Pembayaran") ke Supabase
-// Storage, lalu susun jadi array settings.paymentMethods = [{name, logoUrl}].
-// CATATAN: sama seperti di atas, ini BADGE NETRAL (nama metode di kotak
-// rounded), BUKAN logo resmi QRIS/GoPay/DANA/OVO/ShopeePay -- logo resmi
-// e-wallet berhak cipta pihak ketiga (lihat catatan yang sama di
-// views/pages/home.ejs). Ganti via Admin Panel > Pengaturan > Metode
-// Pembayaran begitu ada logo resmi yang mau dipakai.
-async function uploadPaymentIcons() {
-  const dir = path.join(__dirname, 'public', 'uploads', 'payments');
-  if (!fs.existsSync(dir)) { console.log('⚠️  Folder public/uploads/payments tidak ditemukan, skip upload.'); return []; }
-  const labels = { qris: 'QRIS', gopay: 'GoPay', dana: 'DANA', ovo: 'OVO', shopeepay: 'ShopeePay', 'bank-transfer': 'Transfer Bank' };
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.png'));
-  const methods = [];
-  for (const file of files) {
-    const buf = fs.readFileSync(path.join(dir, file));
-    const key = `payments/${file}`;
-    const { error } = await supabase.storage.from('product-images').upload(key, buf, { contentType: 'image/png', upsert: true });
-    if (error) { console.error(`⚠️  Gagal upload ${file}:`, error.message); continue; }
-    const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(key);
-    const slug = file.replace('.png', '');
-    methods.push({ name: labels[slug] || slug.toUpperCase(), logoUrl: publicUrl });
-  }
-  console.log(`✅ ${methods.length} badge metode pembayaran diupload ke Supabase Storage`);
-  return methods;
 }
 
 async function main() {
@@ -143,12 +79,8 @@ async function main() {
   console.log('  FRANZZSTORE — Seed Settings ke Supabase');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-  // 1. Upload logo & banner
+  // 1. Upload logo
   const logoUrl = await uploadLogo();
-  const logoTextUrl = await uploadLogoText();
-  const bannerUrl = await uploadBanner();
-  const productImageUrls = await uploadProductPlaceholders();
-  const paymentMethods = await uploadPaymentIcons();
 
   // 2. Ambil settings existing
   const { data: existing } = await supabase
@@ -162,40 +94,58 @@ async function main() {
     ...current,                          // pertahankan data yang ada (produk, pakasir key, dll)
     siteName: SITE_NAME,
     gamePanelName: SITE_NAME,
-    about: `${SITE_NAME} — platform topup game & premium app termurah #1 Indonesia. Proses instan, pembayaran QRIS aman.`,
-    marqueeText: 'TOPUP GAME & PREMIUM APP TERMURAH - PROSES CEPAT & AMAN',
+    about: `${SITE_NAME} adalah Top Up Game & Marketplace Jual Beli Akun #1 di Indonesia — proses cepat, harga bersaing, dan 100% aman.`,
+    marqueeText: 'TOP UP GAME • JUAL BELI AKUN • PROSES CEPAT & AMAN - FRANZZSTORE #BANYAKUNTUNGNYA',
     contact: {
-      whatsapp: current.contact?.whatsapp || WA_NUMBER,
-      telegram: current.contact?.telegram || WA_TELEGRAM,
-      email: current.contact?.email || 'support@franzzstore.id',
-      youtube: current.contact?.youtube || YOUTUBE_URL,
-      waChannel: current.contact?.waChannel || WA_CHANNEL,
-      waGroup: current.contact?.waGroup || WA_GROUP,
+      whatsapp: WA_NUMBER,
+      telegram: WA_CHANNEL,
+      tiktok: TIKTOK_USER,
+      apkChannel: APK_CHANNEL,
+      email: 'support@franzzstore.web.id'
     },
     adminUsername: ADMIN_USERNAME,
     adminPassword: adminHash,
-    logoUrl: logoUrl || current.logoUrl || '/uploads/logo-main.png',
-    logoTextUrl: logoTextUrl || (current.logoTextUrl === '/uploads/logo-text.png' ? null : current.logoTextUrl),
-    buyerGroupName: current.buyerGroupName || 'BUYER VIP FRANZZSTORE',
-    buyerGroupUrl: current.buyerGroupUrl || 'https://chat.whatsapp.com/DUSkETDjlxa5aksYJ0ar1m',
-    resellerGroupName: current.resellerGroupName || 'RESELLER VIP FRANZZSTORE',
-    resellerGroupUrl: current.resellerGroupUrl || 'https://chat.whatsapp.com/GO9mZ1wec8LJwVmlpeSW7G',
-    categories: current.categories || ['freefire','mlbb','pubgm','genshin','valorant','premium'],
+    adminLockEnabled: current.adminLockEnabled !== undefined ? current.adminLockEnabled : true,
+    logoUrl: logoUrl || current.logoUrl || '/uploads/logo-franzzstore.png',
+    faviconUrl: current.faviconUrl || '/uploads/favicon-franzzstore.png',
+    theme: current.theme || {
+      primaryColor: '#2DEEFF',
+      secondaryColor: '#4CF5FF',
+      accentColor: '#78FFFF',
+      backgroundColor: '#05070B',
+      cardBackground: '#111B26',
+      borderColor: 'rgba(45,238,255,.18)',
+      glowColor: 'rgba(45,238,255,0.55)'
+    },
+    categories: current.categories || ['freefire','mlbb','pubgm','sertifikat'],
     categoryLabels: current.categoryLabels || {
-      freefire:'FREE FIRE', mlbb:'MOBILE LEGENDS', pubgm:'PUBG MOBILE', genshin:'GENSHIN IMPACT', valorant:'VALORANT', premium:'PREMIUM APP'
+      freefire:'FREE FIRE', mlbb:'MOBILE LEGENDS', pubgm:'PUBG MOBILE', sertifikat:'SERTIFIKAT'
     },
     resellerEnabled: true,
     resellerPrice: current.resellerPrice ?? 50000,
     resellerDiscount: current.resellerDiscount ?? 20,
     resellerNote: current.resellerNote || 'Dapatkan diskon eksklusif untuk semua produk!',
     popularProductIds: current.popularProductIds || [],
-    // Kalau admin sudah pernah isi manual lewat Admin Panel, JANGAN ditimpa --
-    // paymentMethods hasil upload placeholder cuma dipakai kalau belum ada
-    // sama sekali (current.paymentMethods kosong/belum diset).
-    paymentMethods: (current.paymentMethods && current.paymentMethods.length) ? current.paymentMethods : paymentMethods,
     pakasir: current.pakasir || { apiKey:'', project:'', mode:'production' },
     banners: current.banners?.length ? current.banners : [
-      { url: bannerUrl || '/uploads/banner-reseller.jpg', title: 'Open Reseller', link: '/reseller', active: true }
+      {
+        id: 'banner-default-1',
+        imageUrl: '/uploads/banners/banner-1.jpg',
+        title: 'Buy Key Game Paling Murah & Aman',
+        subtitle: 'TOP 1 VIP Mods Indonesia — Key Instan, 100% Aman & Bergaransi',
+        link: '/',
+        active: true,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'banner-default-2',
+        imageUrl: '/uploads/banners/banner-2.jpg',
+        title: 'Semua Akses Dalam 1 Tempat',
+        subtitle: 'Mudah, Cepat & Terpercaya — Channel WA, TikTok & Download APK',
+        link: '/reseller',
+        active: true,
+        createdAt: new Date().toISOString()
+      }
     ],
   };
 
@@ -221,14 +171,8 @@ async function main() {
   console.log('│ logoUrl      :', saved?.logoUrl);
   console.log('│ whatsapp     :', saved?.contact?.whatsapp);
   console.log('│ banners      :', saved?.banners?.length ?? 0, 'item(s)');
-  console.log('│ paymentMethods:', saved?.paymentMethods?.length ?? 0, 'item(s)');
   console.log('│ hash verify  :', bcrypt.compareSync(ADMIN_PASSWORD, saved?.adminPassword || '') ? '✅ OK' : '❌ GAGAL');
   console.log('└─────────────────────────────────────────');
-  if (Object.keys(productImageUrls).length) {
-    console.log('\n🖼️  Placeholder gambar produk (upload manual ke tiap produk lewat Admin');
-    console.log('   Panel > Produk > Edit kalau mau ganti dengan artwork resmi):');
-    Object.entries(productImageUrls).forEach(([name, url]) => console.log(`   - ${name}: ${url}`));
-  }
   console.log(`\n🔐 Login admin: username=${ADMIN_USERNAME}  password=(dari .env, tidak ditampilkan)`);
   console.log('🌐 Deploy ulang Vercel agar settings baru aktif.\n');
 }

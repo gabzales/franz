@@ -1,0 +1,60 @@
+<%
+const pageTitle = 'Jual Beli Akun';
+%>
+
+<!-- NAVBAR -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background:rgba(36,39,43,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);">
+    <div class="max-w-5xl mx-auto px-4">
+        <div class="flex items-center justify-between h-14">
+            <a href="/" class="flex items-center gap-2" style="text-decoration:none;">
+                <% if (settings?.logoUrl) { %>
+                <img src="<%= settings.logoUrl %>" alt="Logo" class="w-auto object-contain flex-shrink-0" style="height:44px;">
+                <% } else { %>
+                <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:15px;color:#fff;"><%= settings?.siteName %></span>
+                <% } %>
+            </a>
+            <a href="/jual-beli-akun-jual" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-bold transition-all" style="background:linear-gradient(135deg,#13D8FF,#66F5FF);color:#fff;">
+                <iconify-icon icon="mdi:plus-circle" class="text-sm"></iconify-icon> Jual Akun
+            </a>
+        </div>
+    </div>
+</nav>
+
+<section class="pt-20 pb-24 max-w-5xl mx-auto px-4">
+    <div class="mb-5">
+        <h1 class="font-display font-black text-white leading-tight" style="font-size:clamp(18px,4vw,26px);">Jual Beli Akun</h1>
+        <p class="text-xs mt-1" style="color:var(--text-2);">Cari akun impianmu atau jual akun gamemu — aman &amp; terverifikasi admin.</p>
+    </div>
+
+    <!-- FILTER GAME -->
+    <div class="flex items-center gap-2 mb-5 overflow-x-auto" style="-ms-overflow-style:none;scrollbar-width:none;">
+        <a href="/jual-beli-akun" class="px-3 py-1.5 rounded-full text-xs font-bold flex-shrink-0 transition-all"
+           style="<%= !gameFilter ? 'background:var(--blue);color:#fff;' : 'background:var(--bg-card);color:var(--text-2);border:1px solid var(--border);' %>">Semua</a>
+        <% ['Free Fire','Mobile Legends','PUBG Mobile','Genshin Impact','Valorant','Lainnya'].forEach(g => { %>
+        <a href="/jual-beli-akun?game=<%= encodeURIComponent(g) %>" class="px-3 py-1.5 rounded-full text-xs font-bold flex-shrink-0 transition-all"
+           style="<%= gameFilter === g ? 'background:var(--blue);color:#fff;' : 'background:var(--bg-card);color:var(--text-2);border:1px solid var(--border);' %>"><%= g %></a>
+        <% }) %>
+    </div>
+
+    <% if (!accounts.length) { %>
+        <div class="text-center py-20" style="color:var(--text-3);">
+            <iconify-icon icon="mdi:account-search-outline" style="font-size:48px;" class="block mb-3 mx-auto"></iconify-icon>
+            <p class="text-sm">Belum ada listing akun<% if (gameFilter) { %> untuk <%= gameFilter %><% } %> saat ini.</p>
+        </div>
+    <% } else { %>
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <% accounts.forEach(acc => { %>
+        <a href="/jual-beli-akun/<%= acc.id %>" class="rounded-xl overflow-hidden fade-in" style="background:var(--bg-card);border:1px solid var(--border);text-decoration:none;">
+            <div style="aspect-ratio:4/3;overflow:hidden;background:var(--bg-hover);">
+                <img src="<%= acc.images?.[0] || '' %>" alt="<%= acc.title %>" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.opacity=0">
+            </div>
+            <div class="p-2.5">
+                <span class="platform-label" style="background:rgba(45,238,255,.12);"><%= acc.game %></span>
+                <div class="text-xs font-bold text-white mt-1.5 line-clamp-2" style="min-height:2.4em;"><%= acc.title %></div>
+                <div class="text-sm font-black mt-1" style="color:#8EF9FF;">Rp <%= (acc.price||0).toLocaleString('id-ID') %></div>
+            </div>
+        </a>
+        <% }) %>
+    </div>
+    <% } %>
+</section>

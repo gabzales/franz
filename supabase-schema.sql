@@ -1,4 +1,4 @@
--- FAUZI STORE — Supabase Schema
+-- ViprneStore — Supabase Schema
 -- Jalankan ini di: Supabase Dashboard → SQL Editor → New Query → Run
 
 -- 1. Buat tabel

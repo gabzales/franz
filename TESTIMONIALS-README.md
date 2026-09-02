@@ -1,4 +1,4 @@
-# 💬 Sistem Testimoni & Review - YOOSKY STORE
+# 💬 Sistem Testimoni & Review - ViprneStore
 
 Sistem testimoni lengkap yang terintegrasi dengan admin panel untuk mengelola ulasan dan rating pembeli.
 
@@ -306,6 +306,6 @@ Database sudah terisi dengan **10 testimoni fake**:
 
 ---
 
-**Dibuat dengan ❤️ untuk YOOSKY STORE**
+**Dibuat dengan ❤️ untuk ViprneStore**
 
-© 2025 YOOSKY STORE. All rights reserved.
+© 2025 ViprneStore. All rights reserved.

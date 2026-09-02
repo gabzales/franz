@@ -1,370 +1,138 @@
-<!DOCTYPE html>
 <%
-/*
-  FranzzStore — Dashboard member/reseller (rewrite PointGo dark theme, 1 Sep 2026)
-  HANYA presentasi. Seluruh JS topup/keranjang dipertahankan VERBATIM dari
-  versi sebelumnya — hanya markup & styling yang di-restyle ke pointgo-theme.css.
-*/
 const pageTitle = 'Dashboard';
-const noIndex = true; // halaman privat user, jangan di-index Google
 %>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= settings?.siteName || 'FranzzStore' %> - <%= pageTitle %></title>
-  <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
-  <link rel="stylesheet" href="/css/pointgo-theme.css">
-  <style>
-    /* Helper minimal untuk markup yang di-inject via innerHTML pada skrip topup
-       (kelas Tailwind yang dipakai di string JS lama tidak tersedia lagi). */
-    .hidden { display: none !important; }
-    @keyframes pg-spin { to { transform: rotate(360deg); } }
-    .animate-spin { animation: pg-spin 1.1s linear infinite; }
-    .text-[9px] { font-size: 10px; }
-    .text-xs { font-size: 12px; }
-    .text-sm { font-size: 13px; }
-    .text-lg { font-size: 18px; }
-    .text-xl { font-size: 20px; }
-    .text-5xl { font-size: 46px; }
-    .text-center { text-align: center; }
-    .text-zinc-400, .text-zinc-500, .text-zinc-700 { color: var(--muted); }
-    .text-emerald-400, .text-green-400 { color: #34d399; }
-    .text-red-400 { color: #ff6b76; }
-    .text-yellow-400 { color: #fbbf24; }
-    .text-blue-400 { color: #78a8ff; }
-    .block { display: block; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
-    .mt-0\.5 { margin-top: 2px; }
-    .mt-2 { margin-top: 8px; }
-    .mb-2 { margin-bottom: 8px; }
-    .w-2 { width: 8px; }
-    .h-2 { height: 8px; }
-    .rounded-full { border-radius: 9999px; }
-    .bg-yellow-400 { background: #fbbf24; }
-  </style>
-  <script>
-    window.IconifyPreload = <%- iconBundle %>;
-  </script>
-  <script src="/js/iconify-icon.min.js" defer></script>
-</head>
-<body>
 
-<%- include('../partials/navbar', { active: 'riwayat' }) %>
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-[#050c26]/95 backdrop-blur-md border-b border-indigo-500/10">
+    <div class="max-w-3xl mx-auto px-4">
+        <div class="flex items-center justify-between h-14">
+            <a href="/" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
+                    <iconify-icon icon="mdi:view-dashboard" class="text-white text-sm"></iconify-icon>
+                </div>
+                <span class="font-bold text-sm font-bold shimmer-text">Dashboard</span>
+            </a>
+            <a href="/" class="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 transition-all">
+                <iconify-icon icon="mdi:arrow-left" class="text-sm"></iconify-icon> Kembali
+            </a>
+        </div>
+    </div>
+</nav>
 
-<main class="inner-page">
-  <div class="pg-container" style="max-width:1000px;">
+<div class="min-h-screen pt-16 pb-20 px-4">
+<div class="max-w-3xl mx-auto">
 
-    <!-- ══ PROFILE GREETING ══ -->
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-      <div style="width:44px;height:44px;border-radius:50%;background:var(--accent);color:#08130a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex-shrink:0;">
-        <%= (user?.username || 'U').charAt(0).toUpperCase() %>
-      </div>
-      <div>
-        <div style="font-weight:800;font-size:15px;color:#fff;">Halo, <%= user?.username || 'Pengguna' %>!</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Selamat datang di dashboard kamu</div>
-      </div>
+    <!-- Profile Greeting -->
+    <div class="flex items-center gap-3 mt-5 mb-5 fade-in-up">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm" style="background:linear-gradient(135deg,#66F5FF,#66F5FF)">
+            <%= (user?.username || 'U').charAt(0).toUpperCase() %>
+        </div>
+        <div>
+            <div class="text-sm font-bold text-white">Halo, <%= user?.username || 'Pengguna' %>!</div>
+            <div class="text-[11px] text-zinc-500">Selamat datang di dashboard kamu</div>
+        </div>
     </div>
 
-    <!-- ══ WALLET RESELLER (anchor #wallet harus dijaga) ══ -->
-    <% if (user?.is_reseller) { %>
-    <div id="wallet" style="background:var(--panel);border:1px solid rgba(240,179,8,.3);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:20px;scroll-margin-top:90px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <iconify-icon icon="mdi:wallet" style="font-size:17px;color:#fbbf24;"></iconify-icon>
-          <span style="font-size:12px;font-weight:700;color:#fff;">Saldo Wallet Reseller</span>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div class="rounded-2xl p-4 text-center transition-all hover:scale-[1.02]" style="background:linear-gradient(135deg,rgba(19,216,255,.12),rgba(19,216,255,.06));border:1px solid rgba(19,216,255,.25);">
+            <div class="text-2xl font-black font-bold text-white"><%= stats.totalOrders %></div>
+            <div class="text-[10px] text-zinc-500 mt-1 flex items-center justify-center gap-1">
+                <iconify-icon icon="mdi:receipt-text" class="text-blue-400 text-xs"></iconify-icon> Total Order
+            </div>
         </div>
-        <span style="background:rgba(240,179,8,.15);color:#fbbf24;border:1px solid rgba(240,179,8,.3);font-size:9px;font-weight:800;padding:2px 8px;border-radius:999px;">VIP</span>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <div style="font-size:26px;font-weight:900;color:#fbbf24;" id="dashBalanceShow">Rp <%= (user.balance||0).toLocaleString('id-ID') %></div>
-        <button onclick="openTopup()" class="pg-btn" style="background:#fbbf24;color:#0a1016;">
-          <iconify-icon icon="mdi:plus-circle"></iconify-icon> Top Up
+        <div class="rounded-2xl p-4 text-center transition-all hover:scale-[1.02]" style="background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(5,150,105,.05));border:1px solid rgba(16,185,129,.25);">
+            <div class="text-2xl font-black font-bold text-white"><%= stats.successOrders %></div>
+            <div class="text-[10px] text-zinc-500 mt-1 flex items-center justify-center gap-1">
+                <iconify-icon icon="mdi:check-circle" class="text-emerald-400 text-xs"></iconify-icon> Berhasil
+            </div>
+        </div>
+        <div class="rounded-2xl p-4 text-center transition-all hover:scale-[1.02]" style="background:linear-gradient(135deg,rgba(234,179,8,.1),rgba(245,158,11,.05));border:1px solid rgba(234,179,8,.25);">
+            <div class="text-2xl font-black font-bold text-white"><%= stats.pendingOrders %></div>
+            <div class="text-[10px] text-zinc-500 mt-1 flex items-center justify-center gap-1">
+                <iconify-icon icon="mdi:clock-outline" class="text-yellow-400 text-xs"></iconify-icon> Pending
+            </div>
+        </div>
+        <div class="rounded-2xl p-4 text-center transition-all hover:scale-[1.02]" style="background:linear-gradient(135deg,rgba(236,72,153,.1),rgba(244,63,94,.05));border:1px solid rgba(236,72,153,.25);">
+            <div class="text-lg font-black font-bold text-white">Rp <%= (stats.totalSpent/1000).toFixed(0) %>K</div>
+            <div class="text-[10px] text-zinc-500 mt-1 flex items-center justify-center gap-1">
+                <iconify-icon icon="mdi:cash-multiple" class="text-pink-400 text-xs"></iconify-icon> Total Belanja
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="rounded-2xl overflow-hidden" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);">
+        <div class="flex items-center gap-2 px-5 py-4 border-b border-white/5">
+            <iconify-icon icon="mdi:history" class="text-blue-400 text-base"></iconify-icon>
+            <span class="text-sm font-bold text-white">Riwayat Transaksi</span>
+            <span class="text-[10px] text-zinc-600 ml-auto"><%= transactions.length %> transaksi</span>
+        </div>
+        <div class="space-y-0">
+            <% if (transactions.length === 0) { %>
+            <div class="text-center py-12">
+                <iconify-icon icon="mdi:receipt-text-outline" class="text-4xl text-zinc-700 block mx-auto mb-3"></iconify-icon>
+                <p class="text-sm text-zinc-500">Belum ada transaksi</p>
+                <a href="/" class="text-xs text-blue-400 mt-2 inline-block">Mulai belanja sekarang</a>
+            </div>
+            <% } else { %>
+                <% transactions.forEach(t => { %>
+                <div class="flex items-center gap-3 px-5 py-3.5 border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
+                        <%= t.status === 'done' ? 'bg-emerald-500/15' : t.status === 'pending' ? 'bg-yellow-500/15' : 'bg-red-500/15' %>">
+                        <iconify-icon icon="<%= t.status === 'done' ? 'mdi:check-circle' : t.status === 'pending' ? 'mdi:clock-outline' : 'mdi:close-circle' %>"
+                            class="<%= t.status === 'done' ? 'text-emerald-400' : t.status === 'pending' ? 'text-yellow-400' : 'text-red-400' %> text-base"></iconify-icon>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-white truncate"><%= t.productName || t.type || 'Produk' %></span>
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded
+                                <%= t.status === 'done' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25' :
+                                   t.status === 'pending' ? 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/25' :
+                                   'bg-red-500/15 text-red-400 border border-red-500/25' %>"><%= t.status === 'done' ? 'SELESAI' : t.status === 'pending' ? 'PENDING' : 'BATAL' %></span>
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px] text-zinc-500 mt-0.5">
+                            <span><%= t.code || t.orderId || '—' %></span>
+                            <span>·</span>
+                            <span><%= t.time || new Date(t.createdAt).toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' }) %></span>
+                        </div>
+                        <% if (t.gameUserId || t.gameNickname) { %>
+                        <div class="text-[10px] text-zinc-600 mt-0.5 truncate">
+                            <% if (t.gameUserId) { %>ID: <span class="text-zinc-400"><%= t.gameUserId %></span><% } %>
+                            <% if (t.gameUserId && t.gameNickname) { %> · <% } %>
+                            <% if (t.gameNickname) { %>Nick: <span class="text-zinc-400"><%= t.gameNickname %></span><% } %>
+                        </div>
+                        <% } %>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <div class="text-xs font-bold <%= t.status === 'done' ? 'text-emerald-400' : 'text-white' %>">Rp <%= (t.price || 0).toLocaleString('id-ID') %></div>
+                        <% if (t.voucherDiscount) { %>
+                        <div class="text-[9px] text-emerald-500">-Rp <%= t.voucherDiscount.toLocaleString('id-ID') %></div>
+                        <% } %>
+                    </div>
+                </div>
+                <% }) %>
+                <a href="/invoice" class="flex items-center justify-center gap-2 px-5 py-3 text-[11px] text-blue-400 hover:text-blue-300 transition-colors font-medium">
+                    <iconify-icon icon="mdi:magnify" class="text-sm"></iconify-icon> Cari transaksi lain via kode pesanan
+                </a>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="grid grid-cols-2 gap-3 mt-4">
+        <a href="/" class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.02]"
+           style="background:linear-gradient(135deg,rgba(19,216,255,.15),rgba(19,216,255,.08));border:1px solid rgba(19,216,255,.3);color:#4CF5FF;">
+            <iconify-icon icon="mdi:shopping" class="text-base"></iconify-icon> Belanja
+        </a>
+        <button onclick="openCart()" class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.02]"
+           style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(5,150,105,.06));border:1px solid rgba(16,185,129,.25);color:#34d399;">
+            <iconify-icon icon="mdi:cart-outline" class="text-base"></iconify-icon> Keranjang
+            <span id="dash-cart-count" style="display:none;background:#34d399;color:#000;font-size:9px;font-weight:900;padding:1px 5px;border-radius:99px;"></span>
         </button>
-      </div>
-      <p style="font-size:11px;color:var(--muted);margin-top:10px;">Pakai saldo ini untuk beli key langsung tanpa scan QRIS lagi.</p>
-
-      <% if (walletTransactions && walletTransactions.length > 0) { %>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(240,179,8,.18);">
-        <% walletTransactions.slice(0,5).forEach(t => { %>
-        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:6px 0;">
-          <div style="display:flex;align-items:center;gap:6px;min-width:0;">
-            <iconify-icon icon="<%= (t.amount||0) >= 0 ? 'mdi:arrow-down-circle' : 'mdi:arrow-up-circle' %>" style="color:<%= (t.amount||0) >= 0 ? '#34d399' : (settings?.theme?.accentColor || '#60a5fa') %>;font-size:13px;flex-shrink:0;"></iconify-icon>
-            <span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= t.productName %></span>
-          </div>
-          <span style="font-weight:700;flex-shrink:0;color:<%= (t.amount||0) >= 0 ? '#34d399' : (settings?.theme?.accentColor || '#60a5fa') %>;">
-            <%= (t.amount||0) >= 0 ? '+' : '' %>Rp <%= Math.abs(t.amount||t.price||0).toLocaleString('id-ID') %>
-          </span>
-        </div>
-        <% }) %>
-      </div>
-      <% } %>
-    </div>
-    <% } %>
-
-    <!-- ══ STATS CARDS ══ -->
-    <div class="pg-dash-grid">
-      <div class="pg-dash-card" style="background:var(--panel);">
-        <small><iconify-icon icon="mdi:receipt-text" style="vertical-align:-2px;margin-right:4px;color:var(--accent);"></iconify-icon> Total Order</small>
-        <b><%= stats.totalOrders %></b>
-      </div>
-      <div class="pg-dash-card" style="background:var(--panel);">
-        <small><iconify-icon icon="mdi:check-circle" style="vertical-align:-2px;margin-right:4px;color:#34d399;"></iconify-icon> Berhasil</small>
-        <b><%= stats.successOrders %></b>
-      </div>
-      <div class="pg-dash-card" style="background:var(--panel);">
-        <small><iconify-icon icon="mdi:clock-outline" style="vertical-align:-2px;margin-right:4px;color:var(--orange);"></iconify-icon> Pending</small>
-        <b><%= stats.pendingOrders %></b>
-      </div>
-      <div class="pg-dash-card" style="background:var(--panel);">
-        <small><iconify-icon icon="mdi:cash-multiple" style="vertical-align:-2px;margin-right:4px;color:var(--red);"></iconify-icon> Total Belanja</small>
-        <b><%= 'Rp ' + (stats.totalSpent || 0).toLocaleString('id-ID') %></b>
-      </div>
     </div>
 
-    <!-- ══ RIWAYAT TRANSAKSI ══ -->
-    <div style="background:var(--panel);border-radius:var(--radius-lg);padding:16px 18px 12px;margin-bottom:20px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-        <iconify-icon icon="mdi:history" style="color:var(--accent);font-size:16px;"></iconify-icon>
-        <span style="font-size:13px;font-weight:800;color:#fff;">Riwayat Transaksi</span>
-        <span style="font-size:10px;color:var(--muted);margin-left:auto;"><%= transactions.length %> transaksi</span>
-      </div>
-
-      <% if (transactions.length === 0) { %>
-      <div style="text-align:center;padding:36px 16px;">
-        <iconify-icon icon="mdi:receipt-text-outline" style="font-size:40px;color:var(--muted);display:block;margin:0 auto 10px;"></iconify-icon>
-        <p style="font-size:13px;color:var(--muted);">Belum ada transaksi</p>
-        <a href="/" style="color:var(--accent);font-size:12px;font-weight:700;display:inline-block;margin-top:8px;">Mulai belanja sekarang</a>
-      </div>
-      <% } else { %>
-      <div class="pg-table-wrap">
-        <table class="pg-table">
-          <thead>
-            <tr>
-              <th>Produk</th>
-              <th>Status</th>
-              <th>Kode</th>
-              <th>Waktu</th>
-              <th>Harga</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% transactions.forEach(t => { %>
-            <tr>
-              <td style="font-weight:600;color:#fff;"> <%= t.productName || t.type || 'Produk' %></td>
-              <td>
-                <span class="pg-status-badge pg-status-<%= t.status === 'done' ? 'done' : t.status === 'pending' ? 'pending' : 'failed' %>">
-                  <%= t.status === 'done' ? 'SELESAI' : t.status === 'pending' ? 'PENDING' : 'BATAL' %>
-                </span>
-              </td>
-              <td style="color:var(--muted);"><%= t.code || t.orderId || '—' %></td>
-              <td style="color:var(--muted);"><%= t.time || new Date(t.createdAt).toLocaleDateString('id-ID') %></td>
-              <td style="font-weight:700;">
-                <span style="<%= t.status === 'done' ? 'color:#34d399;' : '' %>">Rp <%= (t.price || 0).toLocaleString('id-ID') %></span>
-                <% if (t.voucherDiscount) { %>
-                <div style="font-size:9px;color:#34d399;">-Rp <%= t.voucherDiscount.toLocaleString('id-ID') %></div>
-                <% } %>
-              </td>
-            </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      </div>
-      <a href="/invoice" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 10px;font-size:11px;color:var(--accent);font-weight:700;border-top:1px solid var(--line);margin-top:4px;">
-        <iconify-icon icon="mdi:magnify" style="font-size:13px;"></iconify-icon> Cari transaksi lain via kode pesanan
-      </a>
-      <% } %>
-    </div>
-
-    <!-- ══ QUICK ACTIONS ══ -->
-    <div class="pg-dash-grid" style="margin-bottom:0;">
-      <a href="/" class="pg-btn pg-btn-outline pg-btn-block" style="padding:13px;">
-        <iconify-icon icon="mdi:shopping"></iconify-icon> Belanja
-      </a>
-      <button onclick="openCart()" class="pg-btn pg-btn-primary pg-btn-block" style="padding:13px;">
-        <iconify-icon icon="mdi:cart-outline"></iconify-icon> Keranjang
-        <span id="dash-cart-count" style="display:none;background:#0a1016;color:#fff;font-size:9px;font-weight:900;padding:1px 6px;border-radius:99px;"></span>
-      </button>
-    </div>
-
-  </div>
-</main>
-
-<!-- ══ TOP UP SALDO MODAL ══ -->
-<% if (user?.is_reseller) { %>
-<div id="topupModal" class="hidden" style="position:fixed;inset:0;z-index:99999;">
-  <div style="position:absolute;inset:0;background:rgba(4,8,13,.85);backdrop-filter:blur(4px);" onclick="closeTopup()"></div>
-  <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none;">
-    <div style="pointer-events:auto;width:100%;max-width:640px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-height:95dvh;overflow-y:auto;box-shadow:0 -10px 40px rgba(0,0,0,.5);">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);">
-        <h3 style="font-size:14px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px;">
-          <iconify-icon icon="mdi:wallet-plus" style="color:#fbbf24;"></iconify-icon> Top Up Saldo
-        </h3>
-        <button onclick="closeTopup()" aria-label="Tutup" style="background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-sm);width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--muted);">
-          <iconify-icon icon="mdi:close"></iconify-icon>
-        </button>
-      </div>
-
-      <!-- STEP 1: input nominal -->
-      <div id="topupStepAmount" style="padding:20px;">
-        <label style="display:block;font-size:10px;font-weight:800;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">NOMINAL TOP UP</label>
-        <% const _minDep = user?.is_reseller ? (settings.resellerMinDeposit||50000) : (settings.memberMinDeposit||10000); %>
-        <input type="number" id="topupAmount" placeholder="Minimal Rp <%= _minDep.toLocaleString('id-ID') %>"
-          style="width:100%;padding:13px 14px;border-radius:var(--radius-sm);font-size:13px;color:#fff;background:var(--bg-soft);border:1px solid var(--line);outline:none;margin-bottom:12px;"
-          min="<%= _minDep %>" step="1000">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
-          <% const _quickAmounts = user?.is_reseller ? [50000,100000,250000,500000,1000000,2000000] : [10000,25000,50000,100000,250000,500000]; %>
-          <% _quickAmounts.forEach(v => { %>
-          <button type="button" onclick="document.getElementById('topupAmount').value=<%= v %>"
-            style="padding:9px;border-radius:var(--radius-sm);font-size:11px;font-weight:700;color:#fff;background:var(--bg-soft);border:1px solid var(--line);">
-            <%= v >= 1000000 ? (v/1000000)+'jt' : (v/1000)+'rb' %>
-          </button>
-          <% }) %>
-        </div>
-        <button id="topupSubmitBtn" onclick="submitTopup()" class="pg-btn pg-btn-block" style="background:#fbbf24;color:#0a1016;padding:14px;font-size:14px;">
-          <iconify-icon icon="mdi:qrcode-scan" style="font-size:18px;"></iconify-icon> Buat Pembayaran
-        </button>
-      </div>
-
-      <!-- STEP 2: QR pembayaran -->
-      <div id="topupStepQr" class="hidden" style="padding:20px;">
-        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:14px;">
-          <div id="topupQrWrap" style="display:flex;align-items:center;justify-content:center;min-height:80px;">
-            <iconify-icon icon="mdi:loading" style="font-size:34px;color:#fbbf24;" class="animate-spin"></iconify-icon>
-          </div>
-          <p style="font-size:10px;color:var(--muted);margin-top:8px;">Scan dengan aplikasi mobile banking / e-wallet</p>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div style="background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-md);padding:10px;text-align:center;">
-            <div style="font-size:10px;color:var(--muted);margin-bottom:2px;">Kode Top Up</div>
-            <div style="font-size:14px;font-family:monospace;font-weight:900;color:#fbbf24;letter-spacing:.08em;" id="topupCodeShow">—</div>
-          </div>
-          <div style="background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-md);padding:10px;text-align:center;">
-            <div style="font-size:10px;color:var(--muted);margin-bottom:2px;">Nominal</div>
-            <div style="font-size:14px;font-weight:900;color:#34d399;" id="topupAmountShow">—</div>
-          </div>
-        </div>
-        <div id="topupStatusRow" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 0;">
-          <div class="w-2 h-2" style="border-radius:9999px;background:#fbbf24;"></div>
-          <span class="text-xs" style="color:var(--muted);">Menunggu pembayaran...</span>
-        </div>
-        <div id="topupStaticNote" class="hidden" style="text-align:center;border-radius:var(--radius-md);padding:12px;background:rgba(240,179,8,.07);border:1px solid rgba(240,179,8,.2)">
-          <p style="font-size:12px;color:#f9d976;">Setelah transfer, kirim bukti ke admin via WhatsApp agar saldo segera dikonfirmasi</p>
-          <a id="topupWaBtn" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;margin-top:8px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:#fff;background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.35);">
-            <iconify-icon icon="mdi:whatsapp" style="color:#4ade80;font-size:14px;"></iconify-icon> WhatsApp
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
-
-<script>
-let topupPayInterval = null;
-let topupRefId = null;
-const MIN_DEPOSIT = <%= user?.is_reseller ? (settings.resellerMinDeposit||50000) : (settings.memberMinDeposit||10000) %>;
-const WA_NUMBER = '<%= settings.contact?.whatsapp || "6285181236886" %>';
-
-function openTopup() {
-    document.getElementById('topupModal').classList.remove('hidden');
-    document.getElementById('topupStepAmount').classList.remove('hidden');
-    document.getElementById('topupStepQr').classList.add('hidden');
-    document.getElementById('topupAmount').value = '';
-    document.body.style.overflow = 'hidden';
-}
-
-function closeTopup() {
-    if (topupPayInterval) { clearInterval(topupPayInterval); topupPayInterval = null; }
-    document.getElementById('topupModal').classList.add('hidden');
-    document.body.style.overflow = '';
-}
-
-async function submitTopup() {
-    const amount = parseInt(document.getElementById('topupAmount').value);
-    if (!amount || amount < MIN_DEPOSIT) {
-        showToast(`Minimal top up Rp ${MIN_DEPOSIT.toLocaleString('id-ID')}`, 'error');
-        return;
-    }
-    const btn = document.getElementById('topupSubmitBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<iconify-icon icon="mdi:loading" class="text-lg animate-spin"></iconify-icon> Memproses...';
-    try {
-        const res = await fetch('/wallet/topup', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ amount }) });
-        const data = await res.json();
-        if (data.success) {
-            showTopupQr(data);
-        } else {
-            showToast(data.message || 'Gagal membuat top up', 'error');
-        }
-    } catch(e) { showToast('Koneksi error: ' + e.message, 'error'); }
-    finally {
-        btn.disabled = false;
-        btn.innerHTML = '<iconify-icon icon="mdi:qrcode-scan" class="text-lg"></iconify-icon> Buat Pembayaran';
-    }
-}
-
-function showTopupQr(data) {
-    const { qrString, orderCode, refId, isStatic, qrisStaticImage, totalPayment } = data;
-    const amount = parseInt(document.getElementById('topupAmount').value);
-    const payAmount = totalPayment || amount;
-    topupRefId = refId;
-
-    document.getElementById('topupStepAmount').classList.add('hidden');
-    document.getElementById('topupStepQr').classList.remove('hidden');
-    document.getElementById('topupCodeShow').textContent = orderCode || '—';
-    document.getElementById('topupAmountShow').textContent = 'Rp ' + payAmount.toLocaleString('id-ID');
-    if (payAmount !== amount) {
-        document.getElementById('topupAmountShow').insertAdjacentHTML('afterend',
-            `<div class="text-[9px] text-zinc-500 mt-0.5">Saldo masuk: Rp ${amount.toLocaleString('id-ID')}</div>`);
-    }
-    document.getElementById('topupStatusRow').innerHTML =
-        '<div class="w-2 h-2 rounded-full bg-yellow-400"></div><span class="text-xs text-zinc-400">Menunggu pembayaran...</span>';
-
-    const wrap = document.getElementById('topupQrWrap');
-    if (isStatic && qrisStaticImage) {
-        wrap.innerHTML = `<div style="background:#fff;padding:12px;border-radius:16px;display:inline-block;">
-            <img src="${qrisStaticImage}" style="display:block;width:210px;height:210px;object-fit:contain;border-radius:6px;"></div>`;
-        document.getElementById('topupStaticNote').classList.remove('hidden');
-        document.getElementById('topupWaBtn').href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Konfirmasi top up saldo reseller, kode: ' + orderCode + ', nominal: Rp ' + amount.toLocaleString('id-ID'))}`;
-    } else if (qrString) {
-        wrap.innerHTML = `<div style="background:#fff;padding:12px;border-radius:16px;display:inline-block;">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=210x210&color=000000&bgcolor=ffffff&qzone=1&data=${encodeURIComponent(qrString)}" style="display:block;width:210px;height:210px;border-radius:4px;"></div>`;
-    } else {
-        wrap.innerHTML = `<div class="text-center py-4"><iconify-icon icon="mdi:qrcode-remove" class="text-5xl text-zinc-700 block mb-2"></iconify-icon><p class="text-xs text-zinc-500">QRIS belum dikonfigurasi. Hubungi admin.</p></div>`;
-    }
-
-    if (refId && !isStatic) topupPayInterval = setInterval(() => checkTopupPay(refId), 4000);
-}
-
-async function checkTopupPay(refId) {
-    try {
-        const r = await fetch(`/check-payment/${refId}`);
-        const d = await r.json();
-        if (d.success && d.status === 'done') {
-            clearInterval(topupPayInterval);
-            document.getElementById('topupStatusRow').innerHTML =
-                '<iconify-icon icon="mdi:check-circle" class="text-emerald-400 text-xl"></iconify-icon><span class="text-sm font-bold text-emerald-400">Top up berhasil!</span>';
-            showToast('Saldo berhasil ditambahkan!', 'success');
-            const balEl = document.getElementById('dashBalanceShow');
-            if (balEl && typeof d.balance === 'number') balEl.textContent = 'Rp ' + d.balance.toLocaleString('id-ID');
-            setTimeout(() => { closeTopup(); window.location.reload(); }, 1500);
-        } else if (d.status === 'expired') {
-            clearInterval(topupPayInterval);
-            document.getElementById('topupStatusRow').innerHTML =
-                '<iconify-icon icon="mdi:clock-alert" class="text-red-400"></iconify-icon><span class="text-xs text-red-400">Pembayaran expired</span>';
-        }
-    } catch(e) {}
-}
-
-// Buka otomatis kalau diakses via /dashboard#wallet
-if (window.location.hash === '#wallet') {
-    setTimeout(() => { document.getElementById('wallet')?.scrollIntoView({ behavior:'smooth' }); }, 300);
-}
-</script>
-<% } %>
-
-<%- include('../partials/footer') %>
+</div>
 
 <script>
 // Sync badge keranjang di dashboard
@@ -379,5 +147,3 @@ if (window.location.hash === '#wallet') {
     } catch(e) {}
 })();
 </script>
-</body>
-</html>

@@ -1,4 +1,4 @@
-# 🎉 YOOSKY STORE - Backend & Admin Panel SELESAI!
+# 🎉 ViprneStore - Backend & Admin Panel SELESAI!
 
 ## ✅ Yang Sudah Dibuat
 
@@ -296,14 +296,14 @@ Password: admin123
 ### settings.json
 ```json
 {
-  "siteName": "YOOSKY STORE",
-  "gamePanelName": "YOOSKY STORE",
-  "about": "YOOSKY STORE menyediakan...",
+  "siteName": "ViprneStore",
+  "gamePanelName": "ViprneStore",
+  "about": "ViprneStore menyediakan...",
   "marqueeText": "LAYANAN GAME MOD MENU PREMIUM",
   "contact": {
     "whatsapp": "6281235690535",
     "telegram": "HEROO3STORE",
-    "email": "support@yooskystore.com"
+    "email": "support@viprnestore.com"
   },
   "pakasir": {
     "apiKey": "",
@@ -377,7 +377,7 @@ PORT=3001 node server.js
 
 ---
 
-**🎉 SELAMAT! Backend & Admin Panel YOOSKY STORE sudah siap digunakan!**
+**🎉 SELAMAT! Backend & Admin Panel ViprneStore sudah siap digunakan!**
 
 Semua fitur sudah lengkap sesuai spesifikasi:
 ✅ Backend Node.js dengan Express
@@ -404,6 +404,6 @@ Password: admin123
 
 ---
 
-**Dibuat dengan ❤️ untuk YOOSKY STORE**
+**Dibuat dengan ❤️ untuk ViprneStore**
 
-© 2025 YOOSKY STORE. All rights reserved.
+© 2025 ViprneStore. All rights reserved.

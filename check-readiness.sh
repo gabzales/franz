@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-# YOOSKY STORE - Pre-Deployment Checklist
+# ViprneStore - Pre-Deployment Checklist
 # Run this script to verify everything is ready
 
 echo "╔════════════════════════════════════════════════════════════════════╗"
-echo "║         YOOSKY STORE - DEPLOYMENT READINESS CHECKLIST             ║"
+echo "║         ViprneStore - DEPLOYMENT READINESS CHECKLIST             ║"
 echo "╚════════════════════════════════════════════════════════════════════╝"
 echo ""
 

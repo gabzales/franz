@@ -398,6 +398,6 @@ app.get('/api/leaderboard', (req, res) => {
 
 ---
 
-**Dibuat dengan ❤️ untuk YOOSKY STORE**
+**Dibuat dengan ❤️ untuk ViprneStore**
 
-© 2025 YOOSKY STORE. All rights reserved.
+© 2025 ViprneStore. All rights reserved.

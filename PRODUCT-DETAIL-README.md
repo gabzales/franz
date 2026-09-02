@@ -1,4 +1,4 @@
-# 📦 Product Detail Modal - YOOSKY STORE
+# 📦 Product Detail Modal - ViprneStore
 
 Halaman detail produk dengan modal interaktif yang menampilkan informasi lengkap produk, paket harga, form pemesanan, dan ulasan pembeli.
 
@@ -265,6 +265,6 @@ if (pkg.stock < 5) {
 
 ---
 
-**Dibuat dengan ❤️ untuk YOOSKY STORE**
+**Dibuat dengan ❤️ untuk ViprneStore**
 
-© 2025 YOOSKY STORE. All rights reserved.
+© 2025 ViprneStore. All rights reserved.

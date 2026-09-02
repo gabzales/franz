@@ -1,4 +1,4 @@
-# 📋 Dokumentasi Admin Panel - YOOSKY STORE
+# 📋 Dokumentasi Admin Panel - ViprneStore
 
 ## 🎯 Akses Admin Panel
 
@@ -21,7 +21,7 @@ http://localhost:3000/admin/theme-settings
 ### 1. **settings.json** - Theme Configuration
 ```json
 {
-  "siteName": "YOOSKY STORE",
+  "siteName": "ViprneStore",
   "theme": {
     "primaryColor": "#7b2cbf",      // Warna tombol & aksen utama
     "secondaryColor": "#9d4edd",     // Warna gradient

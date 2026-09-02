@@ -1,6 +1,6 @@
-# 🎮 YOOSKY STORE Backend - JSONBin.io + Vercel Deployment
+# 🎮 ViprneStore Backend - JSONBin.io + Vercel Deployment
 
-Backend Node.js lengkap dengan admin panel untuk **YOOSKY STORE** - Layanan Game Mod Menu Premium.
+Backend Node.js lengkap dengan admin panel untuk **ViprneStore** - Layanan Game Mod Menu Premium.
 
 **Status**: ✅ Production-ready dengan JSONBin.io database dan Vercel deployment
 
@@ -214,8 +214,8 @@ backend_fixed/
 ### 1. Clone/Download Repository
 
 ```bash
-git clone https://github.com/your-username/yooskystore.git
-cd yooskystore/backend_fixed
+git clone https://github.com/your-username/viprnestore.git
+cd viprnestore/backend_fixed
 ```
 
 ### 2. Install Dependencies
@@ -432,7 +432,7 @@ MIT License - Feel free to use for commercial and private projects
 
 ## 👤 Author
 
-YOOSKY STORE Team
+ViprneStore Team
 
 ---
 
@@ -565,14 +565,14 @@ Tema mengikuti **code.txt** dengan karakteristik:
 ### settings.json
 ```json
 {
-  "siteName": "YOOSKY STORE",
-  "gamePanelName": "YOOSKY STORE",
-  "about": "YOOSKY STORE menyediakan...",
+  "siteName": "ViprneStore",
+  "gamePanelName": "ViprneStore",
+  "about": "ViprneStore menyediakan...",
   "marqueeText": "LAYANAN GAME MOD MENU PREMIUM",
   "contact": {
     "whatsapp": "6281235690535",
     "telegram": "HEROO3STORE",
-    "email": "support@yooskystore.com"
+    "email": "support@viprnestore.com"
   },
   "pakasir": {
     "apiKey": "your_api_key",
@@ -656,7 +656,7 @@ PORT=3001 node server.js
 ### Menggunakan PM2
 ```bash
 npm install -g pm2
-pm2 start server.js --name yooskystore
+pm2 start server.js --name viprnestore
 pm2 save
 pm2 startup
 ```
@@ -690,6 +690,6 @@ MIT License - Bebas digunakan untuk project pribadi atau komersial.
 
 ---
 
-**Dibuat dengan ❤️ untuk YOOSKY STORE**
+**Dibuat dengan ❤️ untuk ViprneStore**
 
-© 2025 YOOSKY STORE. All rights reserved.
+© 2025 ViprneStore. All rights reserved.

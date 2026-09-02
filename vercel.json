@@ -4,13 +4,20 @@
     {
       "src": "server.js",
       "use": "@vercel/node",
-      "config": { "maxLambdaSize": "50mb" }
+      "config": {
+        "includeFiles": [
+          "views/**",
+          "public/**",
+          "database/**",
+          "supabase.js",
+          "supabase-schema.sql"
+        ]
+      }
     }
   ],
   "routes": [
     {
       "src": "/uploads/(.*)",
-      "headers": { "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400" },
       "dest": "/server.js"
     },
     {

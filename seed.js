@@ -1,4 +1,4 @@
-// seed.js — Generate fake data untuk FranzzStore (topup game & premium app)
+// seed.js — Generate fake data untuk MarketHero
 // Jalankan: node seed.js
 const fs = require('fs');
 const path = require('path');
@@ -26,7 +26,7 @@ const avatarUrl = (seed) => `https://api.dicebear.com/7.x/pixel-art/png?seed=${e
 // ─── 62 Fake Users ───
 const userNames = [
   // Top buyers (banyak transaksi, semua punya foto)
-  'FranzzPro','NightWolf','SkyyFire','DarkBlaze','LunarKing',
+  'GabzPro','NightWolf','SkyyFire','DarkBlaze','LunarKing',
   'RedFalcon','IronPhoenix','ShadowX','NeonVibes','CyberRush',
   'AlphaGod','ZeroCool','PixelKnight','StormRider','GhostByte',
   // Mid buyers (foto campuran)
@@ -79,193 +79,89 @@ const users = userNames.map((name, i) => {
   };
 });
 
-// ─── Produk Topup Game & Premium App ───
-// Generator kode stok generik (tanpa tag durasi) — dipakai semua item.
-const makeKeys = (prefix, count) => {
+// ─── 5 Produk ───
+const makeKeys = (prefix, count, days) => {
   const arr = [];
   for (let i = 1; i <= count; i++) {
-    arr.push(`${prefix}-${String(i).padStart(3,'0')}`);
+    arr.push(`${prefix}-${String(i).padStart(3,'0')}${days ? ':'+days : ''}`);
   }
   return arr;
 };
-// Catatan model data:
-//  - `items`      : pilihan nominal/durasi yang tampil di halaman beli ({l: label, p: harga}).
-//  - `pricingOptions`: pasangan (days, price) untuk matching order di server.
-//    Untuk topup, "days" = nominal (mis. 70 = 70 diamond) — label bebas di `items.l`.
-//    Untuk premium app, durasi ditulis "N HARI" di label biar ke-detect otomatis.
-//  - `keys`       : stok kode generik (tanpa tag durasi "=") — dipakai untuk semua item.
+
 const products = [
   {
     id: uuidv4(),
-    name: 'FREE FIRE DIAMOND',
+    name: 'FREE FIRE MAX BUNDLE',
     category: 'freefire',
-    description: 'Topup Diamond Free Fire langsung ke akun kamu via ID Player. Proses otomatis, legal, dan aman — diamond masuk dalam hitungan detik.',
-    image: '/uploads/products/free-fire.png',
+    description: 'Bundle lengkap Free Fire MAX: Wall Hack, Aimbot, ESP, Speed. Update otomatis!',
+    image: 'https://i.imgur.com/JvY5m6J.png',
+    pricingOptions: [{days:7,price:60000},{days:30,price:150000},{days:90,price:350000}],
     items: [
-      {l:'5 DIAMONDS',p:1000},
-      {l:'12 DIAMONDS',p:2000},
-      {l:'70 DIAMONDS',p:11000},
-      {l:'140 DIAMONDS',p:21000},
-      {l:'355 DIAMONDS',p:49000},
-      {l:'720 DIAMONDS',p:96000},
-      {l:'1450 DIAMONDS',p:185000},
-      {l:'MEMBERSHIP MINGGUAN (7 HARI)',p:27000}
+      {l:'FREE FIRE MAX BUNDLE 7 DAYS',p:60000},
+      {l:'FREE FIRE MAX BUNDLE 30 DAYS',p:150000},
+      {l:'FREE FIRE MAX BUNDLE 90 DAYS',p:350000}
     ],
-    keys: [...makeKeys('FFD',500)],
-    requiresGameId: true, requiresZoneId: false, gameIdLabel: 'User ID', gameIdPlaceholder: 'Contoh: 123456789',
-    status: 'active', sold: 1240, createdAt: new Date(now-90*86400000).toISOString()
+    keys: [...makeKeys('FF7',50,7),...makeKeys('FF30',40,30),...makeKeys('FF90',20,90)],
+    status: 'active', sold: 487, createdAt: new Date(now-90*86400000).toISOString()
   },
   {
     id: uuidv4(),
-    name: 'MOBILE LEGENDS DIAMOND',
+    name: 'MLBB INJECTOR PRO',
     category: 'mlbb',
-    description: 'Topup Diamond Mobile Legends: Bang Bang via ID + Server. Proses instan, harga termurah, cocok buat beli skin & battle emote favoritmu.',
-    image: '/uploads/products/mobile-legends.png',
+    description: 'Mobile Legends Injector: Drone View, Map Hack, No Cooldown, Auto Win!',
+    image: 'https://i.imgur.com/9rWbX7G.png',
+    pricingOptions: [{days:7,price:50000},{days:30,price:120000},{days:90,price:280000}],
     items: [
-      {l:'78 DIAMONDS',p:19000},
-      {l:'156 DIAMONDS',p:37000},
-      {l:'344 DIAMONDS',p:79000},
-      {l:'429 DIAMONDS',p:99000},
-      {l:'875 DIAMONDS',p:199000},
-      {l:'2010 DIAMONDS',p:445000},
-      {l:'WEEKLY DIAMOND PASS (7 HARI)',p:28000}
+      {l:'MLBB INJECTOR PRO 7 DAYS',p:50000},
+      {l:'MLBB INJECTOR PRO 30 DAYS',p:120000},
+      {l:'MLBB INJECTOR PRO 90 DAYS',p:280000}
     ],
-    keys: [...makeKeys('MLD',500)],
-    requiresGameId: true, requiresZoneId: true, gameIdLabel: 'User ID', gameIdPlaceholder: 'Contoh: 123456789', zoneIdLabel: 'Zone ID', zoneIdPlaceholder: 'Contoh: 1234',
-    status: 'active', sold: 985, createdAt: new Date(now-85*86400000).toISOString()
+    keys: [...makeKeys('ML7',40,7),...makeKeys('ML30',30,30),...makeKeys('ML90',15,90)],
+    status: 'active', sold: 365, createdAt: new Date(now-85*86400000).toISOString()
   },
   {
     id: uuidv4(),
-    name: 'PUBG MOBILE UC',
+    name: 'PUBG MOBILE HACK VIP',
     category: 'pubgm',
-    description: 'Topup UC PUBG Mobile via ID Player. Beli Royal Pass, skin, dan crate favoritmu. Proses cepat dan 100% aman.',
-    image: '/uploads/products/pubg-mobile.png',
+    description: 'PUBG Mobile: Aimbot, Magic Bullet, Wall, Speed, Anti-Ban Guaranteed!',
+    image: 'https://i.imgur.com/KjmVhxP.png',
+    pricingOptions: [{days:7,price:75000},{days:30,price:180000},{days:90,price:420000}],
     items: [
-      {l:'60 UC',p:13000},
-      {l:'325 UC',p:65000},
-      {l:'660 UC',p:130000},
-      {l:'1800 UC',p:330000},
-      {l:'3850 UC',p:660000},
-      {l:'8100 UC',p:1320000}
+      {l:'PUBG MOBILE HACK VIP 7 DAYS',p:75000},
+      {l:'PUBG MOBILE HACK VIP 30 DAYS',p:180000},
+      {l:'PUBG MOBILE HACK VIP 90 DAYS',p:420000}
     ],
-    keys: [...makeKeys('PUC',400)],
-    requiresGameId: true, requiresZoneId: false, gameIdLabel: 'Player ID', gameIdPlaceholder: 'Contoh: 512983xxxx',
-    status: 'active', sold: 764, createdAt: new Date(now-80*86400000).toISOString()
+    keys: [...makeKeys('PG7',35,7),...makeKeys('PG30',25,30),...makeKeys('PG90',12,90)],
+    status: 'active', sold: 278, createdAt: new Date(now-80*86400000).toISOString()
   },
   {
     id: uuidv4(),
-    name: 'GENSHIN IMPACT',
-    category: 'genshin',
-    description: 'Topup Genesis Crystal & Blessing of the Welkin Moon Genshin Impact via UID. Proses otomatis, support semua server (Asia, EU, US, TW/HK/MO).',
-    image: '/uploads/products/genshin-impact.png',
+    name: 'VALORANT CHEAT ELITE',
+    category: 'freefire',
+    description: 'Valorant: Aimbot Lock, ESP Box, Trigger Bot, No Recoil. Undetected!',
+    image: 'https://i.imgur.com/mT2bWAk.png',
+    pricingOptions: [{days:7,price:90000},{days:30,price:220000}],
     items: [
-      {l:'60 GENESIS CRYSTALS',p:15000},
-      {l:'330 GENESIS CRYSTALS',p:75000},
-      {l:'1090 GENESIS CRYSTALS',p:235000},
-      {l:'2240 GENESIS CRYSTALS',p:465000},
-      {l:'3880 GENESIS CRYSTALS',p:780000},
-      {l:'8080 GENESIS CRYSTALS',p:1550000},
-      {l:'WELKIN MOON (30 HARI)',p:79000}
+      {l:'VALORANT CHEAT ELITE 7 DAYS',p:90000},
+      {l:'VALORANT CHEAT ELITE 30 DAYS',p:220000}
     ],
-    keys: [...makeKeys('GIC',300)],
-    requiresGameId: true, requiresZoneId: false, gameIdLabel: 'UID', gameIdPlaceholder: 'Contoh: 812345678',
-    status: 'active', sold: 512, createdAt: new Date(now-75*86400000).toISOString()
+    keys: [...makeKeys('VL7',30,7),...makeKeys('VL30',20,30)],
+    status: 'active', sold: 193, createdAt: new Date(now-75*86400000).toISOString()
   },
   {
     id: uuidv4(),
-    name: 'VALORANT POINT',
-    category: 'valorant',
-    description: 'Topup Valorant Point (VP) via Riot ID. Beli skin bundle & battle pass favoritmu. Proses cepat, harga di bawah harga in-game.',
-    image: '/uploads/products/valorant.png',
+    name: 'GENSHIN SCRIPT PACK',
+    category: 'sertifikat',
+    description: 'Genshin Impact Script: Auto Farm, Speed Hack, God Mode, One Hit Kill!',
+    image: 'https://i.imgur.com/Dp3WXRB.png',
+    pricingOptions: [{days:7,price:55000},{days:30,price:130000},{days:90,price:300000}],
     items: [
-      {l:'400 VP',p:45000},
-      {l:'800 VP',p:90000},
-      {l:'1600 VP',p:175000},
-      {l:'2400 VP',p:260000},
-      {l:'4000 VP',p:425000}
+      {l:'GENSHIN SCRIPT PACK 7 DAYS',p:55000},
+      {l:'GENSHIN SCRIPT PACK 30 DAYS',p:130000},
+      {l:'GENSHIN SCRIPT PACK 90 DAYS',p:300000}
     ],
-    keys: [...makeKeys('VPT',300)],
-    requiresGameId: true, requiresZoneId: false, gameIdLabel: 'Riot ID', gameIdPlaceholder: 'Contoh: NamaKamu#1234',
-    status: 'active', sold: 341, createdAt: new Date(now-70*86400000).toISOString()
-  },
-  {
-    id: uuidv4(),
-    name: 'SPOTIFY PREMIUM',
-    category: 'premium',
-    description: 'Spotify Premium Individu — bebas iklan, download offline, kualitas audio terbaik. Akun sendiri (bukan sharing), garansi penuh selama masa aktif.',
-    image: '/uploads/products/spotify.png',
-    items: [
-      {l:'INDIVIDU 30 HARI',p:25000},
-      {l:'INDIVIDU 90 HARI',p:65000},
-      {l:'INDIVIDU 365 HARI',p:199000}
-    ],
-    keys: [...makeKeys('SPT',200)],
-    status: 'active', sold: 876, createdAt: new Date(now-60*86400000).toISOString()
-  },
-  {
-    id: uuidv4(),
-    name: 'YOUTUBE PREMIUM',
-    category: 'premium',
-    description: 'YouTube Premium + YouTube Music — bebas iklan, play background, dan download offline. Garansi penuh selama masa aktif.',
-    image: '/uploads/products/youtube.png',
-    items: [
-      {l:'30 HARI',p:15000},
-      {l:'90 HARI',p:39000},
-      {l:'365 HARI',p:129000}
-    ],
-    keys: [...makeKeys('YTP',200)],
-    status: 'active', sold: 654, createdAt: new Date(now-55*86400000).toISOString()
-  },
-  {
-    id: uuidv4(),
-    name: 'NETFLIX PREMIUM',
-    category: 'premium',
-    description: 'Netflix Premium — profil private (bukan sharing), kualitas 4K UHD, bebas ganti perangkat. Garansi replace selama masa aktif.',
-    image: '/uploads/products/netflix.png',
-    items: [
-      {l:'SHARING 30 HARI',p:45000},
-      {l:'PRIVATE 30 HARI',p:120000}
-    ],
-    keys: [...makeKeys('NFL',150)],
-    status: 'active', sold: 445, createdAt: new Date(now-50*86400000).toISOString()
-  },
-  {
-    id: uuidv4(),
-    name: 'CANVA PRO',
-    category: 'premium',
-    description: 'Canva Pro member invite — unlock semua template premium, background remover, 1TB storage. Garansi penuh selama masa aktif.',
-    image: '/uploads/products/canva.png',
-    items: [
-      {l:'30 HARI',p:10000},
-      {l:'365 HARI',p:35000}
-    ],
-    keys: [...makeKeys('CNV',200)],
-    status: 'active', sold: 720, createdAt: new Date(now-45*86400000).toISOString()
-  },
-  {
-    id: uuidv4(),
-    name: 'CAPCUT PRO',
-    category: 'premium',
-    description: 'CapCut Pro — bebas watermark, efek & template premium eksklusif, export kualitas maksimal. Garansi penuh selama masa aktif.',
-    image: '/uploads/products/capcut.png',
-    items: [
-      {l:'30 HARI',p:35000}
-    ],
-    keys: [...makeKeys('CCP',150)],
-    status: 'active', sold: 389, createdAt: new Date(now-40*86400000).toISOString()
-  },
-  {
-    id: uuidv4(),
-    name: 'DISNEY+ HOTSTAR',
-    category: 'premium',
-    description: 'Disney+ Hotstar Premium — nonton film, series, dan olahraga (MPL, Premier League) kualitas 4K. Garansi replace selama masa aktif.',
-    image: '/uploads/products/disneyplus.png',
-    items: [
-      {l:'30 HARI',p:35000},
-      {l:'365 HARI',p:199000}
-    ],
-    keys: [...makeKeys('DNP',150)],
-    status: 'active', sold: 298, createdAt: new Date(now-35*86400000).toISOString()
+    keys: [...makeKeys('GS7',45,7),...makeKeys('GS30',30,30),...makeKeys('GS90',18,90)],
+    status: 'active', sold: 312, createdAt: new Date(now-70*86400000).toISOString()
   }
 ];
 
@@ -292,7 +188,7 @@ const doneRatio = 0.88;
 const transactions = [];
 const orderChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const genCode = () => {
-  let c = 'GP-';
+  let c = 'HM-';
   for (let i=0;i<4;i++) c += orderChars[Math.floor(Math.random()*orderChars.length)];
   c += '-';
   for (let i=0;i<4;i++) c += orderChars[Math.floor(Math.random()*orderChars.length)];
@@ -313,7 +209,7 @@ users.forEach((user, ui) => {
   for (let t = 0; t < count; t++) {
     const product = products[Math.floor(Math.random() * products.length)];
     const item = product.items[Math.floor(Math.random() * product.items.length)];
-    const m = (item.l.match(/(\d+)/)||[]);
+    const m = (item.l.match(/(\d+)\s+DAYS/)||[]);
     const days = m[1] ? parseInt(m[1]) : 7;
     const isDone = Math.random() < doneRatio;
     const basePrice = item.p;
@@ -323,7 +219,7 @@ users.forEach((user, ui) => {
 
     transactions.push({
       id: uuidv4(),
-      orderId: `GP-${trxDate.getTime()}`,
+      orderId: `HM-${trxDate.getTime()}`,
       code: genCode(),
       userId: user.id,
       productId: product.id,
@@ -349,36 +245,36 @@ transactions.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
 // ─── Testimonials (50 fake reviews) ───
 const reviewTexts = [
-  'Topup diamond masuk kurang dari 1 menit, prosesnya otomatis. Mantap!',
-  'Harga paling murah se-Indonesia, udah bandingkan sama toko lain.',
-  'Legit! Baru bayar QRIS, diamond langsung masuk ke akun.',
-  'Admin ramah dan fast respon, topup di sini langganan terus.',
-  'Spotify Premium-nya original, garansi penuh. Recommended!',
-  'Udah langganan bulanan di sini, gak pernah ada masalah.',
-  'Proses cepet banget, tinggal isi ID game langsung jalan.',
-  'Toko terpercaya, udah banyak transaksi gak ada kendala sama sekali.',
-  'YouTube Premium-nya masih aktif sampai sekarang, worth it banget!',
-  'Harga bersahabat buat pelajar, prosesnya juga gak ribet.',
-  'Topup UC langsung masuk, gak pake nunggu lama. GG!',
-  'Pelayanan 10/10, salah isi ID dibantu cepat sama admin.',
-  'Canva Pro-nya work terus, harga murah banget dibanding langganan resmi.',
-  'Pertama kali topup di sini dan langsung sukses. No cap!',
-  'Diamond FF murah, proses instan, admin fast respon. Mantul!',
-  'Netflix Premium-nya private bukan sharing, kualitas 4K jalan terus.',
-  'Langganan di sini dari dulu, gak pernah zonk. Terpercaya!',
-  'Pembayaran QRIS gampang, pesanan langsung diproses otomatis.',
-  'Welkin Genshin cuma 79rb, lebih murah dari harga resmi.',
-  'Repeat order ke-5 kalinya, tetap lancar semua. Recommended parah!',
-  'Teman-teman satu squad semua topup di sini, murah dan aman.',
-  'CapCut Pro-nya langsung aktif di akun, prosesnya cepet banget.',
-  'Awalnya ragu, ternyata legit. Bakal order lagi sih ini.',
-  'MLBB diamond masuk bahkan belum sampai 1 menit. Gila sih.',
-  'Harga termurah yang ada, kualitas tetap premium.',
-  'CS-nya sabar banget jawab pertanyaan, top markotop!',
-  'Disney+ Hotstar 1 tahun cuma segitu? Worth it banget!',
-  'Transaksi aman, privasi data akun dijaga. Aman poll!',
-  'Topup tengah malam pun prosesnya tetap otomatis jalan. Recommended!',
-  'Valorant Point masuk langsung, harga lebih murah dari in-game.'
+  'Mantap banget kunci nya langsung aktif, anti ban aman!',
+  'Proses cepet bgt, langsung jalan. Recommended!',
+  'Udah coba 3 bulan ga pernah kena ban, aman poll!',
+  'Seller responsif, key langsung dikirim otomatis. 👍',
+  'Murah meriah, kualitas premium! Bakal order lagi.',
+  'Aimbot-nya smooth banget, ga kedetect anti cheat.',
+  'Udah jadi langganan tiap bulan di sini, terpercaya.',
+  'Pelayanan oke, harga bersaing. Top markotop!',
+  'Key nya langsung aktif, ga perlu nunggu lama. GG!',
+  'Stok selalu ada, proses otomatis. Love it!',
+  'Terbaik se-Indonesia, udah nyoba yang lain ga ada yang lebih baik.',
+  'Fast respon, key valid, ga ada masalah sama sekali.',
+  'Harga terjangkau buat semua kalangan. Keren!',
+  'Sempat ragu awalnya, tapi setelah coba langsung ketagihan.',
+  'Aman, cepat, murah. 3 kata buat franzzstore!',
+  'Fitur lengkap, update rutin, jarang crash. Perfect!',
+  'Seller jujur dan transparan, ga ada tipu-tipu.',
+  'Pertama kali beli di sini, ternyata beneran legit!',
+  'Pakai dari awal buka, sampe sekarang masih setia order di sini.',
+  'Key nya valid semua, langsung pakai. No cap!',
+  'Paling recommended buat yang mau cari cheat aman.',
+  'Ga nyesel beli di sini, bakal repeat order terus!',
+  'Harga masuk akal, kualitas tinggi. Mantul!',
+  'Auto bayar, auto dapet key. Sistemnya canggih!',
+  'Beli 3x, ke-3x nya lancar semua. Terpercaya!',
+  'Update rutin jadi ga takut kena patch game.',
+  'Response admin cepet kalau ada masalah. 10/10!',
+  'Pertama coba 7 hari, langsung extend 30 hari.',
+  'Komunitas seller nya solid, ga kabur2an.',
+  'Kalau mau aman ya di sini tempatnya!'
 ];
 
 const testimonials = [];
@@ -428,14 +324,12 @@ writeDB('testimonials.json', testimonials);
 writeDB('notifications.json', notifications);
 
 const settings = readDB('settings.json');
-settings.categories = ['freefire','mlbb','pubgm','genshin','valorant','premium'];
+settings.categories = ['freefire','mlbb','pubgm','sertifikat'];
 settings.categoryLabels = {
   freefire: 'FREE FIRE',
   mlbb: 'MOBILE LEGENDS',
   pubgm: 'PUBG MOBILE',
-  genshin: 'GENSHIN IMPACT',
-  valorant: 'VALORANT',
-  premium: 'PREMIUM APP'
+  sertifikat: 'PREMIUM SCRIPT'
 };
 settings.resellerEnabled = true;
 settings.resellerPrice = 50000;
@@ -445,10 +339,23 @@ writeDB('settings.json', settings);
 
 // ─── Summary ───
 const doneTrx = transactions.filter(t=>t.status==='done');
+const leaderMap = {};
+doneTrx.forEach(t => {
+  if (!leaderMap[t.userId]) leaderMap[t.userId] = {count:0,spent:0};
+  leaderMap[t.userId].count++;
+  leaderMap[t.userId].spent += t.price;
+});
+const top10 = Object.entries(leaderMap).sort((a,b)=>b[1].count-a[1].count).slice(0,10);
+
 console.log('\n✅ Seed data berhasil dibuat!\n');
 console.log(`👥 Users       : ${users.length} (${users.filter(u=>u.photo).length} dengan foto, ${users.filter(u=>!u.photo).length} tanpa foto, ${users.filter(u=>u.is_reseller).length} reseller)`);
 console.log(`📦 Products    : ${products.length}`);
 console.log(`💳 Transactions: ${transactions.length} (${doneTrx.length} done, ${transactions.filter(t=>t.status==='pending').length} pending)`);
 console.log(`⭐ Testimonials : ${testimonials.length} (${testimonials.filter(t=>t.featured).length} featured)`);
 console.log(`🔔 Notifications: ${notifications.length}`);
+console.log('\n🏆 Top 10 Leaderboard:');
+top10.forEach(([uid,s],i) => {
+  const u = users.find(u=>u.id===uid);
+  console.log(`   #${i+1} ${(u?.username||'?').padEnd(18)} — ${s.count} trx — Rp ${s.spent.toLocaleString('id-ID')} ${u?.photo?'📷':'  '}`);
+});
 console.log('\n');
