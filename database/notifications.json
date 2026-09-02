@@ -1,0 +1,802 @@
+[
+  {
+    "id": "3197a092-aba7-4130-8e3f-44bc84af3961",
+    "type": "purchase",
+    "buyerName": "FranzzPro",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=FranzzPro&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "GENSHIN IMPACT",
+    "price": 63200,
+    "time": "2026-09-01T01:19:33.779Z",
+    "timeStr": "01/09/2026 01:19"
+  },
+  {
+    "id": "65d3c162-421f-4074-af0f-d20f0bd63202",
+    "type": "purchase",
+    "buyerName": "AlphaGod",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=AlphaGod&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CAPCUT PRO",
+    "price": 35000,
+    "time": "2026-09-01T00:29:07.811Z",
+    "timeStr": "01/09/2026 00:29"
+  },
+  {
+    "id": "6acfce70-9aa4-4a69-a5e0-1ff80ea46f36",
+    "type": "purchase",
+    "buyerName": "DarkBlaze",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=DarkBlaze&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CANVA PRO",
+    "price": 10000,
+    "time": "2026-08-31T21:00:29.173Z",
+    "timeStr": "31/08/2026 21:00"
+  },
+  {
+    "id": "1ab8144b-808f-46c8-83b5-7763b7ac2f2d",
+    "type": "purchase",
+    "buyerName": "QuantumZ",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=QuantumZ&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "VALORANT POINT",
+    "price": 90000,
+    "time": "2026-08-31T19:10:56.481Z",
+    "timeStr": "31/08/2026 19:10"
+  },
+  {
+    "id": "8a01acb4-e192-46d7-b83b-bed5c150a0d1",
+    "type": "purchase",
+    "buyerName": "LunarKing",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=LunarKing&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "NETFLIX PREMIUM",
+    "price": 45000,
+    "time": "2026-08-31T18:53:02.309Z",
+    "timeStr": "31/08/2026 18:53"
+  },
+  {
+    "id": "7bcb9dde-a70e-476e-8a87-532540b84ac3",
+    "type": "purchase",
+    "buyerName": "DarkBlaze",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=DarkBlaze&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "NETFLIX PREMIUM",
+    "price": 45000,
+    "time": "2026-08-30T23:54:49.293Z",
+    "timeStr": "30/08/2026 23:54"
+  },
+  {
+    "id": "ec934849-37c8-480a-8dc5-975846119a24",
+    "type": "purchase",
+    "buyerName": "LunarKing",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=LunarKing&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "DISNEY+ HOTSTAR",
+    "price": 35000,
+    "time": "2026-08-30T22:37:10.858Z",
+    "timeStr": "30/08/2026 22:37"
+  },
+  {
+    "id": "7834b2e2-c8bf-4525-b495-ced8caa502b4",
+    "type": "purchase",
+    "buyerName": "NightWolf",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=NightWolf&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "YOUTUBE PREMIUM",
+    "price": 31200,
+    "time": "2026-08-30T21:50:28.649Z",
+    "timeStr": "30/08/2026 21:50"
+  },
+  {
+    "id": "0689cc51-85e0-4993-88da-ffb4b81a3319",
+    "type": "purchase",
+    "buyerName": "QuantumZ",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=QuantumZ&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "PUBG MOBILE UC",
+    "price": 330000,
+    "time": "2026-08-30T19:30:46.554Z",
+    "timeStr": "30/08/2026 19:30"
+  },
+  {
+    "id": "979b74bd-13dd-4117-8c1b-fa777e9bf639",
+    "type": "purchase",
+    "buyerName": "GhostByte",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=GhostByte&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "MOBILE LEGENDS DIAMOND",
+    "price": 159200,
+    "time": "2026-08-30T17:26:23.344Z",
+    "timeStr": "30/08/2026 17:26"
+  },
+  {
+    "id": "a385fae9-3050-4f40-b886-a3ebb1249713",
+    "type": "purchase",
+    "buyerName": "EchoStrike",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=EchoStrike&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "GENSHIN IMPACT",
+    "price": 780000,
+    "time": "2026-08-30T15:48:40.377Z",
+    "timeStr": "30/08/2026 15:48"
+  },
+  {
+    "id": "d4bd61a5-eada-444b-868f-48351f7594dd",
+    "type": "purchase",
+    "buyerName": "StellarRift",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=StellarRift&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "VALORANT POINT",
+    "price": 45000,
+    "time": "2026-08-30T00:28:58.893Z",
+    "timeStr": "30/08/2026 00:28"
+  },
+  {
+    "id": "66e3e535-b5ae-4456-a78e-8ae26ed47d03",
+    "type": "purchase",
+    "buyerName": "MegaBoss",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=MegaBoss&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "SPOTIFY PREMIUM",
+    "price": 25000,
+    "time": "2026-08-29T18:43:36.193Z",
+    "timeStr": "29/08/2026 18:43"
+  },
+  {
+    "id": "d89d05bb-84c1-41b3-9ae2-29e7de732785",
+    "type": "purchase",
+    "buyerName": "TurboAce",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=TurboAce&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "DISNEY+ HOTSTAR",
+    "price": 35000,
+    "time": "2026-08-29T00:40:32.703Z",
+    "timeStr": "29/08/2026 00:40"
+  },
+  {
+    "id": "35c78e88-ebac-4d3a-a416-a3e9e364db1c",
+    "type": "purchase",
+    "buyerName": "FlashKing",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=FlashKing&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "YOUTUBE PREMIUM",
+    "price": 31200,
+    "time": "2026-08-28T23:48:47.653Z",
+    "timeStr": "28/08/2026 23:48"
+  },
+  {
+    "id": "6af97230-cb6d-477e-88a0-5c81534ca792",
+    "type": "purchase",
+    "buyerName": "BladeRunner",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=BladeRunner&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "MOBILE LEGENDS DIAMOND",
+    "price": 28000,
+    "time": "2026-08-28T21:45:10.065Z",
+    "timeStr": "28/08/2026 21:45"
+  },
+  {
+    "id": "133c54ef-bd23-431b-b83b-05359d6b5903",
+    "type": "purchase",
+    "buyerName": "ShadowX",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=ShadowX&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CAPCUT PRO",
+    "price": 35000,
+    "time": "2026-08-28T19:58:54.693Z",
+    "timeStr": "28/08/2026 19:58"
+  },
+  {
+    "id": "6af939fe-8834-4fe6-96e5-a6f531a3891d",
+    "type": "purchase",
+    "buyerName": "RedFalcon",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=RedFalcon&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CANVA PRO",
+    "price": 8000,
+    "time": "2026-08-28T19:09:02.429Z",
+    "timeStr": "28/08/2026 19:09"
+  },
+  {
+    "id": "82083ce2-6259-4658-8952-277b90289d86",
+    "type": "purchase",
+    "buyerName": "DarkBlaze",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=DarkBlaze&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "SPOTIFY PREMIUM",
+    "price": 25000,
+    "time": "2026-08-28T18:53:52.672Z",
+    "timeStr": "28/08/2026 18:53"
+  },
+  {
+    "id": "0b2ba03c-7adf-4e87-acf4-b6d382a37dfc",
+    "type": "purchase",
+    "buyerName": "FranzzPro",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=FranzzPro&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "SPOTIFY PREMIUM",
+    "price": 52000,
+    "time": "2026-08-28T16:36:47.995Z",
+    "timeStr": "28/08/2026 16:36"
+  },
+  {
+    "id": "ab6b21e1-95aa-423b-b23e-38371f1ec6d4",
+    "type": "purchase",
+    "buyerName": "RedFalcon",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=RedFalcon&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "FREE FIRE DIAMOND",
+    "price": 76800,
+    "time": "2026-08-28T15:26:49.547Z",
+    "timeStr": "28/08/2026 15:26"
+  },
+  {
+    "id": "b79a9759-de26-43ba-8347-14ce9a1ca7f8",
+    "type": "purchase",
+    "buyerName": "DarkBlaze",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=DarkBlaze&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CAPCUT PRO",
+    "price": 35000,
+    "time": "2026-08-28T01:34:55.455Z",
+    "timeStr": "28/08/2026 01:34"
+  },
+  {
+    "id": "2ca35580-aeb8-4247-9dee-d67131da14ce",
+    "type": "purchase",
+    "buyerName": "CrimsonX",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=CrimsonX&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "PUBG MOBILE UC",
+    "price": 1320000,
+    "time": "2026-08-27T18:57:32.771Z",
+    "timeStr": "27/08/2026 18:57"
+  },
+  {
+    "id": "1637bcd0-33f1-4c9c-b9b5-3a97392b1f45",
+    "type": "purchase",
+    "buyerName": "NightWolf",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=NightWolf&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "SPOTIFY PREMIUM",
+    "price": 159200,
+    "time": "2026-08-27T18:46:55.386Z",
+    "timeStr": "27/08/2026 18:46"
+  },
+  {
+    "id": "9cf91e96-2ad0-4500-8785-51879f51c2aa",
+    "type": "purchase",
+    "buyerName": "AlphaGod",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=AlphaGod&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "DISNEY+ HOTSTAR",
+    "price": 35000,
+    "time": "2026-08-27T17:52:36.124Z",
+    "timeStr": "27/08/2026 17:52"
+  },
+  {
+    "id": "d96b3d02-68c4-42d7-845f-3122bcbfcdff",
+    "type": "purchase",
+    "buyerName": "SkyyFire",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=SkyyFire&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "PUBG MOBILE UC",
+    "price": 264000,
+    "time": "2026-08-27T17:48:18.724Z",
+    "timeStr": "27/08/2026 17:48"
+  },
+  {
+    "id": "ed07911e-c3d0-467f-ae40-124ea785219b",
+    "type": "purchase",
+    "buyerName": "StellarRift",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=StellarRift&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "VALORANT POINT",
+    "price": 90000,
+    "time": "2026-08-27T17:01:01.685Z",
+    "timeStr": "27/08/2026 17:01"
+  },
+  {
+    "id": "4bd4800b-bdfc-4e88-9509-28dfe700f3c1",
+    "type": "purchase",
+    "buyerName": "FrostBite",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=FrostBite&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CANVA PRO",
+    "price": 10000,
+    "time": "2026-08-27T01:49:17.818Z",
+    "timeStr": "27/08/2026 01:49"
+  },
+  {
+    "id": "d5a88c5f-7726-4c1a-b9aa-785a1fa38fad",
+    "type": "purchase",
+    "buyerName": "PixelKnight",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=PixelKnight&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "SPOTIFY PREMIUM",
+    "price": 25000,
+    "time": "2026-08-26T20:35:31.181Z",
+    "timeStr": "26/08/2026 20:35"
+  },
+  {
+    "id": "17bd455f-4849-49e0-b6d8-562db1f7924b",
+    "type": "purchase",
+    "buyerName": "GhostByte",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=GhostByte&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "NETFLIX PREMIUM",
+    "price": 96000,
+    "time": "2026-08-26T19:38:56.979Z",
+    "timeStr": "26/08/2026 19:38"
+  },
+  {
+    "id": "b5c855ac-4722-475e-b2fd-40abe32bf482",
+    "type": "purchase",
+    "buyerName": "AlphaGod",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=AlphaGod&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "SPOTIFY PREMIUM",
+    "price": 199000,
+    "time": "2026-08-26T19:01:05.771Z",
+    "timeStr": "26/08/2026 19:01"
+  },
+  {
+    "id": "a8602005-695e-4cbe-80c2-68aedbf8c1c7",
+    "type": "purchase",
+    "buyerName": "NightWolf",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=NightWolf&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "GENSHIN IMPACT",
+    "price": 1240000,
+    "time": "2026-08-26T18:07:40.866Z",
+    "timeStr": "26/08/2026 18:07"
+  },
+  {
+    "id": "7b1d6936-57a2-4fed-93ad-48fa0c3c3021",
+    "type": "purchase",
+    "buyerName": "ZeroCool",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=ZeroCool&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "FREE FIRE DIAMOND",
+    "price": 27000,
+    "time": "2026-08-26T16:48:23.975Z",
+    "timeStr": "26/08/2026 16:48"
+  },
+  {
+    "id": "f8331b71-e6de-4ccb-a1c2-b3b3e81655c0",
+    "type": "purchase",
+    "buyerName": "FranzzPro",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=FranzzPro&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "MOBILE LEGENDS DIAMOND",
+    "price": 159200,
+    "time": "2026-08-26T15:52:40.415Z",
+    "timeStr": "26/08/2026 15:52"
+  },
+  {
+    "id": "b3ad5717-ab7b-4078-8d44-1d8993e7be7a",
+    "type": "purchase",
+    "buyerName": "StormRider",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=StormRider&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "FREE FIRE DIAMOND",
+    "price": 27000,
+    "time": "2026-08-26T14:58:32.635Z",
+    "timeStr": "26/08/2026 14:58"
+  },
+  {
+    "id": "c3b0f6c0-3721-49cc-b062-05d429e30ac9",
+    "type": "purchase",
+    "buyerName": "FranzzPro",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=FranzzPro&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CANVA PRO",
+    "price": 28000,
+    "time": "2026-08-26T00:52:58.200Z",
+    "timeStr": "26/08/2026 00:52"
+  },
+  {
+    "id": "1e922f50-d2d7-4435-84b0-626d37cfb72e",
+    "type": "purchase",
+    "buyerName": "IronPhoenix",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=IronPhoenix&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CANVA PRO",
+    "price": 10000,
+    "time": "2026-08-25T20:50:52.178Z",
+    "timeStr": "25/08/2026 20:50"
+  },
+  {
+    "id": "a61179ea-4ae1-42b8-a65e-abf88fd27e72",
+    "type": "purchase",
+    "buyerName": "CodeBreaker",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=CodeBreaker&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CAPCUT PRO",
+    "price": 35000,
+    "time": "2026-08-25T19:19:33.724Z",
+    "timeStr": "25/08/2026 19:19"
+  },
+  {
+    "id": "9ff73053-9f70-4428-af41-1a808c4d6d92",
+    "type": "purchase",
+    "buyerName": "StellarRift",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=StellarRift&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "MOBILE LEGENDS DIAMOND",
+    "price": 445000,
+    "time": "2026-08-25T18:00:02.340Z",
+    "timeStr": "25/08/2026 18:00"
+  },
+  {
+    "id": "1de419e5-592a-41ba-9ec2-8d39c1739630",
+    "type": "purchase",
+    "buyerName": "SpeedDemon",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=SpeedDemon&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "YOUTUBE PREMIUM",
+    "price": 129000,
+    "time": "2026-08-25T17:52:42.491Z",
+    "timeStr": "25/08/2026 17:52"
+  },
+  {
+    "id": "529f1b3c-f76c-40e3-96e3-c75a4b4a01e6",
+    "type": "purchase",
+    "buyerName": "GhostByte",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=GhostByte&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "NETFLIX PREMIUM",
+    "price": 36000,
+    "time": "2026-08-25T17:18:29.603Z",
+    "timeStr": "25/08/2026 17:18"
+  },
+  {
+    "id": "89e10249-1660-4d78-89d8-b074db7be2b5",
+    "type": "purchase",
+    "buyerName": "FranzzPro",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=FranzzPro&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "YOUTUBE PREMIUM",
+    "price": 31200,
+    "time": "2026-08-25T15:29:13.930Z",
+    "timeStr": "25/08/2026 15:29"
+  },
+  {
+    "id": "c6be388d-9c1b-4509-aa37-4b53e994d0e4",
+    "type": "purchase",
+    "buyerName": "FranzzPro",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=FranzzPro&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "FREE FIRE DIAMOND",
+    "price": 21600,
+    "time": "2026-08-25T02:10:04.731Z",
+    "timeStr": "25/08/2026 02:10"
+  },
+  {
+    "id": "1865c9f3-50ca-4dd3-9bf3-d04457c2a710",
+    "type": "purchase",
+    "buyerName": "CyberRush",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=CyberRush&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "SPOTIFY PREMIUM",
+    "price": 25000,
+    "time": "2026-08-25T01:26:50.114Z",
+    "timeStr": "25/08/2026 01:26"
+  },
+  {
+    "id": "450e4b29-5aac-43ff-b8fc-cd76c1743e89",
+    "type": "purchase",
+    "buyerName": "NightWolf",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=NightWolf&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CAPCUT PRO",
+    "price": 28000,
+    "time": "2026-08-25T00:19:51.699Z",
+    "timeStr": "25/08/2026 00:19"
+  },
+  {
+    "id": "29c2550f-8232-4d1e-b56c-cd3463b37ab2",
+    "type": "purchase",
+    "buyerName": "TurboAce",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=TurboAce&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "NETFLIX PREMIUM",
+    "price": 45000,
+    "time": "2026-08-24T19:33:47.357Z",
+    "timeStr": "24/08/2026 19:33"
+  },
+  {
+    "id": "9085b3e9-88c2-4b3c-a06d-0d1343c1d188",
+    "type": "purchase",
+    "buyerName": "BudiSantoso",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=BudiSantoso&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CANVA PRO",
+    "price": 10000,
+    "time": "2026-08-24T17:43:22.511Z",
+    "timeStr": "24/08/2026 17:43"
+  },
+  {
+    "id": "042d3661-8ac7-4214-b5c0-c568ddd70759",
+    "type": "purchase",
+    "buyerName": "SkyWarden",
+    "buyerPhoto": null,
+    "productName": "DISNEY+ HOTSTAR",
+    "price": 199000,
+    "time": "2026-08-24T17:05:14.844Z",
+    "timeStr": "24/08/2026 17:05"
+  },
+  {
+    "id": "7c12764f-27f9-4226-95bf-46760eaa3f86",
+    "type": "purchase",
+    "buyerName": "RedFalcon",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=RedFalcon&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "SPOTIFY PREMIUM",
+    "price": 159200,
+    "time": "2026-08-24T02:03:52.169Z",
+    "timeStr": "24/08/2026 02:03"
+  },
+  {
+    "id": "732ebd5a-2814-4856-bd78-3011856b4d2f",
+    "type": "purchase",
+    "buyerName": "SkyyFire",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=SkyyFire&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "SPOTIFY PREMIUM",
+    "price": 20000,
+    "time": "2026-08-23T22:12:51.860Z",
+    "timeStr": "23/08/2026 22:12"
+  },
+  {
+    "id": "25d61b15-3006-482d-9c14-6dc76a3053ca",
+    "type": "purchase",
+    "buyerName": "DarkBlaze",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=DarkBlaze&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "YOUTUBE PREMIUM",
+    "price": 15000,
+    "time": "2026-08-23T21:15:31.004Z",
+    "timeStr": "23/08/2026 21:15"
+  },
+  {
+    "id": "907161a6-d1e9-4af2-b665-ed3f28ef3ca9",
+    "type": "purchase",
+    "buyerName": "IronPhoenix",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=IronPhoenix&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "VALORANT POINT",
+    "price": 45000,
+    "time": "2026-08-23T20:32:30.131Z",
+    "timeStr": "23/08/2026 20:32"
+  },
+  {
+    "id": "f3f47943-4c41-4941-b699-a40aaf31521f",
+    "type": "purchase",
+    "buyerName": "MegaBoss",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=MegaBoss&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "DISNEY+ HOTSTAR",
+    "price": 199000,
+    "time": "2026-08-23T19:07:57.820Z",
+    "timeStr": "23/08/2026 19:07"
+  },
+  {
+    "id": "4553d595-6a0a-4d97-b189-17a71f56f594",
+    "type": "purchase",
+    "buyerName": "ZeroCool",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=ZeroCool&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "GENSHIN IMPACT",
+    "price": 780000,
+    "time": "2026-08-23T18:38:02.885Z",
+    "timeStr": "23/08/2026 18:38"
+  },
+  {
+    "id": "f3e7f9b0-e969-4618-a984-4dc9e5247798",
+    "type": "purchase",
+    "buyerName": "RezaPlays",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=RezaPlays&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "YOUTUBE PREMIUM",
+    "price": 129000,
+    "time": "2026-08-23T17:09:50.875Z",
+    "timeStr": "23/08/2026 17:09"
+  },
+  {
+    "id": "4eeaa750-53d9-4472-8c78-4ce8c46339ed",
+    "type": "purchase",
+    "buyerName": "LunarKing",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=LunarKing&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "MOBILE LEGENDS DIAMOND",
+    "price": 19000,
+    "time": "2026-08-23T16:08:04.510Z",
+    "timeStr": "23/08/2026 16:08"
+  },
+  {
+    "id": "445ca573-4876-44cb-82f0-f04fd84d2435",
+    "type": "purchase",
+    "buyerName": "CyberRush",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=CyberRush&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "FREE FIRE DIAMOND",
+    "price": 27000,
+    "time": "2026-08-23T15:43:58.975Z",
+    "timeStr": "23/08/2026 15:43"
+  },
+  {
+    "id": "76dbce96-16b8-460d-b98e-7494b44713c7",
+    "type": "purchase",
+    "buyerName": "NightWolf",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=NightWolf&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "GENSHIN IMPACT",
+    "price": 12000,
+    "time": "2026-08-23T15:01:41.935Z",
+    "timeStr": "23/08/2026 15:01"
+  },
+  {
+    "id": "13023e93-e588-4b5c-8e7b-5db857d8d965",
+    "type": "purchase",
+    "buyerName": "VenomShot",
+    "buyerPhoto": null,
+    "productName": "DISNEY+ HOTSTAR",
+    "price": 199000,
+    "time": "2026-08-23T01:19:39.154Z",
+    "timeStr": "23/08/2026 01:19"
+  },
+  {
+    "id": "71d5aed4-3788-473a-8e38-5773b740e03a",
+    "type": "purchase",
+    "buyerName": "UserGaming88",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=UserGaming88&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "NETFLIX PREMIUM",
+    "price": 120000,
+    "time": "2026-08-23T01:15:53.787Z",
+    "timeStr": "23/08/2026 01:15"
+  },
+  {
+    "id": "2755c257-71c4-4c1d-8d8e-36a172db3eb9",
+    "type": "purchase",
+    "buyerName": "FrostBite",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=FrostBite&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "PUBG MOBILE UC",
+    "price": 660000,
+    "time": "2026-08-22T23:14:27.551Z",
+    "timeStr": "22/08/2026 23:14"
+  },
+  {
+    "id": "06b3c6d6-635c-483e-ba0d-e43bc770dd2e",
+    "type": "purchase",
+    "buyerName": "TitanFury",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=TitanFury&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "YOUTUBE PREMIUM",
+    "price": 129000,
+    "time": "2026-08-22T19:51:29.075Z",
+    "timeStr": "22/08/2026 19:51"
+  },
+  {
+    "id": "d3e718ca-ac09-477c-9587-a6bee4db07ff",
+    "type": "purchase",
+    "buyerName": "DewiPlays",
+    "buyerPhoto": null,
+    "productName": "MOBILE LEGENDS DIAMOND",
+    "price": 19000,
+    "time": "2026-08-22T19:48:18.890Z",
+    "timeStr": "22/08/2026 19:48"
+  },
+  {
+    "id": "9dec7fb2-c663-4748-bdde-9534235ea0d9",
+    "type": "purchase",
+    "buyerName": "RedFalcon",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=RedFalcon&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "FREE FIRE DIAMOND",
+    "price": 21600,
+    "time": "2026-08-22T16:57:20.357Z",
+    "timeStr": "22/08/2026 16:57"
+  },
+  {
+    "id": "0615cf0d-0338-4a12-89c2-20966444446e",
+    "type": "purchase",
+    "buyerName": "GhostByte",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=GhostByte&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "SPOTIFY PREMIUM",
+    "price": 52000,
+    "time": "2026-08-21T23:36:26.168Z",
+    "timeStr": "21/08/2026 23:36"
+  },
+  {
+    "id": "d91941a8-d67a-4751-831c-2e4ce2706b18",
+    "type": "purchase",
+    "buyerName": "RedFalcon",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=RedFalcon&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "NETFLIX PREMIUM",
+    "price": 96000,
+    "time": "2026-08-21T23:16:05.739Z",
+    "timeStr": "21/08/2026 23:16"
+  },
+  {
+    "id": "ffedaff8-1758-45ae-8af9-a268248118b5",
+    "type": "purchase",
+    "buyerName": "StormRider",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=StormRider&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "DISNEY+ HOTSTAR",
+    "price": 35000,
+    "time": "2026-08-21T22:19:26.453Z",
+    "timeStr": "21/08/2026 22:19"
+  },
+  {
+    "id": "b810beac-f97a-4aeb-ae5c-56b69a303557",
+    "type": "purchase",
+    "buyerName": "FranzzPro",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=FranzzPro&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "SPOTIFY PREMIUM",
+    "price": 52000,
+    "time": "2026-08-21T21:46:12.262Z",
+    "timeStr": "21/08/2026 21:46"
+  },
+  {
+    "id": "bb4084d7-c7d1-4d09-bf83-5a8902b8f0cd",
+    "type": "purchase",
+    "buyerName": "EchoStrike",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=EchoStrike&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "GENSHIN IMPACT",
+    "price": 780000,
+    "time": "2026-08-21T21:40:40.216Z",
+    "timeStr": "21/08/2026 21:40"
+  },
+  {
+    "id": "092f45e9-1c72-43b4-a604-5eb9b2a8486c",
+    "type": "purchase",
+    "buyerName": "PixelKnight",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=PixelKnight&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "MOBILE LEGENDS DIAMOND",
+    "price": 19000,
+    "time": "2026-08-21T17:43:02.283Z",
+    "timeStr": "21/08/2026 17:43"
+  },
+  {
+    "id": "42de1cd8-9f7f-441a-afbe-9251733225cc",
+    "type": "purchase",
+    "buyerName": "CodeBreaker",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=CodeBreaker&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "DISNEY+ HOTSTAR",
+    "price": 199000,
+    "time": "2026-08-21T02:22:44.299Z",
+    "timeStr": "21/08/2026 02:22"
+  },
+  {
+    "id": "bd14c4c4-5ee0-4eed-aead-5e09bd90bf4f",
+    "type": "purchase",
+    "buyerName": "SkyyFire",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=SkyyFire&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "FREE FIRE DIAMOND",
+    "price": 76800,
+    "time": "2026-08-21T01:09:11.317Z",
+    "timeStr": "21/08/2026 01:09"
+  },
+  {
+    "id": "0d69bcbd-779a-4b0c-af2c-4e01694c6eeb",
+    "type": "purchase",
+    "buyerName": "NightWolf",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=NightWolf&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "NETFLIX PREMIUM",
+    "price": 96000,
+    "time": "2026-08-21T00:49:44.484Z",
+    "timeStr": "21/08/2026 00:49"
+  },
+  {
+    "id": "aea6f573-334b-4c22-89b7-94ae60bb1e2c",
+    "type": "purchase",
+    "buyerName": "LunarKing",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=LunarKing&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "NETFLIX PREMIUM",
+    "price": 45000,
+    "time": "2026-08-21T00:22:51.782Z",
+    "timeStr": "21/08/2026 00:22"
+  },
+  {
+    "id": "eac2cd0e-bb47-4af7-b45b-402b48f0454a",
+    "type": "purchase",
+    "buyerName": "RiftWalker",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=RiftWalker&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "VALORANT POINT",
+    "price": 45000,
+    "time": "2026-08-21T00:21:45.392Z",
+    "timeStr": "21/08/2026 00:21"
+  },
+  {
+    "id": "9c0df07f-f068-474a-9c44-ef9041a10d6e",
+    "type": "purchase",
+    "buyerName": "SkyyFire",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=SkyyFire&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "MOBILE LEGENDS DIAMOND",
+    "price": 63200,
+    "time": "2026-08-20T21:34:54.738Z",
+    "timeStr": "20/08/2026 21:34"
+  },
+  {
+    "id": "dd6cccb7-6372-4a8f-9f99-dc52cb92ad12",
+    "type": "purchase",
+    "buyerName": "HyperCore",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=HyperCore&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "GENSHIN IMPACT",
+    "price": 1550000,
+    "time": "2026-08-20T19:24:17.150Z",
+    "timeStr": "20/08/2026 19:24"
+  },
+  {
+    "id": "685959ac-4f50-4780-9922-faa44907fcbc",
+    "type": "purchase",
+    "buyerName": "QuantumZ",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=QuantumZ&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "CANVA PRO",
+    "price": 35000,
+    "time": "2026-08-20T19:12:08.984Z",
+    "timeStr": "20/08/2026 19:12"
+  },
+  {
+    "id": "f0390aa0-4866-4517-b815-0a0d416814ab",
+    "type": "purchase",
+    "buyerName": "DarkBlaze",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=DarkBlaze&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "DISNEY+ HOTSTAR",
+    "price": 199000,
+    "time": "2026-08-20T17:37:04.869Z",
+    "timeStr": "20/08/2026 17:37"
+  },
+  {
+    "id": "cf963232-cc29-46ba-ad7a-f2cdfaf5fa9f",
+    "type": "purchase",
+    "buyerName": "RedFalcon",
+    "buyerPhoto": "https://api.dicebear.com/7.x/pixel-art/png?seed=RedFalcon&size=80&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf",
+    "productName": "MOBILE LEGENDS DIAMOND",
+    "price": 22400,
+    "time": "2026-08-20T16:40:29.309Z",
+    "timeStr": "20/08/2026 16:40"
+  }
+]

@@ -16,10 +16,13 @@
      lain yang sengaja pakai warna solid non-teks (misalnya badge status)
      mungkin masih perlu penyesuaian manual belakangan kalau ada yang
      terlihat aneh. -->
-<!-- FIX (rewrite dark theme PointGo-biru, 2 Sep 2026): situs sekarang
-     SELALU dark permanen, tidak ada toggle lagi di manapun. Halaman ini
-     standalone (layout:false) jadi paksa class di sini juga. -->
-<script>document.documentElement.classList.add('dark');</script>
+<script>
+  try {
+    if (localStorage.getItem('fz-theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  } catch (e) {}
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Admin — <%= settings.siteName %></title>
@@ -28,37 +31,98 @@
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<!-- DARK-BLUE THEME (pointgo) — admin.ejs standalone (layout:false), load CSS + icon preload sendiri -->
+<link rel="stylesheet" href="/css/pointgo-theme.css">
+<script> window.IconifyPreload = <%- iconBundle %>; </script>
 <style>
-:root{
---bg:#080e14;--card:#18232d;--card2:#121b24;--border:#35424c;--accent:#89939c;
+:root{--bg:#ffffff;--card:#ffffff;--card2:#f8f8f9;--border:#ececee;--accent:#71717a;
+/* ══ DARK MODE (23 Agu 2026, DIGANTI 24 Agu 2026) ══
+   Sebelumnya pakai CSS invert filter (lihat riwayat di bawah untuk
+   penjelasan tekniknya) -- tapi client merevisi target warna "Mode
+   Gelap" dari hitam pekat jadi PUTIH REDUP (#f4f4f5), yang notabene
+   sudah SANGAT DEKAT dengan warna asli halaman ini (--bg: #ffffff).
+   Invert filter untuk selisih warna sekecil itu jadi berlebihan/berisiko
+   hasil aneh (invert dari putih ke arah warna redup itu bukan operasi
+   yang presisi, filter invert didesain untuk kontras terbalik total).
+   Diganti jadi override variable langsung seperti halaman lain --lebih
+   presisi untuk revisi kali ini. Halaman admin ini besar (2668 baris)
+   dan variable :root sudah dipakai konsisten di seluruh file untuk
+   background/border (--bg/--card/--card2/--border), jadi override di
+   sini otomatis menjangkau sebagian besar elemen tanpa audit satu-satu;
+   elemen yang masih hardcode terpisah (kalau ada) menyusul diperbaiki
+   kalau ditemukan. */
+html.dark {
+  --bg:#f4f4f5;--card:#f4f4f5;--card2:#e4e4e7;--border:#d4d4d8;--accent:#52525b;
+}
+html.dark body { background: var(--bg); color: #18181b; }
+.admin-dark-toggle { position:relative; display:inline-block; width:34px; height:20px; flex-shrink:0; }
+.admin-dark-toggle input { opacity:0; width:0; height:0; }
+.admin-dark-toggle-slider {
+  position:absolute; cursor:pointer; inset:0;
+  background:#3a3a40; border-radius:999px; transition:.2s;
+}
+.admin-dark-toggle-slider::before {
+  content:""; position:absolute; height:14px; width:14px;
+  left:3px; bottom:3px; background:#fff; border-radius:50%;
+  transition:.2s; box-shadow:0 1px 2px rgba(0,0,0,.2);
+}
+.admin-dark-toggle input:checked + .admin-dark-toggle-slider { background:#2563eb; }
+.admin-dark-toggle input:checked + .admin-dark-toggle-slider::before { transform:translateX(14px); }
+</style>
+<style>
+:root{--bg:#ffffff;--card:#ffffff;--card2:#f8f8f9;--border:#ececee;--accent:#71717a;
 /* Variable tema custom dari admin panel (settings.theme.*) -- file ini
    standalone (layout:false) jadi TIDAK otomatis dapat variable dari
    layout.ejs, harus di-define ulang di sini. Nilai sama persis dengan
    yang di layout.ejs supaya konsisten. */
---neon-purple:<%= settings?.theme?.primaryColor || '#2F6FED' %>;
---accent-color:<%= settings?.theme?.accentColor || '#2F6FED' %>;
---neon-purple-10:<%= hexToRgba(settings?.theme?.primaryColor || '#2F6FED', 0.08) %>;
---neon-purple-12:<%= hexToRgba(settings?.theme?.primaryColor || '#2F6FED', 0.1) %>;
---neon-purple-18:<%= hexToRgba(settings?.theme?.primaryColor || '#2F6FED', 0.15) %>;
---neon-purple-20:<%= hexToRgba(settings?.theme?.primaryColor || '#2F6FED', 0.18) %>;
---neon-purple-25:<%= hexToRgba(settings?.theme?.primaryColor || '#2F6FED', 0.22) %>;
---neon-purple-35:<%= hexToRgba(settings?.theme?.primaryColor || '#2F6FED', 0.3) %>;
+--neon-purple:<%= settings?.theme?.primaryColor || '#2563eb' %>;
+--accent-color:<%= settings?.theme?.accentColor || '#2563eb' %>;
+--neon-purple-10:<%= hexToRgba(settings?.theme?.primaryColor || '#2563eb', 0.08) %>;
+--neon-purple-12:<%= hexToRgba(settings?.theme?.primaryColor || '#2563eb', 0.1) %>;
+--neon-purple-18:<%= hexToRgba(settings?.theme?.primaryColor || '#2563eb', 0.15) %>;
+--neon-purple-20:<%= hexToRgba(settings?.theme?.primaryColor || '#2563eb', 0.18) %>;
+--neon-purple-25:<%= hexToRgba(settings?.theme?.primaryColor || '#2563eb', 0.22) %>;
+--neon-purple-35:<%= hexToRgba(settings?.theme?.primaryColor || '#2563eb', 0.3) %>;
+/* DARK-BLUE THEME: paksa ke accent PointGo #2F6FED (override custom theme
+   #2563eb dari settings supaya konsisten dengan seluruh UI baru). */
+--neon-purple:#2F6FED;
+--accent-color:#2F6FED;
+--neon-purple-10:rgba(47,111,237,0.08);
+--neon-purple-12:rgba(47,111,237,0.10);
+--neon-purple-18:rgba(47,111,237,0.15);
+--neon-purple-20:rgba(47,111,237,0.18);
+--neon-purple-25:rgba(47,111,237,0.22);
+--neon-purple-35:rgba(47,111,237,0.30);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{font-family:'Inter',sans-serif;background:var(--bg);color:#f4f6f8;overflow-x:hidden;}
+html,body{font-family:'Inter',sans-serif;background:var(--bg);color:#18181b;overflow-x:hidden;}
 body{padding-bottom:80px;}
 ::-webkit-scrollbar{width:4px;height:4px;}
 
-/* FIX (rewrite dark theme PointGo-biru, 2 Sep 2026): dulu di sini ada
-   blok besar yang MEMAKSA class Tailwind text-white/bg-white-x/
-   border-white-x jadi versi TERANG (redesign 22 Agu 2026 yang membuat
-   background jadi putih). File ini aslinya memang didesain untuk
-   background GELAP -- makanya dipakai text-white, bg-white/5,
-   border-white/10 dkk di ratusan tempat (putih & putih-transparan
-   memang kebaca bagus di atas background gelap). Sekarang background
-   sudah gelap lagi (:root di atas), jadi blok override itu DIHAPUS
-   supaya class Tailwind aslinya jalan normal sesuai desain awal --
-   tidak perlu override manual sama sekali. */
+/* FIX (redesign 22 Agu 2026): file admin ini didesain untuk background
+   GELAP, dengan class Tailwind text-zinc-300/400/500 (abu terang, kebaca
+   di background gelap) dan bg-white/5, border-white/10 dst (putih
+   transparan tipis, kebaca sebagai aksen di background gelap) tersebar di
+   RATUSAN tempat. Sekarang background sudah PUTIH -- override di sini
+   secara global, supaya tidak perlu ganti setiap class satu-satu (sangat
+   rawan miss di file sebesar ini). */
+.text-zinc-300 { color: #3f3f46 !important; }
+.text-zinc-400 { color: #52525b !important; }
+.text-zinc-500 { color: #71717a !important; }
+.text-zinc-600 { color: #a1a1aa !important; }
+.text-zinc-700 { color: #d4d4d8 !important; }
+.text-white { color: #18181b !important; }
+.hover\:text-white:hover { color: #18181b !important; }
+.bg-white\/3 { background: #fafafa !important; }
+.bg-white\/5 { background: #f4f4f5 !important; }
+.bg-white\/8 { background: #ececee !important; }
+.bg-white\/10 { background: #ececee !important; }
+.hover\:bg-white\/5:hover { background: #f4f4f5 !important; }
+.hover\:bg-white\/8:hover { background: #ececee !important; }
+.hover\:bg-white\/10:hover { background: #ececee !important; }
+.border-white\/10 { border-color: #ececee !important; }
+    .border-white\/5 { border-color: #f4f4f5 !important; }
+.border-white\/15 { border-color: #e4e4e7 !important; }
 .border-white\/20 { border-color: #d4d4d8 !important; }
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:#2a2a2e;border-radius:3px;}
@@ -81,16 +145,14 @@ body>*{position:relative;z-index:1;}
 .stat-card{background:var(--neon-purple-10);border:1px solid var(--neon-purple-20);border-radius:14px;padding:16px;transition:all .2s;}
 .stat-card:hover{border-color:var(--neon-purple-35);transform:translateY(-2px);}
 
-.hm-input,.form-input{width:100%;padding:10px 14px;border-radius:10px;background:var(--card2);border:1.5px solid var(--border);color:#f4f6f8;font-size:13px;transition:all .2s;font-family:'Inter',sans-serif;}
+.hm-input,.form-input{width:100%;padding:10px 14px;border-radius:10px;background:#f8f8f9;border:1.5px solid #e4e4e7;color:#18181b;font-size:13px;transition:all .2s;font-family:'Inter',sans-serif;}
 .hm-input:focus,.form-input:focus{outline:none;border-color:var(--neon-purple-35);background:var(--neon-purple-10);box-shadow:0 0 0 3px var(--neon-purple-10);}
-.hm-input::placeholder,.form-input::placeholder{color:#5c6772;}
+.hm-input::placeholder,.form-input::placeholder{color:#52525b;}
 select.hm-input{appearance:none;cursor:pointer;}
 textarea.hm-input{resize:vertical;min-height:80px;}
 
 .btn-primary{background:var(--neon-purple);color:#fff;padding:10px 18px;border-radius:10px;font-weight:700;font-size:12px;border:none;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
-.btn-primary:hover{filter:brightness(1.15);transform:translateY(-2px);box-shadow:0 8px 20px rgba(47,111,237,.3);}
-.btn-primary:active{transform:translateY(0) scale(.96);box-shadow:none;}
-.neon-card:hover{transform:translateY(-2px);}
+.btn-primary:hover{filter:brightness(1.15);transform:translateY(-1px);}
 .btn-danger{background:var(--accent-color);color:#fff;padding:7px 14px;border-radius:8px;font-weight:600;font-size:11px;border:none;cursor:pointer;transition:filter .2s;display:inline-flex;align-items:center;gap:4px;}
 .btn-danger:hover{filter:brightness(1.15);}
 .btn-success{background:#10b981;color:#fff;padding:7px 14px;border-radius:8px;font-weight:600;font-size:11px;border:none;cursor:pointer;transition:filter .2s;display:inline-flex;align-items:center;gap:4px;}
@@ -99,7 +161,7 @@ textarea.hm-input{resize:vertical;min-height:80px;}
 
 .data-table{width:100%;border-collapse:collapse;}
 .data-table th{background:var(--neon-purple-10);padding:10px 12px;text-align:left;font-size:10px;font-weight:800;color:var(--accent-color);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;}
-.data-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle;transition:background .15s ease;}
+.data-table td{padding:10px 12px;border-bottom:1px solid #ececee;font-size:12px;vertical-align:middle;}
 .data-table tr:hover td{background:var(--neon-purple-10);}
 
 .badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;white-space:nowrap;}
@@ -144,6 +206,68 @@ textarea.hm-input{resize:vertical;min-height:80px;}
 .section-label::before{content:'';width:16px;height:2px;background:var(--accent);border-radius:2px;display:block;}
 .setting-row-label{font-size:11px;font-weight:700;color:#a1a1aa;margin-bottom:8px;}
 </style>
+<style>
+/* ══ FRANZZSTORE ADMIN — DARK-BLUE THEME (pointgo blues) ══
+   Restyling visual admin.ejs (standalone) ke tema gelap-biru. Kode ini
+   HANYA mengubah tampilan: semua id/name/onclick/fetch dan logika JS
+   (yang ada di bagian bawah file) TIDAK disentuh. Karena file ini besar
+   dan memakai banyak class utility gaya Tailwind + variable CSS, cara
+   teraman adalah override global (mirip blok override light-mode yang
+   sudah ada di atas) -- mendefinisikan ulang :root ke palet gelap, lalu
+   me-remap class utility terang (putih/abu) ke padanan gelap. Berada di
+   akhir <head> supaya menang atas style block sebelumnya (source order). */
+html, html.dark {
+  --bg: #080e14 !important;
+  --card: #18232d !important;
+  --card2: #121b24 !important;
+  --border: #35424c !important;
+  --accent: #2F6FED !important;
+}
+html.dark body { background: var(--bg); }
+body {
+  background: var(--bg) !important;
+  color: #f4f6f8 !important;
+}
+
+/* ── Utility class remap (terang → gelap) ── */
+.text-zinc-300 { color: #ccd3d9 !important; }
+.text-zinc-400 { color: #aab2ba !important; }
+.text-zinc-500 { color: #89939c !important; }
+.text-zinc-600 { color: #6d7781 !important; }
+.text-zinc-700 { color: #d3d9de !important; }
+.text-white { color: #f4f6f8 !important; }
+.hover\:text-white:hover { color: #f4f6f8 !important; }
+.bg-white\/3  { background: rgba(255,255,255,.04) !important; }
+.bg-white\/5  { background: rgba(255,255,255,.06) !important; }
+.bg-white\/8  { background: rgba(255,255,255,.10) !important; }
+.bg-white\/10 { background: rgba(255,255,255,.12) !important; }
+.hover\:bg-white\/5:hover  { background: rgba(255,255,255,.09) !important; }
+.hover\:bg-white\/8:hover  { background: rgba(255,255,255,.12) !important; }
+.hover\:bg-white\/10:hover { background: rgba(255,255,255,.14) !important; }
+.border-white\/5  { border-color: rgba(255,255,255,.10) !important; }
+.border-white\/10 { border-color: rgba(255,255,255,.14) !important; }
+.border-white\/15 { border-color: rgba(255,255,255,.18) !important; }
+.border-white\/20 { border-color: rgba(255,255,255,.22) !important; }
+
+/* ── Komponen hardcode (background putih terang → gelap) ── */
+.page-top { background: rgba(10,14,20,.94) !important; border-bottom-color: var(--border) !important; }
+#admin-nav { background: rgba(10,14,20,.97) !important; border-top-color: var(--accent) !important; }
+.hm-input, .form-input { background: var(--bg-soft, #0a1016) !important; border-color: var(--border) !important; color: #eef1f4 !important; }
+.hm-input::placeholder, .form-input::placeholder { color: #5c6772 !important; }
+.hm-input:focus, .form-input:focus { background: var(--bg-soft, #0a1016) !important; border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(47,111,237,.15) !important; }
+select.hm-input, select.form-input { color-scheme: dark; }
+textarea.hm-input, textarea.form-input { color: #eef1f4 !important; }
+.section-label { color: #aab2ba !important; }
+.setting-row-label { color: #89939c !important; }
+.data-table th { color: var(--accent) !important; background: rgba(47,111,237,.08) !important; }
+.data-table td { border-bottom-color: var(--border) !important; }
+.data-table tr:hover td { background: rgba(47,111,237,.06) !important; }
+.toast { background: var(--card) !important; color: #eef1f4 !important; }
+.modal-box { background: var(--card) !important; }
+.modal-handle { background: rgba(255,255,255,.22) !important; }
+.nav-btn .n-icon, .nav-btn .n-label { color: #aab2ba !important; }
+.prod-card { background: var(--card2) !important; border-color: var(--border) !important; }
+</style>
 </head>
 <body class="font-inter">
 
@@ -174,6 +298,14 @@ textarea.hm-input{resize:vertical;min-height:80px;}
             <iconify-icon icon="mdi:home" class="text-sm"></iconify-icon>
             <span class="hidden sm:inline">Beranda</span>
         </a>
+        <!-- Toggle Dark Mode admin (23 Agu 2026) -- pakai switch polos yang
+             sama gayanya dengan menu hamburger frontend, tapi admin.ejs
+             standalone jadi togglenya didefinisikan sendiri di sini
+             (lihat script adminToggleDarkMode di bawah). -->
+        <label class="admin-dark-toggle" data-no-invert title="Mode Gelap">
+            <input type="checkbox" id="adminDarkModeToggle" onchange="adminToggleDarkMode(this)">
+            <span class="admin-dark-toggle-slider"></span>
+        </label>
         <a href="/logout" onclick="clearAndLogout(event)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-500/20 text-blue-400 hover:bg-blue-500/10 transition-all text-xs">
             <iconify-icon icon="mdi:logout" class="text-sm"></iconify-icon>
         </a>
@@ -526,7 +658,7 @@ textarea.hm-input{resize:vertical;min-height:80px;}
                 <button onclick="toggleReseller('<%= u.id %>','<%= u.username %>')"
                     class="py-1 px-2 text-[10px] rounded-lg border transition-all font-semibold <%= u.is_reseller ? 'bg-yellow-500/15 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/25' : 'bg-white/5 border-white/15 text-zinc-400 hover:bg-blue-500/15 hover:text-blue-400 hover:border-blue-500/30' %>"
                     id="reseller-btn-<%= u.id %>">
-                    <iconify-icon icon="<%= u.is_reseller ? 'mdi:crown-off' : 'mdi:crown' %>"></iconify-icon>
+                    <iconify-icon icon="<%= u.is_reseller ? 'mdi:crown' : 'mdi:crown-outline' %>"></iconify-icon>
                     <%= u.is_reseller ? 'Cabut' : 'Jadikan' %>
                 </button>
                 <% if(u.is_reseller){ %>
@@ -1495,6 +1627,21 @@ function clearAndLogout(e) {
     window.location.href = '/logout';
 }
 
+// ── DARK MODE TOGGLE (23 Agu 2026) ──
+// admin.ejs standalone, tidak mewarisi toggleDarkMode() dari layout.ejs,
+// jadi didefinisikan ulang di sini. Key localStorage ('fz-theme') SAMA
+// dengan yang dipakai layout.ejs supaya preferensi tetap konsisten kalau
+// admin balik ke halaman frontend, atau sebaliknya.
+function adminToggleDarkMode(checkboxEl) {
+    const isDark = checkboxEl.checked;
+    document.documentElement.classList.toggle('dark', isDark);
+    try { localStorage.setItem('fz-theme', isDark ? 'dark' : 'light'); } catch (e) {}
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('adminDarkModeToggle');
+    if (toggle) toggle.checked = document.documentElement.classList.contains('dark');
+});
+
 // ── SINGLE-DEVICE ADMIN LOCK ──
 // Server membalas { sessionRevoked: true } kalau sesi admin ini sudah
 // digantikan login dari perangkat lain. Kita pasang sekali di window.fetch
@@ -2457,13 +2604,13 @@ function renderKeys(keys) {
     if (total) total.textContent = keys.length;
     if (stats) stats.textContent = `${avail} tersedia · ${used} terpakai`;
     if (!keys.length) {
-        list.innerHTML = '<div class="text-center py-8 text-zinc-600 text-xs"><iconify-icon icon="mdi:key-off" class="text-3xl block mx-auto mb-2 text-zinc-700"></iconify-icon>Belum ada key</div>';
+        list.innerHTML = '<div class="text-center py-8 text-zinc-600 text-xs"><iconify-icon icon="mdi:key-remove" class="text-3xl block mx-auto mb-2 text-zinc-700"></iconify-icon>Belum ada key</div>';
         return;
     }
     list.innerHTML = keys.map(k => `
         <div class="neon-card p-3 flex items-center gap-3 ${k.used ? 'opacity-60' : ''}">
             <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${k.used ? 'bg-zinc-800' : 'bg-blue-500/15 border border-zinc-500/25'}">
-                <iconify-icon icon="${k.used ? 'mdi:key-off' : 'mdi:key'}" class="text-base ${k.used ? 'text-zinc-600' : 'text-blue-400'}"></iconify-icon>
+                <iconify-icon icon="${k.used ? 'mdi:key-remove' : 'mdi:key'}" class="text-base ${k.used ? 'text-zinc-600' : 'text-blue-400'}"></iconify-icon>
             </div>
             <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">

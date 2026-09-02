@@ -44,9 +44,9 @@ const allCategories = Array.isArray(categories) ? categories : [];
 
 <!-- ══ HERO CAROUSEL ══ -->
 <section class="carousel" id="pg-carousel">
-  <img class="carousel-side side-left" id="carousel-side-left" src="<%= products[1] ? products[1].image : '/uploads/logo-main.png' %>" alt="">
-  <div class="carousel-track" id="carousel-track"></div>
-  <img class="carousel-side side-right" id="carousel-side-right" src="<%= products[2] ? products[2].image : '/uploads/logo-main.png' %>" alt="">
+  <img class="carousel-side side-left" src="<%= products[1] ? products[1].image : '/uploads/logo-main.png' %>" alt="">
+  <img class="carousel-main" id="carousel-main-img" src="<%= products[0] ? products[0].image : '/uploads/logo-main.png' %>" alt="Promo">
+  <img class="carousel-side side-right" src="<%= products[2] ? products[2].image : '/uploads/logo-main.png' %>" alt="">
   <button class="carousel-arrow left" onclick="pgCarouselNav(-1)" aria-label="Sebelumnya"><iconify-icon icon="mdi:chevron-left" style="font-size:22px;"></iconify-icon></button>
   <button class="carousel-arrow right" onclick="pgCarouselNav(1)" aria-label="Berikutnya"><iconify-icon icon="mdi:chevron-right" style="font-size:22px;"></iconify-icon></button>
   <div class="dots" id="pg-carousel-dots"></div>
@@ -134,83 +134,27 @@ const allCategories = Array.isArray(categories) ? categories : [];
 <%- include('../partials/footer') %>
 
 <script>
-// ══ Carousel — sliding track infinite loop, geser smooth kiri/kanan,
-// auto-advance, jeda saat di-hover, klik dot untuk lompat langsung. ══
+// ══ Carousel sederhana (geser gambar produk sebagai promo) ══
 (function () {
-  const images = <%- JSON.stringify(products.slice(0, 6).map(p => p.image)) %>;
-  const track = document.getElementById('carousel-track');
+  const images = <%- safeJson(products.slice(0, 6).map(p => p.image)) %>;
+  if (images.length < 2) return;
+  let idx = 0;
+  const mainImg = document.getElementById('carousel-main-img');
   const dotsWrap = document.getElementById('pg-carousel-dots');
-  const sideLeft = document.getElementById('carousel-side-left');
-  const sideRight = document.getElementById('carousel-side-right');
-  if (!images.length || !track) return;
-  if (images.length < 2) {
-    track.innerHTML = `<div class="carousel-slide"><img class="carousel-main" src="${images[0]}" alt="Promo"></div>`;
-    if (sideLeft) sideLeft.style.display = 'none';
-    if (sideRight) sideRight.style.display = 'none';
-    return;
-  }
-
-  // Track = [clone terakhir, ...semua slide asli, clone pertama] supaya
-  // loop terasa menyambung mulus tanpa "lompat" balik ke awal.
-  const slides = [images[images.length - 1], ...images, images[0]];
-  track.innerHTML = slides.map(src => `<div class="carousel-slide"><img class="carousel-main" src="${src}" alt="Promo"></div>`).join('');
   images.forEach((_, i) => {
     const d = document.createElement('span');
-    d.textContent = '○';
-    d.dataset.i = i;
-    d.onclick = () => goTo(i);
+    d.textContent = i === 0 ? '●' : '○';
     dotsWrap.appendChild(d);
   });
-
-  let idx = 1; // posisi di track (offset +1 karena ada clone di depan)
-  let real = 0; // index gambar asli yang sedang aktif (untuk dots & side preview)
-  let transitionOn = true;
-  let timer = null;
-
-  function renderDots() {
-    [...dotsWrap.children].forEach((d, i) => d.textContent = i === real ? '●' : '○');
+  function render() {
+    mainImg.src = images[idx];
+    [...dotsWrap.children].forEach((d, i) => d.textContent = i === idx ? '●' : '○');
   }
-  function renderSides() {
-    if (sideLeft) sideLeft.src = images[(real - 1 + images.length) % images.length];
-    if (sideRight) sideRight.src = images[(real + 1) % images.length];
-  }
-  function setTrack(withTransition) {
-    track.style.transition = withTransition ? '' : 'none';
-    track.style.transform = `translateX(-${idx * 100}%)`;
-  }
-  function goTo(target) {
-    real = ((target % images.length) + images.length) % images.length;
-    idx = real + 1;
-    transitionOn = true;
-    setTrack(true);
-    renderDots();
-    renderSides();
-    restartAuto();
-  }
-  window.pgCarouselNav = function (dir) { goTo(real + dir); };
-
-  // Snap tanpa animasi begitu geser melewati slide clone, supaya loop
-  // infinite terasa mulus (penonton tidak lihat "lompatan").
-  track.addEventListener('transitionend', () => {
-    if (idx === 0) { idx = images.length; real = images.length - 1; setTrack(false); }
-    else if (idx === images.length + 1) { idx = 1; real = 0; setTrack(false); }
-  });
-
-  function restartAuto() {
-    if (timer) clearInterval(timer);
-    timer = setInterval(() => { idx++; real = (real + 1) % images.length; setTrack(true); renderDots(); renderSides(); }, 4000);
-  }
-
-  // Init
-  setTrack(false);
-  renderDots();
-  renderSides();
-  restartAuto();
-
-  // Jeda auto-slide saat kursor di atas banner (on-cursor), lanjut lagi saat keluar.
-  const section = document.getElementById('pg-carousel');
-  section.addEventListener('mouseenter', () => { if (timer) clearInterval(timer); });
-  section.addEventListener('mouseleave', restartAuto);
+  window.pgCarouselNav = function (dir) {
+    idx = (idx + dir + images.length) % images.length;
+    render();
+  };
+  setInterval(() => window.pgCarouselNav(1), 5000);
 })();
 
 // ══ Flash Deal countdown (reset tiap 3 jam, kosmetik) ══

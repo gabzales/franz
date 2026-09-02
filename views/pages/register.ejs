@@ -2,17 +2,18 @@
 <%
 /*
   FranzzStore — Register (rewrite total, 1 Sep 2026)
-  Field form (username, wa, password, confirmPassword) dan JS validasi
-  real-time password match TIDAK diubah -- persis sama seperti
-  sebelumnya, cuma tampilan yang diganti.
+  Sama pola dengan login.ejs: split layout dark, form daftar di kanan.
+  Field & nama input DIJAGA persis (username, wa, password, confirmPassword)
+  supaya POST /register di server.js tetap jalan.
 */
-const pageTitle = settings?.siteName || 'FranzzStore';
+const pageTitle = 'Daftar';
 %>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daftar - <%= pageTitle %></title>
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= settings?.siteName || 'FranzzStore' %> — Daftar</title>
   <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
   <link rel="stylesheet" href="/css/pointgo-theme.css">
   <script>
@@ -22,95 +23,126 @@ const pageTitle = settings?.siteName || 'FranzzStore';
 </head>
 <body>
 
-<header class="site-header">
-  <div class="header-top">
-    <a href="/" class="pointgo-logo">
-      <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= pageTitle %>" class="brand-mark">
-    </a>
+<div class="auth-page">
+  <!-- ══ ARTWORK KIRI (gradient netral) ══ -->
+  <div class="auth-art">
+    <div style="position:absolute;top:0;left:0;right:0;height:5px;background:var(--accent);"></div>
+    <div style="position:absolute;top:32px;left:34px;display:flex;align-items:center;gap:10px;z-index:2;">
+      <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="" style="height:38px;width:auto;">
+      <span style="font-weight:900;font-size:18px;color:#fff;"><%= settings?.siteName || 'FranzzStore' %></span>
+    </div>
+    <div style="position:absolute;left:34px;bottom:44px;z-index:2;max-width:380px;">
+      <h1 style="font-size:24px;color:#fff;line-height:1.3;margin-bottom:10px;">Gabung sekarang, top up lebih hemat setiap hari.</h1>
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.7;">Dapatkan riwayat transaksi, akses saldo reseller, dan notifikasi pesanan langsung ke WhatsApp kamu.</p>
+      <div style="display:flex;gap:8px;margin-top:18px;color:var(--accent);font-size:11px;font-weight:700;">
+        <span style="background:rgba(47,111,237,0.12);border:1px solid rgba(47,111,237,0.3);padding:5px 12px;border-radius:999px;"><iconify-icon icon="mdi:shield-check-outline" style="vertical-align:-2px;"></iconify-icon> Aman</span>
+        <span style="background:rgba(47,111,237,0.12);border:1px solid rgba(47,111,237,0.3);padding:5px 12px;border-radius:999px;"><iconify-icon icon="mdi:timer-outline" style="vertical-align:-2px;"></iconify-icon> Instan</span>
+        <span style="background:rgba(47,111,237,0.12);border:1px solid rgba(47,111,237,0.3);padding:5px 12px;border-radius:999px;"><iconify-icon icon="mdi:tag-outline" style="vertical-align:-2px;"></iconify-icon> Murah</span>
+      </div>
+    </div>
+    <div style="position:absolute;left:34px;bottom:18px;font-size:10px;color:var(--muted);">&copy; <%= new Date().getFullYear() %> <%= settings?.siteName || 'FranzzStore' %></div>
   </div>
-</header>
 
-<main class="auth-page">
-  <div class="auth-art"></div>
+  <!-- ══ FORM KANAN ══ -->
   <div class="auth-form-wrap">
     <div class="auth-form-card">
       <div class="auth-head">
-        <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= pageTitle %>" class="auth-logo" style="height:34px;">
-        <h1 class="auth-title">Daftar Akun Baru</h1>
-        <p class="auth-sub">Buat akun untuk mulai mendapatkan lebih banyak keuntungan dan poin</p>
+        <div class="auth-logo">
+          <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= settings?.siteName || 'FranzzStore' %>" style="height:34px;width:auto;">
+        </div>
+        <h1 class="auth-title">Buat Akun Baru</h1>
+        <p class="auth-sub">Daftar gratis. Cukup isi data di bawah, selesai.</p>
       </div>
 
       <% if (error) { %>
-      <div class="pg-auth-error"><iconify-icon icon="mdi:alert-circle-outline"></iconify-icon> <%= error %></div>
+      <div class="pg-auth-error">
+        <iconify-icon icon="mdi:alert-circle" style="flex-shrink:0;"></iconify-icon>
+        <span><%= error %></span>
+      </div>
       <% } %>
 
-      <form method="POST" action="/register" id="register-form" onsubmit="return validateRegister(event)">
+      <form method="POST" action="/register" class="space-y-0" onsubmit="return validateRegister(event)">
         <div class="pg-field">
-          <label class="pg-field-label">Username</label>
+          <label class="pg-field-label" for="reg-username">Username</label>
           <div class="pg-input-wrap">
             <span class="pg-input-icon"><iconify-icon icon="mdi:account-outline"></iconify-icon></span>
-            <input type="text" name="username" required class="pg-input" placeholder="Pilih username" pattern="[a-zA-Z0-9]+" minlength="4" maxlength="20" autofocus>
+            <input type="text" id="reg-username" name="username" required class="pg-input"
+                   placeholder="Pilih username" pattern="[a-zA-Z0-9]+" minlength="4" maxlength="20" autofocus>
           </div>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;margin-left:2px;">Minimal 4 karakter, hanya huruf dan angka</p>
         </div>
 
         <div class="pg-field">
-          <label class="pg-field-label">No. WhatsApp</label>
+          <label class="pg-field-label" for="reg-wa">No. WhatsApp</label>
           <div class="pg-input-wrap">
-            <span class="pg-input-icon"><iconify-icon icon="mdi:phone-outline"></iconify-icon></span>
-            <input type="tel" name="wa" required class="pg-input" placeholder="08xxxxxxxxxx" pattern="[0-9]+" maxlength="15">
+            <span class="pg-input-icon" style="color:#22c55e;"><iconify-icon icon="mdi:whatsapp"></iconify-icon></span>
+            <input type="tel" id="reg-wa" name="wa" required class="pg-input"
+                   placeholder="08xxxxxxxxxx" pattern="[0-9]+" maxlength="15">
           </div>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;margin-left:2px;">Format: 08xxx atau 628xxx. Dipakai untuk kirim notifikasi pesanan.</p>
         </div>
 
         <div class="pg-field">
-          <label class="pg-field-label">Password</label>
+          <label class="pg-field-label" for="reg-password">Password</label>
           <div class="pg-input-wrap">
             <span class="pg-input-icon"><iconify-icon icon="mdi:lock-outline"></iconify-icon></span>
-            <input type="password" name="password" id="reg-password" required class="pg-input" style="padding-right:40px;" placeholder="Buat password" minlength="8" maxlength="30">
-            <button type="button" class="pg-password-toggle" onclick="togglePass('reg-password','reg-eye')">
+            <input type="password" id="reg-password" name="password" required class="pg-input"
+                   placeholder="Buat password" minlength="8" maxlength="30">
+            <button type="button" class="pg-password-toggle" onclick="togglePass('reg-password','reg-eye')" aria-label="Tampilkan password">
               <iconify-icon icon="mdi:eye-outline" id="reg-eye"></iconify-icon>
             </button>
           </div>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;margin-left:2px;">Minimal 8 karakter, kombinasi huruf &amp; angka</p>
         </div>
 
         <div class="pg-field">
-          <label class="pg-field-label">Konfirmasi Password</label>
+          <label class="pg-field-label" for="reg-confirm">Konfirmasi Password</label>
           <div class="pg-input-wrap">
-            <span class="pg-input-icon"><iconify-icon icon="mdi:lock-outline"></iconify-icon></span>
-            <input type="password" id="reg-confirm" name="confirmPassword" required class="pg-input" style="padding-right:40px;" placeholder="Ulangi password">
-            <button type="button" class="pg-password-toggle" onclick="togglePass('reg-confirm','reg-confirm-eye')">
-              <iconify-icon icon="mdi:eye-outline" id="reg-confirm-eye"></iconify-icon>
+            <span class="pg-input-icon"><iconify-icon icon="mdi:lock-check"></iconify-icon></span>
+            <input type="password" id="reg-confirm" name="confirmPassword" required class="pg-input"
+                   placeholder="Ulangi password">
+            <button type="button" class="pg-password-toggle" onclick="togglePass('reg-confirm','reg-eye2')" aria-label="Tampilkan password">
+              <iconify-icon icon="mdi:eye-outline" id="reg-eye2"></iconify-icon>
             </button>
           </div>
-          <p id="confirm-msg" style="font-size:10.5px;margin-top:6px;display:none;"></p>
+          <p id="confirm-msg" class="hidden" style="font-size:10px;margin-top:6px;margin-left:2px;"></p>
         </div>
 
-        <button type="submit" class="pg-btn pg-btn-primary pg-btn-block" style="padding:13px;margin-top:6px;">
-          <iconify-icon icon="mdi:account-check"></iconify-icon> Daftar Sekarang
+        <button type="submit" class="pg-btn pg-btn-primary pg-btn-block"
+                style="padding:13px 22px;border-radius:8px;color:#fff;">
+          <iconify-icon icon="mdi:account-check" style="font-size:16px;"></iconify-icon>
+          <span>Daftar Sekarang</span>
         </button>
       </form>
 
       <% if (googleOAuthEnabled) { %>
-      <div style="display:flex;align-items:center;gap:12px;margin:20px 0;">
-        <div style="flex:1;height:1px;background:var(--line);"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin:18px 0;">
+        <span style="flex:1;height:1px;background:var(--line);"></span>
         <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">atau</span>
-        <div style="flex:1;height:1px;background:var(--line);"></div>
+        <span style="flex:1;height:1px;background:var(--line);"></span>
       </div>
-      <a href="/auth/google" class="pg-btn pg-btn-outline pg-btn-block" style="background:#fff;color:#1f2933;padding:12px;">
-        <iconify-icon icon="flat-color-icons:google"></iconify-icon> Daftar dengan Google
+      <a href="/auth/google" class="pg-btn pg-btn-outline pg-btn-block"
+         style="background:#fff;border-color:var(--line);color:#18181b;">
+        <iconify-icon icon="flat-color-icons:google" style="font-size:16px;"></iconify-icon>
+        <span>Daftar dengan Google</span>
       </a>
       <% } %>
 
       <div class="pg-auth-links">
         <span>Sudah punya akun? <a href="/login">Masuk di sini</a></span>
+        <a href="/" style="font-weight:500;color:var(--muted);">
+          <iconify-icon icon="mdi:arrow-left" style="vertical-align:-2px;"></iconify-icon> Kembali ke Beranda
+        </a>
       </div>
     </div>
   </div>
-</main>
+</div>
 
 <script>
 function togglePass(inputId, iconId) {
   const input = document.getElementById(inputId);
   const icon = document.getElementById(iconId);
+  if (!input) return;
   if (input.type === 'password') {
     input.type = 'text';
     icon.setAttribute('icon', 'mdi:eye-off-outline');
@@ -123,15 +155,15 @@ function togglePass(inputId, iconId) {
 document.getElementById('reg-confirm').addEventListener('input', function() {
   const pw = document.getElementById('reg-password').value;
   const msg = document.getElementById('confirm-msg');
-  if (!this.value) { msg.style.display = 'none'; return; }
-  msg.style.display = 'block';
+  if (!this.value) { msg.className = 'hidden'; return; }
   if (this.value === pw) {
     msg.textContent = 'Password cocok';
-    msg.style.color = 'var(--accent)';
+    msg.style.color = '#34d399';
   } else {
     msg.textContent = 'Password tidak cocok';
-    msg.style.color = 'var(--red)';
+    msg.style.color = '#ff8b96';
   }
+  msg.classList.remove('hidden');
 });
 
 function validateRegister(e) {
@@ -141,8 +173,8 @@ function validateRegister(e) {
     e.preventDefault();
     const msg = document.getElementById('confirm-msg');
     msg.textContent = 'Password tidak cocok';
-    msg.style.display = 'block';
-    msg.style.color = 'var(--red)';
+    msg.style.color = '#ff8b96';
+    msg.classList.remove('hidden');
     return false;
   }
   return true;

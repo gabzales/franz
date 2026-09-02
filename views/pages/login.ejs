@@ -2,18 +2,18 @@
 <%
 /*
   FranzzStore — Login (rewrite total, 1 Sep 2026)
-  UI di-porting dari referensi poingoanj (login_poin.png) ke EJS.
-  Field form (name="username", name="password", name="redirect") dan
-  logic Turnstile/Google OAuth TIDAK diubah -- persis sama seperti
-  sebelumnya, cuma tampilan yang diganti.
+  PointGo-style split layout: artwork kiri (gradient, tanpa gambar
+  copyright game), form kanan. Backend/logic TETAP server.js -- semua
+  variabel (error, redirect, turnstileSiteKey) datang dari route asli.
 */
-const pageTitle = settings?.siteName || 'FranzzStore';
+const pageTitle = 'Masuk';
 %>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - <%= pageTitle %></title>
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= settings?.siteName || 'FranzzStore' %> — Masuk</title>
   <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
   <link rel="stylesheet" href="/css/pointgo-theme.css">
   <script>
@@ -23,82 +23,105 @@ const pageTitle = settings?.siteName || 'FranzzStore';
 </head>
 <body>
 
-<header class="site-header">
-  <div class="header-top">
-    <a href="/" class="pointgo-logo">
-      <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= pageTitle %>" class="brand-mark">
-    </a>
-  </div>
-</header>
-
-<main class="auth-page">
+<div class="auth-page">
+  <!-- ══ ARTWORK KIRI (gradient netral, tanpa gambar copyright) ══ -->
   <div class="auth-art">
-    <!-- Sengaja gradient CSS saja (bukan artwork karakter game berhak
-         cipta) -- lihat gradient .auth-art di pointgo-theme.css -->
+    <div style="position:absolute;top:0;left:0;right:0;height:5px;background:var(--accent);"></div>
+    <div style="position:absolute;top:32px;left:34px;display:flex;align-items:center;gap:10px;z-index:2;">
+      <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="" style="height:38px;width:auto;">
+      <span style="font-weight:900;font-size:18px;color:#fff;"><%= settings?.siteName || 'FranzzStore' %></span>
+    </div>
+    <div style="position:absolute;left:34px;bottom:44px;z-index:2;max-width:380px;">
+      <h1 style="font-size:24px;color:#fff;line-height:1.3;margin-bottom:10px;">Top Up Game &amp; Premium App Termurah, Tercepat &amp; Aman.</h1>
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.7;">Proses instan setelah pembayaran QRIS, harga bersaing, dan dukungan CS 24/7.</p>
+      <div style="display:flex;gap:8px;margin-top:18px;color:var(--accent);font-size:11px;font-weight:700;">
+        <span style="background:rgba(47,111,237,0.12);border:1px solid rgba(47,111,237,0.3);padding:5px 12px;border-radius:999px;"><iconify-icon icon="mdi:shield-check-outline" style="vertical-align:-2px;"></iconify-icon> Aman</span>
+        <span style="background:rgba(47,111,237,0.12);border:1px solid rgba(47,111,237,0.3);padding:5px 12px;border-radius:999px;"><iconify-icon icon="mdi:timer-outline" style="vertical-align:-2px;"></iconify-icon> Instan</span>
+        <span style="background:rgba(47,111,237,0.12);border:1px solid rgba(47,111,237,0.3);padding:5px 12px;border-radius:999px;"><iconify-icon icon="mdi:tag-outline" style="vertical-align:-2px;"></iconify-icon> Murah</span>
+      </div>
+    </div>
+    <div style="position:absolute;left:34px;bottom:18px;font-size:10px;color:var(--muted);">&copy; <%= new Date().getFullYear() %> <%= settings?.siteName || 'FranzzStore' %></div>
   </div>
+
+  <!-- ══ FORM KANAN ══ -->
   <div class="auth-form-wrap">
     <div class="auth-form-card">
       <div class="auth-head">
-        <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= pageTitle %>" class="auth-logo" style="height:34px;">
+        <div class="auth-logo">
+          <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= settings?.siteName || 'FranzzStore' %>" style="height:34px;width:auto;">
+        </div>
         <h1 class="auth-title">Login Ke Akun Anda</h1>
-        <p class="auth-sub">Masuk akun untuk mulai mendapatkan lebih banyak keuntungan dan poin</p>
+        <p class="auth-sub">Masuk untuk melacak pesanan, top up saldo reseller, dan mengelola akun.</p>
       </div>
 
       <% if (error) { %>
-      <div class="pg-auth-error"><iconify-icon icon="mdi:alert-circle-outline"></iconify-icon> <%= error %></div>
+      <div class="pg-auth-error">
+        <iconify-icon icon="mdi:alert-circle" style="flex-shrink:0;"></iconify-icon>
+        <span><%= error %></span>
+      </div>
       <% } %>
 
       <form method="POST" action="/login" id="login-form">
         <input type="hidden" name="redirect" value="<%= redirect %>">
 
         <div class="pg-field">
-          <label class="pg-field-label">Username</label>
+          <label class="pg-field-label" for="login-username">Username</label>
           <div class="pg-input-wrap">
             <span class="pg-input-icon"><iconify-icon icon="mdi:account-outline"></iconify-icon></span>
-            <input type="text" name="username" required class="pg-input" placeholder="Masukkan username" autofocus>
+            <input type="text" id="login-username" name="username" required class="pg-input"
+                   placeholder="Masukkan username" autofocus autocomplete="username">
           </div>
         </div>
 
         <div class="pg-field">
-          <label class="pg-field-label">Password</label>
+          <label class="pg-field-label" for="login-password">Password</label>
           <div class="pg-input-wrap">
             <span class="pg-input-icon"><iconify-icon icon="mdi:lock-outline"></iconify-icon></span>
-            <input type="password" name="password" id="login-password" required class="pg-input" style="padding-right:40px;" placeholder="Masukkan password">
-            <button type="button" class="pg-password-toggle" onclick="togglePass('login-password','login-eye')">
+            <input type="password" id="login-password" name="password" required class="pg-input"
+                   placeholder="Masukkan password" autocomplete="current-password">
+            <button type="button" class="pg-password-toggle" onclick="togglePass('login-password','login-eye')" aria-label="Tampilkan password">
               <iconify-icon icon="mdi:eye-outline" id="login-eye"></iconify-icon>
             </button>
           </div>
         </div>
 
         <% if (turnstileSiteKey) { %>
-        <div style="display:flex;justify-content:center;border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:14px;">
-          <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-theme="dark" data-size="flexible"></div>
+        <div class="pg-field">
+          <div style="border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;justify-content:center;">
+            <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-theme="dark" data-size="flexible"></div>
+          </div>
         </div>
         <% } %>
 
-        <button type="submit" class="pg-btn pg-btn-primary pg-btn-block" id="login-btn" style="padding:13px;">
-          <iconify-icon icon="mdi:login-variant"></iconify-icon> Login
+        <button type="submit" class="pg-btn pg-btn-primary pg-btn-block" id="login-btn"
+                style="padding:13px 22px;border-radius:8px;color:#fff;">
+          <iconify-icon icon="mdi:login" style="font-size:16px;"></iconify-icon>
+          <span>Login</span>
         </button>
       </form>
 
       <% if (googleOAuthEnabled) { %>
-      <div style="display:flex;align-items:center;gap:12px;margin:20px 0;">
-        <div style="flex:1;height:1px;background:var(--line);"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin:18px 0;">
+        <span style="flex:1;height:1px;background:var(--line);"></span>
         <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">atau</span>
-        <div style="flex:1;height:1px;background:var(--line);"></div>
+        <span style="flex:1;height:1px;background:var(--line);"></span>
       </div>
-      <a href="/auth/google" class="pg-btn pg-btn-outline pg-btn-block" style="background:#fff;color:#1f2933;padding:12px;">
-        <iconify-icon icon="flat-color-icons:google"></iconify-icon> Masuk dengan Google
+      <a href="/auth/google" class="pg-btn pg-btn-outline pg-btn-block"
+         style="background:#fff;border-color:var(--line);color:#18181b;">
+        <iconify-icon icon="flat-color-icons:google" style="font-size:16px;"></iconify-icon>
+        <span>Masuk dengan Google</span>
       </a>
       <% } %>
 
       <div class="pg-auth-links">
-        <a href="/lupa-password">Lupa Password?</a>
-        <span>Belum Punya akun? <a href="/register">Daftar Disini</a></span>
+        <span>Belum punya akun? <a href="/register">Daftar Disini</a></span>
+        <a href="/" style="font-weight:500;color:var(--muted);">
+          <iconify-icon icon="mdi:arrow-left" style="vertical-align:-2px;"></iconify-icon> Kembali ke Beranda
+        </a>
       </div>
     </div>
   </div>
-</main>
+</div>
 
 <% if (turnstileSiteKey) { %>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -108,6 +131,7 @@ const pageTitle = settings?.siteName || 'FranzzStore';
 function togglePass(inputId, iconId) {
   const input = document.getElementById(inputId);
   const icon = document.getElementById(iconId);
+  if (!input) return;
   if (input.type === 'password') {
     input.type = 'text';
     icon.setAttribute('icon', 'mdi:eye-off-outline');

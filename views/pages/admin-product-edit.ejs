@@ -3,36 +3,90 @@ const pageTitle = 'Edit Produk';
 const noIndex = true; // halaman admin, jangan di-index Google
 %>
 <style>
-/* FIX (redesign 22 Agu 2026): style lokal file ini didesain untuk
-   background gelap (rgba(255,255,255,...) transparan tipis + color:#fff),
-   sekarang background global sudah putih (layout.ejs). */
-.hm-input{width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-section);border:1.5px solid var(--border-md);color:var(--text-1);font-size:13px;transition:all .2s;font-family:'Inter',sans-serif;}
-.hm-input:focus{outline:none;border-color:var(--neon-purple-35);background:var(--neon-purple-10);}
-.section-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
-.key-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-family:monospace;background:var(--neon-purple-12);border:1px solid var(--neon-purple-25);color:#4f46e5;margin:2px;}
-.text-zinc-300 { color: var(--text-1) !important; }
-.text-zinc-400 { color: var(--text-2) !important; }
-.text-zinc-500 { color: var(--text-2) !important; }
-.text-zinc-600 { color: var(--text-3) !important; }
-.text-white { color: var(--text-1) !important; }
-.bg-white\/5 { background: var(--bg-hover) !important; }
-.bg-white\/10 { background: var(--border) !important; }
-.border-white\/10 { border-color: var(--border) !important; }
-.border-white\/5 { border-color: var(--bg-hover) !important; }
-.hover\:text-white:hover { color: var(--text-1) !important; }
-.hover\:bg-white\/5:hover { background: var(--bg-hover) !important; }
+/* ══ DARK-BLUE THEME (pointgo) — admin product edit ══
+   Halaman ini fragment dibungkus layout.ejs (tema terang). Blok di bawah
+   memaksa palet gelap-biru dengan mendefinisikan ulang variable layout
+   (source order: fragment berada SETELAH style head layout.ejs, jadi lebih
+   menang), plus me-remap class utility putih/abu ke padanan gelap. Hanya
+   visual — semua id/name/onclick/fetch & logika JS di bawah tidak berubah. */
+:root, html.dark {
+  --bg-main: #080e14;
+  --bg-section: #0a1016;
+  --bg-card: #18232d;
+  --bg-hover: #121b24;
+  --border: #35424c;
+  --border-md: #495760;
+  --text-1: #f4f6f8;
+  --text-2: #aab2ba;
+  --text-3: #89939c;
+  --blue: #2F6FED;
+}
+body { background: var(--bg-main) !important; color: var(--text-1) !important; }
+.hm-input{width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-section);border:1.5px solid var(--border);color:var(--text-1);font-size:13px;transition:all .2s;font-family:'Inter',sans-serif;}
+.hm-input:focus{outline:none;border-color:var(--accent,#2F6FED);background:rgba(47,111,237,.1);box-shadow:0 0 0 3px rgba(47,111,237,.15);}
+.hm-input::placeholder{color:var(--text-3);}
+.section-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.key-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-family:monospace;background:var(--neon-purple-12);border:1px solid var(--neon-purple-25);color:#93c5fd;margin:2px;}
+.text-zinc-300 { color: #ccd3d9 !important; }
+.text-zinc-400 { color: #aab2ba !important; }
+.text-zinc-500 { color: #89939c !important; }
+.text-zinc-600 { color: #6d7781 !important; }
+.text-zinc-700 { color: #d3d9de !important; }
+.text-white { color: #f4f6f8 !important; }
+.bg-white\/5 { background: rgba(255,255,255,.06) !important; }
+.bg-white\/10 { background: rgba(255,255,255,.12) !important; }
+.border-white\/10 { border-color: rgba(255,255,255,.14) !important; }
+.border-white\/5 { border-color: rgba(255,255,255,.10) !important; }
+.border-white\/15 { border-color: rgba(255,255,255,.18) !important; }
+.hover\:text-white:hover { color: #f4f6f8 !important; }
+.hover\:bg-white\/5:hover { background: rgba(255,255,255,.09) !important; }
+
+/* ── Aksesori PointGo remap: tombol/reset/status tetap terbaca di atas
+     latar gelap-biru (semua id/name/onclick & logika JS tidak disentuh) ── */
+.btn-gaming { background: var(--accent,#2F6FED); color: #08130a; }
+.btn-gaming:hover { opacity: .9; }
+.text-blue-400 { color: #6ea8ff !important; }
+.text-blue-300 { color: #93b8ff !important; }
+.text-blue-200 { color: #b9d0ff !important; }
+.border-blue-500\/30 { border-color: rgba(47,111,237,.35) !important; }
+.border-blue-500\/50 { border-color: rgba(47,111,237,.6) !important; }
+.bg-blue-500\/5  { background: rgba(47,111,237,.08) !important; }
+.bg-blue-500\/10 { background: rgba(47,111,237,.14) !important; }
+.bg-blue-500\/15 { background: rgba(47,111,237,.2) !important; }
+.hover\:bg-blue-500\/10:hover { background: rgba(47,111,237,.18) !important; }
+.hover\:bg-blue-500\/25:hover { background: rgba(47,111,237,.3) !important; }
+.text-emerald-400 { color: #34d399 !important; }
+.text-emerald-300 { color: #6ee7b7 !important; }
+.border-emerald-500\/50 { border-color: rgba(52,211,153,.55) !important; }
+.bg-emerald-500\/15 { background: rgba(52,211,153,.16) !important; }
+.text-yellow-400 { color: #fbbf24 !important; }
+.border-yellow-500\/30 { border-color: rgba(251,191,36,.35) !important; }
+.bg-yellow-500\/10 { background: rgba(251,191,36,.12) !important; }
+.text-orange-300 { color: #fdba74 !important; }
+.bg-orange-500\/20 { background: rgba(249,115,22,.24) !important; }
+.text-red-400 { color: #ff6b78 !important; }
+.text-red-300 { color: #ff8b96 !important; }
+.hover\:text-red-300:hover { color: #ff8b96 !important; }
+.hover\:bg-red-500\/10:hover { background: rgba(255,77,94,.18) !important; }
+.bg-zinc-500\/20 { background: rgba(137,147,156,.22) !important; }
+.text-zinc-600 { color: #84909b !important; }
+.section-card h2 { display:flex; align-items:center; gap:8px; }
+.section-card code { color:#6ea8ff; }
+.category-toggle-btn { color:#aab2ba; border-color:var(--border); background:transparent; }
+.category-toggle-btn:hover { color:#f4f6f8; border-color:var(--accent,#2F6FED); }
 </style>
 
 <div class="min-h-screen pt-20 pb-24 px-4">
 <div class="max-w-2xl mx-auto">
 
   <!-- Header -->
-  <div class="flex items-center justify-between mb-6">
+  <div class="admin-heading flex items-center justify-between mb-6">
     <div>
-      <h1 class="text-2xl font-black text-white">Edit Produk</h1>
+      <small class="block text-xs font-bold uppercase tracking-widest" style="color:var(--accent,#2F6FED);">Admin Panel</small>
+      <h1 class="text-2xl font-black text-white mt-1">Edit Produk</h1>
       <p class="text-zinc-500 text-sm mt-0.5" id="productNameLabel">Memuat...</p>
     </div>
-    <a href="/admin" class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold transition-all">
+    <a href="/admin" class="pg-btn pg-btn-outline flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold transition-all">
       <iconify-icon icon="mdi:arrow-left"></iconify-icon> Kembali
     </a>
   </div>

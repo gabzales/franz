@@ -2262,7 +2262,7 @@ app.get('/buy/:id', (req, res) => {
   const { keys: _rawKeys, ...productSafe } = product;
   productSafe.stockCount = (_rawKeys || []).length;
 
-  res.render('pages/buy', { layout: false, product: productSafe, settings, user, isReseller, hasPurchased, categoryLabels: settings.categoryLabels || {} });
+  res.render('pages/buy', { product: productSafe, settings, user, isReseller, hasPurchased, categoryLabels: settings.categoryLabels || {} });
 });
 
 // FIX (guest checkout, diminta client 21 Agu 2026 -- "isi data cukup nama
