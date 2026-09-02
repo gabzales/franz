@@ -441,6 +441,14 @@ table.pg-table th { color: var(--muted); font-size: 10.5px; text-transform: uppe
 .bar span { display: block; font-size: 11px; margin-bottom: 6px; color: var(--muted); }
 .bar i { display: block; height: 7px; background: var(--accent); border-radius: 8px; }
 
+/* Product card interaction motion */
+.product-card { cursor:pointer; transform-origin:center; transition:transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease, border-color .2s ease; }
+.product-card:hover { transform:scale(1.035); box-shadow:0 12px 28px rgba(0,0,0,.28); border-color:rgba(19,216,255,.42) !important; }
+.product-card:active { transform:scale(.965); transition-duration:.08s; }
+.product-card:focus-within { transform:scale(1.02); }
+.product-card button, .product-card a { position:relative; z-index:2; }
+@media (hover:none) { .product-card:active { transform:scale(.96); } }
+
 /* ══════════════════════════════════════════════════════════════
    RESPONSIVE (mobile)
    ══════════════════════════════════════════════════════════════ */
