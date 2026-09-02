@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<%
+/*
+  FranzzStore — Register (rewrite total, 1 Sep 2026)
+  Field form (username, wa, password, confirmPassword) dan JS validasi
+  real-time password match TIDAK diubah -- persis sama seperti
+  sebelumnya, cuma tampilan yang diganti.
+*/
+const pageTitle = settings?.siteName || 'FranzzStore';
+%>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar - <%= pageTitle %></title>
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <link rel="stylesheet" href="/css/pointgo-theme.css">
+  <script>
+    window.IconifyPreload = <%- iconBundle %>;
+  </script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-top">
+    <a href="/" class="pointgo-logo">
+      <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= pageTitle %>" class="brand-mark">
+    </a>
+  </div>
+</header>
+
+<main class="auth-page">
+  <div class="auth-art"></div>
+  <div class="auth-form-wrap">
+    <div class="auth-form-card">
+      <div class="auth-head">
+        <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= pageTitle %>" class="auth-logo" style="height:34px;">
+        <h1 class="auth-title">Daftar Akun Baru</h1>
+        <p class="auth-sub">Buat akun untuk mulai mendapatkan lebih banyak keuntungan dan poin</p>
+      </div>
+
+      <% if (error) { %>
+      <div class="pg-auth-error"><iconify-icon icon="mdi:alert-circle-outline"></iconify-icon> <%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/register" id="register-form" onsubmit="return validateRegister(event)">
+        <div class="pg-field">
+          <label class="pg-field-label">Username</label>
+          <div class="pg-input-wrap">
+            <span class="pg-input-icon"><iconify-icon icon="mdi:account-outline"></iconify-icon></span>
+            <input type="text" name="username" required class="pg-input" placeholder="Pilih username" pattern="[a-zA-Z0-9]+" minlength="4" maxlength="20" autofocus>
+          </div>
+        </div>
+
+        <div class="pg-field">
+          <label class="pg-field-label">No. WhatsApp</label>
+          <div class="pg-input-wrap">
+            <span class="pg-input-icon"><iconify-icon icon="mdi:phone-outline"></iconify-icon></span>
+            <input type="tel" name="wa" required class="pg-input" placeholder="08xxxxxxxxxx" pattern="[0-9]+" maxlength="15">
+          </div>
+        </div>
+
+        <div class="pg-field">
+          <label class="pg-field-label">Password</label>
+          <div class="pg-input-wrap">
+            <span class="pg-input-icon"><iconify-icon icon="mdi:lock-outline"></iconify-icon></span>
+            <input type="password" name="password" id="reg-password" required class="pg-input" style="padding-right:40px;" placeholder="Buat password" minlength="8" maxlength="30">
+            <button type="button" class="pg-password-toggle" onclick="togglePass('reg-password','reg-eye')">
+              <iconify-icon icon="mdi:eye-outline" id="reg-eye"></iconify-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="pg-field">
+          <label class="pg-field-label">Konfirmasi Password</label>
+          <div class="pg-input-wrap">
+            <span class="pg-input-icon"><iconify-icon icon="mdi:lock-outline"></iconify-icon></span>
+            <input type="password" id="reg-confirm" name="confirmPassword" required class="pg-input" style="padding-right:40px;" placeholder="Ulangi password">
+            <button type="button" class="pg-password-toggle" onclick="togglePass('reg-confirm','reg-confirm-eye')">
+              <iconify-icon icon="mdi:eye-outline" id="reg-confirm-eye"></iconify-icon>
+            </button>
+          </div>
+          <p id="confirm-msg" style="font-size:10.5px;margin-top:6px;display:none;"></p>
+        </div>
+
+        <button type="submit" class="pg-btn pg-btn-primary pg-btn-block" style="padding:13px;margin-top:6px;">
+          <iconify-icon icon="mdi:account-check"></iconify-icon> Daftar Sekarang
+        </button>
+      </form>
+
+      <% if (googleOAuthEnabled) { %>
+      <div style="display:flex;align-items:center;gap:12px;margin:20px 0;">
+        <div style="flex:1;height:1px;background:var(--line);"></div>
+        <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">atau</span>
+        <div style="flex:1;height:1px;background:var(--line);"></div>
+      </div>
+      <a href="/auth/google" class="pg-btn pg-btn-outline pg-btn-block" style="background:#fff;color:#1f2933;padding:12px;">
+        <iconify-icon icon="flat-color-icons:google"></iconify-icon> Daftar dengan Google
+      </a>
+      <% } %>
+
+      <div class="pg-auth-links">
+        <span>Sudah punya akun? <a href="/login">Masuk di sini</a></span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+function togglePass(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.setAttribute('icon', 'mdi:eye-off-outline');
+  } else {
+    input.type = 'password';
+    icon.setAttribute('icon', 'mdi:eye-outline');
+  }
+}
+
+document.getElementById('reg-confirm').addEventListener('input', function() {
+  const pw = document.getElementById('reg-password').value;
+  const msg = document.getElementById('confirm-msg');
+  if (!this.value) { msg.style.display = 'none'; return; }
+  msg.style.display = 'block';
+  if (this.value === pw) {
+    msg.textContent = 'Password cocok';
+    msg.style.color = 'var(--accent)';
+  } else {
+    msg.textContent = 'Password tidak cocok';
+    msg.style.color = 'var(--red)';
+  }
+});
+
+function validateRegister(e) {
+  const pw = document.getElementById('reg-password').value;
+  const confirm = document.getElementById('reg-confirm').value;
+  if (pw !== confirm) {
+    e.preventDefault();
+    const msg = document.getElementById('confirm-msg');
+    msg.textContent = 'Password tidak cocok';
+    msg.style.display = 'block';
+    msg.style.color = 'var(--red)';
+    return false;
+  }
+  return true;
+}
+</script>
+</body>
+</html>

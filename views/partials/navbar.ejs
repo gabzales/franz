@@ -1,0 +1,90 @@
+<!--
+  Partial navbar -- PointGo-style dark header (1 Sep 2026)
+  Include di setiap halaman dengan include() dan opsi { active: 'home' }.
+  Variabel yang dipakai (harus sudah ada di scope pemanggil): settings, user
+  Variabel opsional: active (salah satu dari home / riwayat / cek-pesanan) untuk highlight nav aktif
+-->
+<link rel="stylesheet" href="/css/pointgo-theme.css">
+
+<header class="site-header">
+  <div class="header-top">
+    <a href="/" class="pointgo-logo">
+      <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= settings?.siteName || 'FranzzStore' %>" class="brand-mark">
+    </a>
+    <div class="search">
+      <iconify-icon icon="mdi:magnify"></iconify-icon>
+      <input type="text" id="pg-search-input" placeholder="Cari game atau voucher disini...">
+    </div>
+    <button class="header-icon-btn" onclick="toggleSidebar(true)" aria-label="Menu">
+      <iconify-icon icon="mdi:menu" style="font-size:24px;"></iconify-icon>
+    </button>
+  </div>
+  <nav class="site-nav">
+    <a href="/" class="<%= typeof active !== 'undefined' && active === 'home' ? 'active' : '' %>">
+      <iconify-icon icon="mdi:home-outline"></iconify-icon> Home
+    </a>
+    <a href="/riwayat" class="<%= typeof active !== 'undefined' && active === 'riwayat' ? 'active' : '' %>">
+      <iconify-icon icon="mdi:history"></iconify-icon> Riwayat Transaksi
+    </a>
+    <a href="/cek-pesanan" class="<%= typeof active !== 'undefined' && active === 'cek-pesanan' ? 'active' : '' %>">
+      <iconify-icon icon="mdi:package-variant-closed"></iconify-icon> Cek Pesanan
+    </a>
+    <span style="display:flex;align-items:center;gap:7px;color:var(--muted);opacity:.5;cursor:not-allowed;" title="Segera hadir">
+      <iconify-icon icon="mdi:calculator-variant-outline"></iconify-icon> Kalkulator
+    </span>
+    <div class="nav-spacer"></div>
+    <% if (user) { %>
+      <a href="/dashboard" class="green"><iconify-icon icon="mdi:account-circle-outline"></iconify-icon> <%= user.username %></a>
+    <% } else { %>
+      <a href="/login">Masuk</a>
+      <a href="/register" class="green">Daftar</a>
+    <% } %>
+  </nav>
+</header>
+
+<!-- Sidebar mobile (hamburger) -->
+<div class="pg-sidebar-overlay" id="pg-sidebar-overlay" onclick="toggleSidebar(false)"></div>
+<aside class="pg-sidebar" id="pg-sidebar" aria-label="Menu navigasi">
+  <div class="pg-sidebar-head">
+    <span style="font-weight:800;font-size:14px;color:#fff;">Menu</span>
+    <button onclick="toggleSidebar(false)" style="background:none;border:none;color:#fff;display:flex;" aria-label="Tutup menu">
+      <iconify-icon icon="mdi:close" style="font-size:20px;"></iconify-icon>
+    </button>
+  </div>
+  <nav class="pg-sidebar-nav">
+    <a href="/" class="pg-sidebar-link"><iconify-icon icon="mdi:home-outline"></iconify-icon> Home</a>
+    <a href="/riwayat" class="pg-sidebar-link"><iconify-icon icon="mdi:history"></iconify-icon> Riwayat Transaksi</a>
+    <a href="/cek-pesanan" class="pg-sidebar-link"><iconify-icon icon="mdi:package-variant-closed"></iconify-icon> Cek Pesanan</a>
+    <div class="pg-sidebar-divider"></div>
+    <span class="pg-sidebar-link disabled"><iconify-icon icon="mdi:calculator-variant-outline"></iconify-icon> Kalkulator <span class="pg-soon">Segera</span></span>
+    <span class="pg-sidebar-link disabled"><iconify-icon icon="mdi:cart-variant"></iconify-icon> Beli Akun <span class="pg-soon">Segera</span></span>
+    <div class="pg-sidebar-divider"></div>
+    <% if (user) { %>
+    <a href="/dashboard" class="pg-sidebar-link"><iconify-icon icon="mdi:account-circle-outline"></iconify-icon> Dashboard Saya</a>
+    <a href="/logout" class="pg-sidebar-link"><iconify-icon icon="mdi:logout"></iconify-icon> Keluar</a>
+    <% } else { %>
+    <a href="/register" class="pg-sidebar-link"><iconify-icon icon="mdi:account-plus-outline"></iconify-icon> Daftar Member</a>
+    <a href="/login" class="pg-sidebar-link"><iconify-icon icon="mdi:login-variant"></iconify-icon> Login Member</a>
+    <% } %>
+  </nav>
+  <% if (!user) { %>
+  <div class="pg-sidebar-foot">
+    <a href="/login" class="pg-btn pg-btn-outline pg-btn-block">Masuk</a>
+    <a href="/register" class="pg-btn pg-btn-primary pg-btn-block">Daftar</a>
+  </div>
+  <% } %>
+</aside>
+
+<script>
+function toggleSidebar(open) {
+  document.getElementById('pg-sidebar').classList.toggle('open', open);
+  document.getElementById('pg-sidebar-overlay').classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+// Search: enter untuk cari (redirect ke homepage dengan query filter produk)
+document.getElementById('pg-search-input')?.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value.trim()) {
+    window.location.href = '/?q=' + encodeURIComponent(this.value.trim());
+  }
+});
+</script>

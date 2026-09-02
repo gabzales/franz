@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<%
+/*
+  FranzzStore — Login (rewrite total, 1 Sep 2026)
+  UI di-porting dari referensi poingoanj (login_poin.png) ke EJS.
+  Field form (name="username", name="password", name="redirect") dan
+  logic Turnstile/Google OAuth TIDAK diubah -- persis sama seperti
+  sebelumnya, cuma tampilan yang diganti.
+*/
+const pageTitle = settings?.siteName || 'FranzzStore';
+%>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - <%= pageTitle %></title>
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <link rel="stylesheet" href="/css/pointgo-theme.css">
+  <script>
+    window.IconifyPreload = <%- iconBundle %>;
+  </script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-top">
+    <a href="/" class="pointgo-logo">
+      <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= pageTitle %>" class="brand-mark">
+    </a>
+  </div>
+</header>
+
+<main class="auth-page">
+  <div class="auth-art">
+    <!-- Sengaja gradient CSS saja (bukan artwork karakter game berhak
+         cipta) -- lihat gradient .auth-art di pointgo-theme.css -->
+  </div>
+  <div class="auth-form-wrap">
+    <div class="auth-form-card">
+      <div class="auth-head">
+        <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= pageTitle %>" class="auth-logo" style="height:34px;">
+        <h1 class="auth-title">Login Ke Akun Anda</h1>
+        <p class="auth-sub">Masuk akun untuk mulai mendapatkan lebih banyak keuntungan dan poin</p>
+      </div>
+
+      <% if (error) { %>
+      <div class="pg-auth-error"><iconify-icon icon="mdi:alert-circle-outline"></iconify-icon> <%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/login" id="login-form">
+        <input type="hidden" name="redirect" value="<%= redirect %>">
+
+        <div class="pg-field">
+          <label class="pg-field-label">Username</label>
+          <div class="pg-input-wrap">
+            <span class="pg-input-icon"><iconify-icon icon="mdi:account-outline"></iconify-icon></span>
+            <input type="text" name="username" required class="pg-input" placeholder="Masukkan username" autofocus>
+          </div>
+        </div>
+
+        <div class="pg-field">
+          <label class="pg-field-label">Password</label>
+          <div class="pg-input-wrap">
+            <span class="pg-input-icon"><iconify-icon icon="mdi:lock-outline"></iconify-icon></span>
+            <input type="password" name="password" id="login-password" required class="pg-input" style="padding-right:40px;" placeholder="Masukkan password">
+            <button type="button" class="pg-password-toggle" onclick="togglePass('login-password','login-eye')">
+              <iconify-icon icon="mdi:eye-outline" id="login-eye"></iconify-icon>
+            </button>
+          </div>
+        </div>
+
+        <% if (turnstileSiteKey) { %>
+        <div style="display:flex;justify-content:center;border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:14px;">
+          <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-theme="dark" data-size="flexible"></div>
+        </div>
+        <% } %>
+
+        <button type="submit" class="pg-btn pg-btn-primary pg-btn-block" id="login-btn" style="padding:13px;">
+          <iconify-icon icon="mdi:login-variant"></iconify-icon> Login
+        </button>
+      </form>
+
+      <% if (googleOAuthEnabled) { %>
+      <div style="display:flex;align-items:center;gap:12px;margin:20px 0;">
+        <div style="flex:1;height:1px;background:var(--line);"></div>
+        <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">atau</span>
+        <div style="flex:1;height:1px;background:var(--line);"></div>
+      </div>
+      <a href="/auth/google" class="pg-btn pg-btn-outline pg-btn-block" style="background:#fff;color:#1f2933;padding:12px;">
+        <iconify-icon icon="flat-color-icons:google"></iconify-icon> Masuk dengan Google
+      </a>
+      <% } %>
+
+      <div class="pg-auth-links">
+        <a href="/lupa-password">Lupa Password?</a>
+        <span>Belum Punya akun? <a href="/register">Daftar Disini</a></span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<% if (turnstileSiteKey) { %>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<% } %>
+
+<script>
+function togglePass(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.setAttribute('icon', 'mdi:eye-off-outline');
+  } else {
+    input.type = 'password';
+    icon.setAttribute('icon', 'mdi:eye-outline');
+  }
+}
+</script>
+</body>
+</html>

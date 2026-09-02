@@ -1,0 +1,27 @@
+<% const _name = (typeof siteName !== 'undefined' && siteName) ? siteName : 'FranzzStore'; %>
+<% const _fontSize = (typeof fontSize !== 'undefined' && fontSize) ? fontSize : '15px'; %>
+<%
+  // FIX (bug 25 Agu 2026): default warna sebelumnya di-hardcode putih
+  // (#ffffff), jadi kalau partial ini dipakai di elemen yang backgroundnya
+  // ikut tema (var(--bg-card) -- putih di light mode, gelap di dark mode),
+  // teks "FRANZZ" jadi putih-di-atas-putih pas light mode (nyaris tak
+  // kelihatan). Default sekarang ikut var(--text-1) yang otomatis
+  // menyesuaikan tema aktif, kecuali caller memang sengaja override warna.
+%>
+<% const _color = (typeof color !== 'undefined' && color) ? color : 'var(--text-1)'; %>
+<% const _accent = (typeof accentColor !== 'undefined' && accentColor) ? accentColor : '#60a5fa'; %>
+<% const _words = _name.trim().split(/\s+/); %>
+<% let _last = _words.length > 1 ? _words.pop() : null; %>
+<% let _rest = _words.join(' '); %>
+<%
+  // REBRAND FranzzStore: kalau siteName lebih dari satu kata (mis. "FranzzStore"
+  // dianggap satu kata karena tidak ada spasi), pecah otomatis jadi dua bagian
+  // (mis. "Franzz" | "Store") supaya logo teks tetap dua warna konsisten
+  // dengan desain navbar home.
+  if (!_last && _rest.length >= 4) {
+    const _mid = Math.ceil(_rest.length / 2);
+    _last = _rest.slice(_mid);
+    _rest = _rest.slice(0, _mid);
+  }
+%>
+<span style="font-weight:900;font-size:<%= _fontSize %>;letter-spacing:.01em;line-height:1;white-space:nowrap;"><% if (_last) { %><span style="color:<%= _color %>;"><%= _rest %> </span><span style="color:<%= _accent %>;"><%= _last %></span><% } else { %><span style="color:<%= _color %>;"><%= _rest %></span><% } %></span>

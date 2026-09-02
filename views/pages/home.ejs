@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<%
+/*
+  FranzzStore — Homepage (rewrite total, 1 Sep 2026)
+  UI di-porting dari referensi desain poingoanj (Next.js clone PointGo.id)
+  ke EJS. Backend/data TETAP dari server.js gpay-main yang sudah ada --
+  file ini HANYA presentasi, semua variabel (products, settings, dst)
+  datang dari route asli, tidak ada logic baru di sini.
+*/
+const pageTitle = settings?.siteName || 'FranzzStore';
+
+// Produk dengan _displaySold > 0 (atau fallback ke semua produk kalau
+// belum ada yang laku) -- lihat catatan lengkap fix 31 Agu 2026 di bawah.
+const productsWithSold = products
+  .map(p => ({ ...p, _displaySold: (p.fakeSold != null ? p.fakeSold : (p.sold || 0)) }))
+  .filter(p => p._displaySold > 0)
+  .sort((a, b) => b._displaySold - a._displaySold);
+const flashDeals = (productsWithSold.length > 0 ? productsWithSold : products.map(p => ({ ...p, _displaySold: p.fakeSold != null ? p.fakeSold : (p.sold || 0) })))
+  .slice(0, 6);
+
+function formatRp(n) { return 'Rp' + n.toLocaleString('id-ID'); }
+function lowestPrice(p) {
+  if (Array.isArray(p.pricingOptions) && p.pricingOptions.length) return Math.min(...p.pricingOptions.map(o => o.price));
+  if (Array.isArray(p.items) && p.items.length) return Math.min(...p.items.map(i => i.p));
+  return 0;
+}
+const allCategories = Array.isArray(categories) ? categories : [];
+%>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= pageTitle %> - Top Up Game Termurah, Tercepat &amp; Aman</title>
+  <meta name="description" content="Top up game favoritmu di <%= pageTitle %>! Proses instan, aman, harga terjangkau.">
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <script>
+    window.IconifyPreload = <%- iconBundle %>;
+  </script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+</head>
+<body>
+
+<%- include('../partials/navbar', { active: 'home' }) %>
+
+<!-- ══ HERO CAROUSEL ══ -->
+<section class="carousel" id="pg-carousel">
+  <img class="carousel-side side-left" id="carousel-side-left" src="<%= products[1] ? products[1].image : '/uploads/logo-main.png' %>" alt="">
+  <div class="carousel-track" id="carousel-track"></div>
+  <img class="carousel-side side-right" id="carousel-side-right" src="<%= products[2] ? products[2].image : '/uploads/logo-main.png' %>" alt="">
+  <button class="carousel-arrow left" onclick="pgCarouselNav(-1)" aria-label="Sebelumnya"><iconify-icon icon="mdi:chevron-left" style="font-size:22px;"></iconify-icon></button>
+  <button class="carousel-arrow right" onclick="pgCarouselNav(1)" aria-label="Berikutnya"><iconify-icon icon="mdi:chevron-right" style="font-size:22px;"></iconify-icon></button>
+  <div class="dots" id="pg-carousel-dots"></div>
+</section>
+
+<!-- ══ FLASH DEAL ══ -->
+<% if (flashDeals.length > 0) { %>
+<section class="flash">
+  <div class="flash-title">
+    <h1><iconify-icon icon="mdi:lightning-bolt" style="vertical-align:-4px;"></iconify-icon> FLASH DEAL</h1>
+    <strong id="flash-countdown">02:59:59</strong>
+  </div>
+  <div class="deal-grid">
+    <% flashDeals.forEach(function(p) { %>
+    <a href="/buy/<%= p.id %>" class="deal">
+      <div class="deal-image">
+        <img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy">
+        <span>Terjual <%= p._displaySold.toLocaleString('id-ID') %></span>
+      </div>
+      <div class="deal-body">
+        <small><%= (Array.isArray(p.categories) ? p.categories[0] : p.category) || '' %></small>
+        <strong><%= p.name %></strong>
+        <div>
+          <b><%= formatRp(lowestPrice(p)) %></b>
+        </div>
+      </div>
+    </a>
+    <% }); %>
+  </div>
+</section>
+<% } %>
+
+<!-- ══ FILTER TABS ══ -->
+<div class="pg-container">
+  <div class="pg-tabs" role="tablist">
+    <button class="pg-tab active" data-filter="all">Semua</button>
+    <% allCategories.forEach(function(cat) { %>
+    <button class="pg-tab" data-filter="<%= cat %>"><%= (categoryLabels && categoryLabels[cat]) || cat %></button>
+    <% }); %>
+  </div>
+</div>
+
+<!-- ══ GAME GRID ══ -->
+<section class="game-strip">
+  <h2>PILIH GAME FAVORITMU</h2>
+  <div class="game-list" id="pg-game-list">
+    <% products.forEach(function(p) {
+      const prodCategories = Array.isArray(p.categories) ? p.categories : (p.category ? [p.category] : []);
+    %>
+    <a href="/buy/<%= p.id %>" class="pg-game-item" data-categories="<%= prodCategories.join(',') %>">
+      <img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy">
+      <span><%= p.name %></span>
+    </a>
+    <% }); %>
+  </div>
+  <% if (products.length === 0) { %>
+  <p style="text-align:center;color:var(--muted);padding:40px 0;">Belum ada produk tersedia.</p>
+  <% } %>
+</section>
+
+<!-- ══ FEATURE HIGHLIGHTS ══ -->
+<section class="pg-features">
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:timer-outline"></iconify-icon></div>
+    <h3>Proses Instan</h3>
+    <p>Pesanan diproses otomatis dalam hitungan detik setelah pembayaran berhasil.</p>
+  </div>
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:shield-check-outline"></iconify-icon></div>
+    <h3>Pembayaran Aman</h3>
+    <p>QRIS, e-wallet, dan transfer bank terverifikasi dengan enkripsi standar industri.</p>
+  </div>
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:tag-outline"></iconify-icon></div>
+    <h3>Harga Termurah</h3>
+    <p>Bersaing langsung dengan harga resmi, tanpa biaya tersembunyi.</p>
+  </div>
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:headset"></iconify-icon></div>
+    <h3>CS 24/7</h3>
+    <p>Tim support siap membantu kendala transaksi kapan saja.</p>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>
+
+<script>
+// ══ Carousel — sliding track infinite loop, geser smooth kiri/kanan,
+// auto-advance, jeda saat di-hover, klik dot untuk lompat langsung. ══
+(function () {
+  const images = <%- JSON.stringify(products.slice(0, 6).map(p => p.image)) %>;
+  const track = document.getElementById('carousel-track');
+  const dotsWrap = document.getElementById('pg-carousel-dots');
+  const sideLeft = document.getElementById('carousel-side-left');
+  const sideRight = document.getElementById('carousel-side-right');
+  if (!images.length || !track) return;
+  if (images.length < 2) {
+    track.innerHTML = `<div class="carousel-slide"><img class="carousel-main" src="${images[0]}" alt="Promo"></div>`;
+    if (sideLeft) sideLeft.style.display = 'none';
+    if (sideRight) sideRight.style.display = 'none';
+    return;
+  }
+
+  // Track = [clone terakhir, ...semua slide asli, clone pertama] supaya
+  // loop terasa menyambung mulus tanpa "lompat" balik ke awal.
+  const slides = [images[images.length - 1], ...images, images[0]];
+  track.innerHTML = slides.map(src => `<div class="carousel-slide"><img class="carousel-main" src="${src}" alt="Promo"></div>`).join('');
+  images.forEach((_, i) => {
+    const d = document.createElement('span');
+    d.textContent = '○';
+    d.dataset.i = i;
+    d.onclick = () => goTo(i);
+    dotsWrap.appendChild(d);
+  });
+
+  let idx = 1; // posisi di track (offset +1 karena ada clone di depan)
+  let real = 0; // index gambar asli yang sedang aktif (untuk dots & side preview)
+  let transitionOn = true;
+  let timer = null;
+
+  function renderDots() {
+    [...dotsWrap.children].forEach((d, i) => d.textContent = i === real ? '●' : '○');
+  }
+  function renderSides() {
+    if (sideLeft) sideLeft.src = images[(real - 1 + images.length) % images.length];
+    if (sideRight) sideRight.src = images[(real + 1) % images.length];
+  }
+  function setTrack(withTransition) {
+    track.style.transition = withTransition ? '' : 'none';
+    track.style.transform = `translateX(-${idx * 100}%)`;
+  }
+  function goTo(target) {
+    real = ((target % images.length) + images.length) % images.length;
+    idx = real + 1;
+    transitionOn = true;
+    setTrack(true);
+    renderDots();
+    renderSides();
+    restartAuto();
+  }
+  window.pgCarouselNav = function (dir) { goTo(real + dir); };
+
+  // Snap tanpa animasi begitu geser melewati slide clone, supaya loop
+  // infinite terasa mulus (penonton tidak lihat "lompatan").
+  track.addEventListener('transitionend', () => {
+    if (idx === 0) { idx = images.length; real = images.length - 1; setTrack(false); }
+    else if (idx === images.length + 1) { idx = 1; real = 0; setTrack(false); }
+  });
+
+  function restartAuto() {
+    if (timer) clearInterval(timer);
+    timer = setInterval(() => { idx++; real = (real + 1) % images.length; setTrack(true); renderDots(); renderSides(); }, 4000);
+  }
+
+  // Init
+  setTrack(false);
+  renderDots();
+  renderSides();
+  restartAuto();
+
+  // Jeda auto-slide saat kursor di atas banner (on-cursor), lanjut lagi saat keluar.
+  const section = document.getElementById('pg-carousel');
+  section.addEventListener('mouseenter', () => { if (timer) clearInterval(timer); });
+  section.addEventListener('mouseleave', restartAuto);
+})();
+
+// ══ Flash Deal countdown (reset tiap 3 jam, kosmetik) ══
+(function () {
+  const el = document.getElementById('flash-countdown');
+  if (!el) return;
+  let remaining = 2 * 3600 + 59 * 60 + 59;
+  setInterval(() => {
+    if (remaining <= 0) remaining = 3 * 3600;
+    remaining--;
+    const h = String(Math.floor(remaining / 3600)).padStart(2, '0');
+    const m = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
+    const s = String(remaining % 60).padStart(2, '0');
+    el.textContent = `${h}:${m}:${s}`;
+  }, 1000);
+})();
+
+// ══ Filter kategori (client-side, filter game grid) ══
+document.querySelectorAll('.pg-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.pg-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const filter = tab.dataset.filter;
+    document.querySelectorAll('#pg-game-list .pg-game-item').forEach(item => {
+      const cats = (item.dataset.categories || '').split(',');
+      item.style.display = (filter === 'all' || cats.includes(filter)) ? '' : 'none';
+    });
+  });
+});
+</script>
+</body>
+</html>
