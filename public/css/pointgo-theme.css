@@ -83,6 +83,34 @@ nav.site-nav .green { color: var(--accent); }
   .deal-grid { animation: dealAutoSwipe 26s linear infinite; }
   .dashboard-accent, .dashboard-accent * { color: #13D8FF !important; font-weight: 800; font-style: italic; }
   .dashboard-page h1, .dashboard-page h2, .dashboard-page h3 { color: #13D8FF; font-weight: 800; font-style: italic; }
+  .c-pointgo-brand { color:#fff; font-family:'Orbitron',sans-serif; font-size:clamp(24px,6vw,48px); font-weight:900; letter-spacing:.02em; text-transform:uppercase; text-shadow:0 3px 22px rgba(0,0,0,.8); }
+  #popular-products { display:none; }
+  .pointgo-flash-section { max-width:1180px; margin:0 auto; padding:22px 16px 8px; }
+  .pointgo-section-shell { width:100%; }
+  .pointgo-flash-heading { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .pointgo-flash-heading h2 { margin:0; color:#13D8FF; font-size:clamp(20px,4vw,30px); font-weight:900; font-style:italic; text-transform:uppercase; }
+  .pointgo-countdown { display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:999px; background:#071016; border:1px solid #a3e635; color:#a3e635; font-size:10px; font-weight:800; }
+  .pointgo-flash-viewport { overflow:hidden; border-radius:16px; background:rgba(24,24,27,.4); padding:16px; }
+  .pointgo-flash-track { display:flex; flex-wrap:nowrap; gap:12px; width:max-content; animation:pointgoFlash 32s linear infinite; }
+  .pointgo-flash-viewport:hover .pointgo-flash-track { animation-play-state:paused; }
+  .pointgo-deal-card { width:148px; flex:0 0 148px; overflow:hidden; border-radius:12px; background:#161c24; border:1px solid rgba(71,85,105,.8); color:#fff; text-decoration:none; }
+  .pointgo-deal-art { height:118px; position:relative; overflow:hidden; background:#0f1720; }
+  .pointgo-deal-art img { width:100%; height:100%; object-fit:cover; }
+  .pointgo-deal-art > iconify-icon { display:grid; place-items:center; width:100%; height:100%; color:#13D8FF; font-size:34px; }
+  .pointgo-stock { position:absolute; top:0; right:0; padding:4px 9px 4px 14px; background:#a3e635; color:#0f172a; font-size:8px; font-weight:900; clip-path:polygon(20% 0,100% 0,100% 100%,0 100%); }
+  .pointgo-deal-art del { position:absolute; bottom:5px; left:0; padding:3px 9px; color:#94a3b8; background:rgba(2,6,23,.82); font-size:9px; clip-path:polygon(0 0,88% 0,100% 100%,0 100%); }
+  .pointgo-deal-copy { display:grid; gap:4px; padding:8px; }
+  .pointgo-deal-copy strong { min-height:28px; font-size:10px; line-height:1.3; }
+  .pointgo-deal-copy b { color:#13D8FF; font-size:12px; font-weight:900; font-style:italic; }
+  .pointgo-deal-copy em { width:max-content; padding:2px 5px; border-radius:4px; background:#f97316; color:#fff; font-size:7px; font-style:normal; font-weight:900; }
+  @keyframes pointgoFlash { from { transform:translateX(0); } to { transform:translateX(-35%); } }
+  #games .game-card, #games .game-list a { position:relative; overflow:hidden; }
+  #games .game-card::after, #games .game-list a::after { content:''; position:absolute; inset:35% 0 0; pointer-events:none; background:linear-gradient(to bottom,transparent,rgba(0,0,0,.94)); }
+  #games .game-card span, #games .game-list a span { z-index:2; font-style:italic; font-weight:900; }
+  #games .prod-filter, #games .filter-scroll button { font-weight:800; font-style:italic; }
+  .site-footer { border-top:4px solid #13D8FF; }
+  @media(max-width:640px){ .pointgo-flash-section{padding-left:10px;padding-right:10px;} .pointgo-deal-card{width:142px;flex-basis:142px;} }
+
   .deal-grid:hover, .deal-grid:focus-within { animation-play-state: paused; }
   @keyframes dealAutoSwipe { 0%, 18% { transform: translateX(0); } 82%, 100% { transform: translateX(-18%); } }
   @keyframes slideDown { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: translateY(0); } }
