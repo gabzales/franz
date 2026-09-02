@@ -761,13 +761,15 @@ app.get('/', async (req, res) => {
     ...p, stockCount: (keys || []).length
   }));
 
+  const productCategories = [...new Set(products.map(p => p.category).filter(Boolean))];
+  const allCategories = [...new Set([...(settings.categories || []), ...productCategories])];
   res.render('pages/home', {
-    products,
-    popularProducts: popularProductsSafe,
+  products,
+  popularProducts: popularProductsSafe,
     settings,
     user,
-    categories: settings.categories || [],
-    categoryLabels: settings.categoryLabels || {},
+  categories: allCategories,
+  categoryLabels: settings.categoryLabels || {},
     resellerSettings: {
       enabled: settings.resellerEnabled !== false,
       price: settings.resellerPrice || 50000,
@@ -1226,11 +1228,17 @@ const accountImgUpload = multer({
 
 // Listing publik — hanya akun yang sudah di-approve admin & belum terjual
 app.get('/jual-beli-akun', async (req, res) => {
-  return res.redirect('/?category=akun#games');
+  const accounts = (await readFresh('accounts.json')).filter(a => a.status === 'approved' && a.saleStatus !== 'sold');
+  const { game } = req.query;
+  const filtered = game ? accounts.filter(a => a.game === game) : accounts;
+  res.render('pages/jual-beli-akun', { pageTitle: 'Jual Beli Akun', accounts: filtered, gameFilter: game || '' });
 });
 
 app.get('/jual-beli-akun/:id', async (req, res) => {
-  return res.redirect('/?category=akun#games');
+  const accounts = await readFresh('accounts.json');
+  const account = accounts.find(a => a.id === req.params.id && a.status === 'approved');
+  if (!account) return res.redirect('/jual-beli-akun');
+  res.render('pages/akun-detail', { pageTitle: account.title, account });
 });
 
 // Form jual akun (harus login supaya ada kontak yang jelas & anti-spam)
