@@ -116,7 +116,8 @@ nav.site-nav .green { color: var(--accent); }
   .pointgo-flash-heading { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
   .pointgo-flash-heading h2 { margin:0; color:#13D8FF; font-size:clamp(20px,4vw,30px); font-weight:900; font-style:italic; text-transform:uppercase; }
   .pointgo-countdown { display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:999px; background:#071016; border:1px solid #a3e635; color:#a3e635; font-size:10px; font-weight:800; }
-  .pointgo-flash-viewport { overflow:hidden; border-radius:16px; background:rgba(24,24,27,.4); padding:16px; }
+  .pointgo-flash-viewport { overflow-x:auto; overflow-y:hidden; scrollbar-width:none; -webkit-overflow-scrolling:touch; touch-action:pan-x; cursor:grab; border-radius:16px; background:rgba(24,24,27,.4); padding:16px; }
+  .pointgo-flash-viewport::-webkit-scrollbar{display:none;}
   .pointgo-flash-track { display:flex; flex-wrap:nowrap; gap:12px; width:max-content; animation:none !important; will-change:auto; }
   .pointgo-flash-track > .pointgo-deal-card { display:block !important; }
   .pointgo-flash-viewport:hover .pointgo-flash-track { animation-play-state:paused; }
@@ -178,6 +179,7 @@ nav.site-nav .green { color: var(--accent); }
   .flash, .game-strip { max-width: 1180px; }
   @media (min-width: 640px) { .game-list a { flex-basis: calc(25% - 12px); } }
   @media (min-width: 900px) { .game-list a { flex-basis: calc(16.666% - 12px); } }
+  #games .product-card .btn-primary { display:flex !important; pointer-events:auto !important; visibility:visible !important; opacity:1 !important; position:relative; z-index:10; }
 .pg-sidebar-head { padding: 18px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
 .pg-sidebar-nav { padding: 8px 0; overflow-y: auto; flex: 1; }
 .pg-sidebar-link { display: flex; align-items: center; gap: 12px; padding: 13px 20px; font-size: 14px; font-weight: 600; color: var(--text); }
@@ -187,7 +189,7 @@ nav.site-nav .green { color: var(--accent); }
 .pg-sidebar-divider { height: 1px; background: var(--line); margin: 8px 16px; }
 .pg-sidebar-foot { padding: 16px; border-top: 1px solid var(--line); display: flex; gap: 8px; }
 
-/* ════════��═════════════════════════════════════════════════════
+/* ════════��══════��══════════════════════════════════════════════
    BUTTONS
    ══���═══════════════════════════════════════════════════════════ */
 .pg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 800; font-size: 13.5px; border-radius: var(--radius-sm); padding: 12px 22px; border: none; transition: transform .12s ease, opacity .12s ease; }
@@ -267,7 +269,7 @@ nav.site-nav .green { color: var(--accent); }
 .pg-feature h3 { font-size: 13px; margin-bottom: 5px; }
 .pg-feature p { font-size: 11px; color: var(--muted); line-height: 1.5; }
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════���═══════
    FOOTER
    ══════════════════════════════════════════════════════════════ */
 footer.site-footer { background: var(--panel-soft); padding: 40px 0 0; margin-top: 30px; color: var(--muted); }

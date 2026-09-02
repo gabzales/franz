@@ -1226,18 +1226,11 @@ const accountImgUpload = multer({
 
 // Listing publik — hanya akun yang sudah di-approve admin & belum terjual
 app.get('/jual-beli-akun', async (req, res) => {
-  const accounts = (await readSmart('accounts.json')).filter(a => a.status === 'approved');
-  const { game } = req.query;
-  const filtered = game ? accounts.filter(a => a.game === game) : accounts;
-  filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  res.render('pages/jual-beli-akun', { pageTitle: 'Jual Beli Akun', accounts: filtered, gameFilter: game || '' });
+  return res.redirect('/?category=akun#games');
 });
 
 app.get('/jual-beli-akun/:id', async (req, res) => {
-  const accounts = await readSmart('accounts.json');
-  const account = accounts.find(a => a.id === req.params.id && a.status === 'approved');
-  if (!account) return res.redirect('/jual-beli-akun');
-  res.render('pages/akun-detail', { pageTitle: account.title, account });
+  return res.redirect('/?category=akun#games');
 });
 
 // Form jual akun (harus login supaya ada kontak yang jelas & anti-spam)

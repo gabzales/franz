@@ -435,18 +435,8 @@
         <div class="side-drawer" id="menu-drawer-content">
 
             <!-- Header -->
-            <div class="flex items-center justify-between p-4" style="border-bottom:1px solid var(--border);">
-                <div class="flex items-center gap-2">
-                    <% if (settings?.logoUrl) { %>
-                    <img src="<%= settings.logoUrl %>" alt="<%= settings?.siteName || 'FRANZZSTORE' %>" style="height:44px;width:auto;object-fit:contain;flex-shrink:0;">
-                    <% } else { %>
-                    <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--blue);">
-                        <iconify-icon icon="mdi:store" style="color:#fff;font-size:14px;"></iconify-icon>
-                    </div>
-                    <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;color:#ffffff;letter-spacing:.03em;line-height:1;"><%= settings?.siteName || 'FRANZZSTORE' %></span>
-                    <% } %>
-                </div>
-                <button onclick="closeMenu()" class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(255,255,255,.05);border:1px solid var(--border);">
+            <div class="flex items-center justify-end p-3" style="border-bottom:1px solid var(--border);">
+                <button onclick="closeMenu()" class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(255,255,255,.05);border:1px solid var(--border);" aria-label="Tutup menu">
                     <iconify-icon icon="mdi:close" style="color:var(--text-2);"></iconify-icon>
                 </button>
             </div>
@@ -495,9 +485,7 @@
                 <a href="/invoice" onclick="closeMenu()" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors" style="color:var(--text-2);" onmouseover="this.style.color='var(--text-1)';this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.color='var(--text-2)';this.style.background='transparent'">
                     <iconify-icon icon="mdi:package-variant-closed" style="color:var(--green);font-size:18px;"></iconify-icon> Cek Pesanan
                 </a>
-                <a href="/jual-beli-akun" onclick="closeMenu()" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors" style="color:var(--text-2);" onmouseover="this.style.color='var(--text-1)';this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.color='var(--text-2)';this.style.background='transparent'">
-                    <iconify-icon icon="mdi:account-switch" style="color:var(--amber, #fbbf24);font-size:18px;"></iconify-icon> Jual Beli Akun
-                </a>
+
                 <% if (typeof user !== 'undefined' && user && !isAdmin) { %>
                 <a href="/dashboard" onclick="closeMenu()" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors" style="color:var(--text-2);" onmouseover="this.style.color='var(--text-1)';this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.color='var(--text-2)';this.style.background='transparent'">
                     <iconify-icon icon="mdi:view-dashboard" style="color:var(--blue);font-size:18px;"></iconify-icon> Dashboard
