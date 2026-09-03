@@ -1,0 +1,136 @@
+<%
+const pageTitle = 'Admin Access';
+const noIndex = true; // halaman admin, jangan di-index Google
+%>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<%# DARK MODE: dipasangkan sinkron paling awal supaya tidak ada flash terang %>%>
+<script>
+  try {
+    if (localStorage.getItem('fz-theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  } catch (e) {}
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title><%= pageTitle %> — <%= settings?.siteName || 'FranzzStore' %></title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#080e14">
+<link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+<link rel="apple-touch-icon" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+<link rel="stylesheet" href="/css/pointgo-theme.css">
+<script>window.IconifyPreload = <%- iconBundle %>;</script>
+<script src="/js/iconify-icon.min.js" defer></script>
+<style>
+  :root, html.dark {
+    --bg: #080e14;
+    --bg-soft: #0a1016;
+    --panel: #18232d;
+    --panel-soft: #121b24;
+    --line: #35424c;
+    --accent: #2F6FED;
+    --accent-dim: #1d4ed8;
+    --orange: #f08313;
+    --text: #f4f6f8;
+    --muted: #89939c;
+    --red: #ff4d5e;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+  }
+  body { background: var(--bg) !important; color: var(--text) !important; }
+  /* Halaman admin login tampil sendiri (layout:false) tanpa navbar,
+     jadi isi penuh viewport. */
+  .auth-page { min-height: 100vh; }
+  /* override --input untuk si slot form admin biar konsisten dark */
+  .pg-input-wrap .pg-input { padding-left: 40px; }
+  .auth-brand-login { color: var(--muted); }
+</style>
+</head>
+<body class="font-inter">
+<div class="auth-page">
+    <!-- Sisi kiri: brand panel -->
+    <div class="auth-art">
+        <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;">
+            <div class="inline-flex items-center justify-center" style="width:72px;height:72px;border-radius:var(--radius-lg);background:rgba(47,111,237,.12);border:1px solid rgba(47,111,237,.3);margin-bottom:20px;">
+                <iconify-icon icon="mdi:shield-crown" style="font-size:36px;color:var(--accent);"></iconify-icon>
+            </div>
+            <h1 style="color:#fff;font-size:24px;margin-bottom:10px;"><%= settings?.siteName || 'FranzzStore' %> Admin</h1>
+            <p class="auth-brand-login" style="font-size:13px;max-width:300px;line-height:1.6;">Panel kontrol terenkripsi untuk pengelolaan toko. Akses dibatasi ketat.</p>
+        </div>
+    </div>
+
+    <!-- Sisi kanan: form login -->
+    <div class="auth-form-wrap">
+        <div class="auth-form-card">
+            <div class="auth-head">
+                <div class="auth-logo">
+                    <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= settings?.siteName || 'FranzzStore' %>" style="height:34px;width:34px;object-fit:contain;">
+                    <b style="font-size:18px;font-weight:900;color:#fff;"><%= settings?.siteName || 'FranzzStore' %></b>
+                </div>
+                <h1 class="auth-title">Admin Panel</h1>
+                <p class="auth-sub">Akses terbatas — hanya untuk administrator</p>
+            </div>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+            <div class="pg-auth-error">
+                <iconify-icon icon="mdi:alert-circle" style="flex-shrink:0;"></iconify-icon>
+                <span><%= error %></span>
+            </div>
+            <% } %>
+
+            <% if (typeof lockedInfo !== 'undefined' && lockedInfo) { %>
+            <div style="background:rgba(240,131,19,.1);border:1px solid rgba(240,131,19,.3);color:var(--orange);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;font-size:12px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <iconify-icon icon="mdi:devices" style="flex-shrink:0;"></iconify-icon>
+                    <span style="font-weight:700;color:var(--text);">Panel admin sedang dipakai perangkat lain</span>
+                </div>
+                <div style="color:var(--muted);">
+                    Device: <span style="color:var(--text);"><%= lockedInfo.device %></span> ·
+                    Aktif terakhir <span style="color:var(--text);"><%= lockedInfo.minutesAgo %> menit lalu</span>
+                </div>
+                <p style="margin-top:6px;font-size:11px;color:var(--muted);line-height:1.5;">
+                    Hanya 1 perangkat yang boleh login admin sekaligus, supaya data produk tidak saling tertimpa. Centang di bawah kalau Anda yakin ingin mengambil alih sesi tersebut (perangkat lain otomatis logout).
+                </p>
+            </div>
+            <% } %>
+
+            <form method="POST" action="/vpr-secure-panel-8x">
+                <div class="pg-field">
+                    <label class="pg-field-label">Username Admin</label>
+                    <div class="pg-input-wrap">
+                        <iconify-icon icon="mdi:account-outline" class="pg-input-icon"></iconify-icon>
+                        <input type="text" name="username" placeholder="Username" value="<%= typeof username !== 'undefined' ? username : '' %>" class="pg-input" autocomplete="off" required>
+                    </div>
+                </div>
+                <div class="pg-field">
+                    <label class="pg-field-label">Password</label>
+                    <div class="pg-input-wrap">
+                        <iconify-icon icon="mdi:lock-outline" class="pg-input-icon"></iconify-icon>
+                        <input type="password" name="password" placeholder="••••••••" class="pg-input" required>
+                    </div>
+                </div>
+                <% if (typeof lockedInfo !== 'undefined' && lockedInfo) { %>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:14px;cursor:pointer;">
+                    <input type="checkbox" name="forceTakeover" value="1" style="width:16px;height:16px;accent-color:var(--accent);">
+                    Ambil alih sesi ini, logout paksa perangkat lain
+                </label>
+                <% } %>
+                <button type="submit" class="pg-btn pg-btn-primary pg-btn-block" style="width:100%;background:var(--accent);border:1px solid rgba(47,111,237,.5);color:#08130a;">
+                    <iconify-icon icon="mdi:lock-open-outline"></iconify-icon>
+                    Masuk ke Panel Admin
+                </button>
+            </form>
+
+            <div class="pg-auth-links">
+                <a href="/">
+                    <iconify-icon icon="mdi:arrow-left" style="vertical-align:-2px;"></iconify-icon> Kembali ke Beranda
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

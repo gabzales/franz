@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<%
+/*
+  FranzzStore — Informasi (Cara Beli / FAQ / Syarat) (rewrite PointGo dark theme, 1 Sep 2026)
+  Hanya presentasi. Isi artikel, array faqs, dan fungsi toggleFaq(i)
+  dipertahankan — restyle markup ke pointgo-theme.css.
+*/
+const pageTitle = 'Informasi';
+%>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= settings?.siteName || 'FranzzStore' %> - <%= pageTitle %></title>
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <link rel="stylesheet" href="/css/pointgo-theme.css">
+  <style>
+    .hidden { display: none !important; }
+  </style>
+  <script>
+    window.IconifyPreload = <%- iconBundle %>;
+  </script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+</head>
+<body>
+
+<%- include('../partials/navbar') %>
+
+<main class="inner-page">
+  <div class="page-box">
+
+    <h1><iconify-icon icon="mdi:information-outline" style="vertical-align:-2px;margin-right:4px;"></iconify-icon> Informasi</h1>
+    <p style="font-size:12.5px;color:var(--muted);margin:-8px 0 20px;">Semua yang perlu kamu tahu sebelum &amp; sesudah belanja</p>
+
+    <!-- ══ TABS ══ -->
+    <div class="pg-tabs" style="margin:0 0 22px;">
+      <a href="/informasi?tab=cara-beli" class="pg-tab <%= activeTab==='cara-beli' ? 'active' : '' %>" aria-current="<%= activeTab==='cara-beli' ? 'page' : '' %>">
+        <iconify-icon icon="mdi:cart-outline" style="vertical-align:-2px;margin-right:4px;"></iconify-icon>Cara Beli
+      </a>
+      <a href="/informasi?tab=faq" class="pg-tab <%= activeTab==='faq' ? 'active' : '' %>" aria-current="<%= activeTab==='faq' ? 'page' : '' %>">
+        <iconify-icon icon="mdi:help-circle-outline" style="vertical-align:-2px;margin-right:4px;"></iconify-icon>FAQ / Bantuan
+      </a>
+      <a href="/informasi?tab=syarat" class="pg-tab <%= activeTab==='syarat' ? 'active' : '' %>" aria-current="<%= activeTab==='syarat' ? 'page' : '' %>">
+        <iconify-icon icon="mdi:file-document-outline" style="vertical-align:-2px;margin-right:4px;"></iconify-icon>Syarat Ketentuan
+      </a>
+    </div>
+
+    <% if (activeTab === 'cara-beli') { %>
+    <!-- ══ CARA BELI ══ -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-md);padding:16px 18px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#08130a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;">1</div>
+          <div>
+            <h3 style="font-weight:800;color:#fff;font-size:13px;margin-bottom:4px;">Pilih Produk &amp; Nominal</h3>
+            <p style="font-size:11.5px;color:var(--muted);line-height:1.7;">Cari game atau premium app yang kamu mau di halaman utama, klik untuk buka detail, lalu pilih nominal topup / durasi langganan yang tersedia.</p>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-md);padding:16px 18px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#08130a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;">2</div>
+          <div>
+            <h3 style="font-weight:800;color:#fff;font-size:13px;margin-bottom:4px;">Isi Nama &amp; Nomor WhatsApp</h3>
+            <p style="font-size:11.5px;color:var(--muted);line-height:1.7;">Cukup isi nama dan nomor WhatsApp aktif — tidak perlu daftar akun dulu. Nomor WA dipakai untuk kirim notifikasi kalau ada kendala transaksi.</p>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-md);padding:16px 18px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#08130a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;">3</div>
+          <div>
+            <h3 style="font-weight:800;color:#fff;font-size:13px;margin-bottom:4px;">Bayar via QRIS</h3>
+            <p style="font-size:11.5px;color:var(--muted);line-height:1.7;">Scan kode QRIS yang muncul pakai e-wallet atau m-banking apa saja (Gopay, OVO, Dana, ShopeePay, semua bank). Pembayaran diproses otomatis.</p>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-md);padding:16px 18px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#08130a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;">4</div>
+          <div>
+            <h3 style="font-weight:800;color:#fff;font-size:13px;margin-bottom:4px;">Pesanan Diproses Otomatis</h3>
+            <p style="font-size:11.5px;color:var(--muted);line-height:1.7;">Begitu pembayaran terkonfirmasi, pesanan kamu langsung diproses dan bisa kamu cek lagi lewat halaman <a href="/invoice" style="color:var(--accent);text-decoration:underline;">Cek Pesanan</a> pakai kode invoice.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (activeTab === 'faq') { %>
+    <!-- ══ FAQ ══ -->
+    <div style="display:flex;flex-direction:column;gap:12px;" id="faqList">
+      <% const faqs = [
+        { q: 'Apakah topup di FranzzStore aman?', a: 'Aman 100%. Topup diproses langsung lewat sistem resmi (via ID player / UID kamu, tanpa perlu login akun), jadi data akun kamu tetap aman dan tidak dibagikan ke siapapun.' },
+        { q: 'Berapa lama proses topup / aktivasi premium?', a: 'Otomatis dan instan setelah pembayaran QRIS terkonfirmasi, biasanya di bawah 1 menit. Kalau lebih dari 5 menit belum masuk, hubungi kami via WhatsApp dengan menyertakan kode invoice.' },
+        { q: 'Topup / premium belum masuk, bagaimana?', a: 'Hubungi admin via WhatsApp dengan menyertakan kode invoice dan screenshot pembayaran. Tim kami akan bantu cek dan pastikan pesanan kamu selesai kalau memang ada kendala dari sisi kami.' },
+        { q: 'Bisa refund kalau berubah pikiran?', a: 'Karena produk berupa layanan digital yang langsung diproses, refund hanya berlaku untuk pesanan yang terbukti gagal diproses dari awal (bukan karena salah input ID atau berubah pikiran).' },
+        { q: 'Data apa yang dibutuhkan untuk topup?', a: 'Cukup ID Player / UID game kamu (contoh: ID Free Fire, ID + Server MLBB, UID Genshin). Untuk premium app, cukup username/email sesuai instruksi di halaman produk.' },
+        { q: 'Bagaimana cara jadi reseller?', a: 'Buka halaman Reseller dari menu, daftar sesuai syarat yang berlaku. Reseller dapat harga khusus lebih murah dari harga normal.' },
+        { q: 'Metode pembayaran apa saja yang didukung?', a: 'QRIS — bisa dipakai lewat semua e-wallet (Gopay, OVO, Dana, ShopeePay, LinkAja) dan m-banking bank apapun yang mendukung QRIS.' }
+      ]; %>
+      <% faqs.forEach((f, i) => { %>
+      <div style="background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden;">
+        <button onclick="toggleFaq(<%= i %>)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;text-align:left;background:none;border:none;color:#fff;">
+          <span style="font-size:12.5px;font-weight:700;padding-right:10px;"><%= f.q %></span>
+          <iconify-icon icon="mdi:chevron-down" id="faq-icon-<%= i %>" style="color:var(--muted);flex-shrink:0;transition:transform .2s ease;"></iconify-icon>
+        </button>
+        <div id="faq-body-<%= i %>" class="hidden" style="padding:0 16px 14px;">
+          <p style="font-size:11.5px;color:var(--muted);line-height:1.7;"><%= f.a %></p>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <script>
+      function toggleFaq(i) {
+        const body = document.getElementById('faq-body-'+i);
+        const icon = document.getElementById('faq-icon-'+i);
+        const isOpen = !body.classList.contains('hidden');
+        body.classList.toggle('hidden');
+        icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+      }
+    </script>
+    <% } %>
+
+    <% if (activeTab === 'syarat') { %>
+    <!-- ══ SYARAT KETENTUAN ══ -->
+    <div style="background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-md);padding:20px;display:flex;flex-direction:column;gap:18px;">
+      <div>
+        <h3 style="font-weight:800;color:#fff;font-size:13px;margin-bottom:6px;"><iconify-icon icon="mdi:numeric-1-circle-outline" style="vertical-align:-2px;margin-right:3px;"></iconify-icon>1. Ketentuan Umum</h3>
+        <p style="font-size:11.5px;color:var(--muted);line-height:1.7;">Dengan melakukan transaksi di platform ini, kamu dianggap telah membaca dan menyetujui seluruh syarat &amp; ketentuan yang berlaku.</p>
+      </div>
+      <div style="border-top:1px solid var(--line);padding-top:14px;">
+        <h3 style="font-weight:800;color:#fff;font-size:13px;margin-bottom:6px;"><iconify-icon icon="mdi:numeric-2-circle-outline" style="vertical-align:-2px;margin-right:3px;"></iconify-icon>2. Produk Digital</h3>
+        <p style="font-size:11.5px;color:var(--muted);line-height:1.7;">Seluruh produk berupa layanan digital (topup game &amp; langganan premium app) yang diproses otomatis setelah pembayaran. Karena sifatnya digital dan langsung diproses, tidak ada pengembalian dana kecuali pesanan terbukti gagal diproses dari awal.</p>
+      </div>
+      <div style="border-top:1px solid var(--line);padding-top:14px;">
+        <h3 style="font-weight:800;color:#fff;font-size:13px;margin-bottom:6px;"><iconify-icon icon="mdi:numeric-3-circle-outline" style="vertical-align:-2px;margin-right:3px;"></iconify-icon>3. Ketelitian Data Pembeli</h3>
+        <p style="font-size:11.5px;color:var(--muted);line-height:1.7;">Pastikan ID Player / UID / email yang kamu masukkan sudah benar sebelum membayar. Kami tidak bertanggung jawab atas topup yang masuk ke akun salah karena kesalahan input data oleh pembeli.</p>
+      </div>
+      <div style="border-top:1px solid var(--line);padding-top:14px;">
+        <h3 style="font-weight:800;color:#fff;font-size:13px;margin-bottom:6px;"><iconify-icon icon="mdi:numeric-4-circle-outline" style="vertical-align:-2px;margin-right:3px;"></iconify-icon>4. Keamanan Akun</h3>
+        <p style="font-size:11.5px;color:var(--muted);line-height:1.7;">Kami tidak pernah meminta password akun game / aplikasi kamu. Jaga kerahasiaan akun dan detail pesananmu. Kami tidak bertanggung jawab atas penyalahgunaan yang terjadi akibat kelalaian pembeli membagikan data ke pihak lain.</p>
+      </div>
+      <div style="border-top:1px solid var(--line);padding-top:14px;">
+        <h3 style="font-weight:800;color:#fff;font-size:13px;margin-bottom:6px;"><iconify-icon icon="mdi:numeric-5-circle-outline" style="vertical-align:-2px;margin-right:3px;"></iconify-icon>5. Perubahan Ketentuan</h3>
+        <p style="font-size:11.5px;color:var(--muted);line-height:1.7;">Kami berhak mengubah syarat &amp; ketentuan ini sewaktu-waktu tanpa pemberitahuan sebelumnya. Perubahan berlaku efektif sejak dipublikasikan di halaman ini.</p>
+      </div>
+    </div>
+    <% } %>
+
+  </div>
+</main>
+
+<%- include('../partials/footer') %>
+</body>
+</html>

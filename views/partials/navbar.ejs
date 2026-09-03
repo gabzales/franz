@@ -1,0 +1,111 @@
+<!--
+  Partial navbar -- PointGo-style dark header (1 Sep 2026)
+  Include di setiap halaman dengan include() dan opsi { active: 'home' }.
+  Variabel yang dipakai (harus sudah ada di scope pemanggil): settings, user
+  Variabel opsional: active (salah satu dari home / riwayat / cek-pesanan) untuk highlight nav aktif
+-->
+<link rel="stylesheet" href="/css/pointgo-theme.css">
+
+<header class="site-header">
+  <div class="header-top">
+    <a href="/" class="pointgo-logo">
+      <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= settings?.siteName || 'FranzzStore' %>" class="brand-mark">
+    </a>
+    <div class="search">
+      <iconify-icon icon="mdi:magnify"></iconify-icon>
+      <input type="text" id="pg-search-input" placeholder="Cari game atau voucher disini...">
+    </div>
+    <button class="header-icon-btn" id="pg-menu-btn" onclick="toggleDropdown()" aria-label="Menu">
+      <iconify-icon icon="mdi:menu" id="pg-menu-icon" style="font-size:24px;"></iconify-icon>
+    </button>
+  </div>
+  <nav class="site-nav">
+    <a href="/" class="<%= typeof active !== 'undefined' && active === 'home' ? 'active' : '' %>">
+      <iconify-icon icon="mdi:home-outline"></iconify-icon> Home
+    </a>
+    <a href="/dashboard" class="<%= typeof active !== 'undefined' && active === 'riwayat' ? 'active' : '' %>">
+      <iconify-icon icon="mdi:history"></iconify-icon> Riwayat Transaksi
+    </a>
+    <a href="/invoice" class="<%= typeof active !== 'undefined' && active === 'cek-pesanan' ? 'active' : '' %>">
+      <iconify-icon icon="mdi:package-variant-closed"></iconify-icon> Cek Pesanan
+    </a>
+    <span style="display:flex;align-items:center;gap:7px;color:var(--muted);opacity:.5;cursor:not-allowed;" title="Segera hadir">
+      <iconify-icon icon="mdi:calculator-variant-outline"></iconify-icon> Kalkulator
+    </span>
+    <div class="nav-spacer"></div>
+    <% if (user) { %>
+      <a href="/dashboard" class="green"><iconify-icon icon="mdi:account-circle-outline"></iconify-icon> <%= user.username %></a>
+    <% } else { %>
+      <a href="/login">Masuk</a>
+      <a href="/register" class="green">Daftar</a>
+    <% } %>
+  </nav>
+</header>
+
+<!-- ══ DROPDOWN MENU (mobile, push content) ══ -->
+<div class="pg-dropdown-wrapper" id="pg-dropdown">
+  <div class="pg-dropdown-inner">
+    <a href="/" class="pg-dropdown-link">
+      <iconify-icon icon="mdi:home-outline"></iconify-icon> Home
+    </a>
+    <a href="/dashboard" class="pg-dropdown-link">
+      <iconify-icon icon="mdi:history"></iconify-icon> Riwayat Transaksi
+    </a>
+    <a href="/invoice" class="pg-dropdown-link">
+      <iconify-icon icon="mdi:package-variant-closed"></iconify-icon> Cek Pesanan
+    </a>
+    <a href="/reseller" class="pg-dropdown-link">
+      <iconify-icon icon="mdi:cart-variant"></iconify-icon> Beli Akun
+    </a>
+    <div class="pg-dropdown-divider"></div>
+    <% if (user) { %>
+      <a href="/dashboard" class="pg-dropdown-link">
+        <iconify-icon icon="mdi:account-circle-outline"></iconify-icon> Akun Saya
+      </a>
+      <a href="/logout" class="pg-dropdown-link pg-dropdown-link--accent">
+        <iconify-icon icon="mdi:logout"></iconify-icon> Keluar
+      </a>
+    <% } else { %>
+      <a href="/login" class="pg-dropdown-link">
+        <iconify-icon icon="mdi:login-variant"></iconify-icon> Masuk
+      </a>
+      <a href="/register" class="pg-dropdown-link pg-dropdown-link--primary">
+        <iconify-icon icon="mdi:account-plus-outline"></iconify-icon> Daftar
+      </a>
+    <% } %>
+  </div>
+</div>
+
+<script>
+// Toggle dropdown (push content, staggered animation)
+function toggleDropdown() {
+  const dd = document.getElementById('pg-dropdown');
+  const btn = document.getElementById('pg-menu-btn');
+  const icon = document.getElementById('pg-menu-icon');
+  const isOpen = dd.classList.contains('open');
+
+  if (isOpen) {
+    dd.style.height = '0px';
+    dd.classList.remove('open');
+    btn.classList.remove('open');
+    icon.setAttribute('icon', 'mdi:menu');
+  } else {
+    dd.classList.add('open');
+    dd.style.height = dd.scrollHeight + 'px';
+    btn.classList.add('open');
+    icon.setAttribute('icon', 'mdi:close');
+    // After transition, allow content to reflow
+    dd.addEventListener('transitionend', function handler() {
+      if (dd.classList.contains('open')) dd.style.height = 'auto';
+      dd.removeEventListener('transitionend', handler);
+    });
+  }
+}
+
+// Search: enter untuk cari (redirect ke homepage dengan query filter produk)
+document.getElementById('pg-search-input')?.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value.trim()) {
+    window.location.href = '/?q=' + encodeURIComponent(this.value.trim());
+  }
+});
+</script>

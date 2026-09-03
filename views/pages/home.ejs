@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<%
+/*
+  FranzzStore — Homepage (rewrite total, 1 Sep 2026)
+  UI di-porting dari referensi desain poingoanj (Next.js clone PointGo.id)
+  ke EJS. Backend/data TETAP dari server.js gpay-main yang sudah ada --
+  file ini HANYA presentasi, semua variabel (products, settings, dst)
+  datang dari route asli, tidak ada logic baru di sini.
+*/
+const pageTitle = settings?.siteName || 'FranzzStore';
+
+// Produk dengan _displaySold > 0 (atau fallback ke semua produk kalau
+// belum ada yang laku) -- lihat catatan lengkap fix 31 Agu 2026 di bawah.
+const productsWithSold = products
+  .map(p => ({ ...p, _displaySold: (p.fakeSold != null ? p.fakeSold : (p.sold || 0)) }))
+  .filter(p => p._displaySold > 0)
+  .sort((a, b) => b._displaySold - a._displaySold);
+const flashDeals = (productsWithSold.length > 0 ? productsWithSold : products.map(p => ({ ...p, _displaySold: p.fakeSold != null ? p.fakeSold : (p.sold || 0) })))
+  .slice(0, 6);
+
+function formatRp(n) { return 'Rp' + n.toLocaleString('id-ID'); }
+function lowestPrice(p) {
+  if (Array.isArray(p.pricingOptions) && p.pricingOptions.length) return Math.min(...p.pricingOptions.map(o => o.price));
+  if (Array.isArray(p.items) && p.items.length) return Math.min(...p.items.map(i => i.p));
+  return 0;
+}
+const allCategories = Array.isArray(categories) ? categories : [];
+%>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= pageTitle %> - Top Up Game Termurah, Tercepat &amp; Aman</title>
+  <meta name="description" content="Top up game favoritmu di <%= pageTitle %>! Proses instan, aman, harga terjangkau.">
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+  <script>
+    window.IconifyPreload = <%- iconBundle %>;
+  </script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
+</head>
+<body>
+
+<%- include('../partials/navbar', { active: 'home' }) %>
+
+<!-- ══ HERO CAROUSEL (Swiper center mode) ══ -->
+<section class="swiper" id="pg-carousel">
+  <div class="swiper-wrapper">
+    <% products.slice(0, 6).forEach(function(p) { %>
+    <div class="swiper-slide">
+      <img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy">
+    </div>
+    <% }); %>
+    <% if (products.length === 0) { %>
+    <div class="swiper-slide">
+      <img src="/uploads/logo-main.png" alt="Promo">
+    </div>
+    <% } %>
+  </div>
+  <div class="swiper-pagination"></div>
+</section>
+
+<!-- ══ FLASH DEAL ══ -->
+<% if (flashDeals.length > 0) { %>
+<section class="flash">
+  <div class="flash-title">
+    <h1><iconify-icon icon="mdi:lightning-bolt" style="vertical-align:-4px;"></iconify-icon> FLASH DEAL</h1>
+    <strong id="flash-countdown">02:59:59</strong>
+  </div>
+  <div class="deal-grid">
+    <% flashDeals.forEach(function(p) { %>
+    <a href="/buy/<%= p.id %>" class="deal">
+      <img class="deal-logo" src="<%= p.image %>" alt="" loading="lazy">
+      <div class="deal-image">
+        <img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy">
+        <span>Terjual <%= p._displaySold.toLocaleString('id-ID') %></span>
+      </div>
+      <div class="deal-body">
+        <small><%= (Array.isArray(p.categories) ? p.categories[0] : p.category) || '' %></small>
+        <strong><%= p.name %></strong>
+        <div>
+          <b><%= formatRp(lowestPrice(p)) %></b>
+        </div>
+      </div>
+    </a>
+    <% }); %>
+  </div>
+</section>
+<% } %>
+
+<!-- ══ FILTER TABS ══ -->
+<div class="pg-container">
+  <div class="pg-tabs" role="tablist">
+    <button class="pg-tab active" data-filter="all">Semua</button>
+    <% allCategories.forEach(function(cat) { %>
+    <button class="pg-tab" data-filter="<%= cat %>"><%= (categoryLabels && categoryLabels[cat]) || cat %></button>
+    <% }); %>
+  </div>
+</div>
+
+<!-- ══ GAME GRID ══ -->
+<section class="game-strip">
+  <h2>PILIH GAME FAVORITMU</h2>
+  <div class="game-list" id="pg-game-list">
+    <% products.forEach(function(p) {
+      const prodCategories = Array.isArray(p.categories) ? p.categories : (p.category ? [p.category] : []);
+    %>
+    <a href="/buy/<%= p.id %>" class="pg-game-item" data-categories="<%= prodCategories.join(',') %>">
+      <img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy">
+      <span><%= p.name %></span>
+    </a>
+    <% }); %>
+  </div>
+  <% if (products.length === 0) { %>
+  <p style="text-align:center;color:var(--muted);padding:40px 0;">Belum ada produk tersedia.</p>
+  <% } %>
+</section>
+
+<!-- ══ FEATURE HIGHLIGHTS ══ -->
+<section class="pg-features">
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:timer-outline"></iconify-icon></div>
+    <h3>Proses Instan</h3>
+    <p>Pesanan diproses otomatis dalam hitungan detik setelah pembayaran berhasil.</p>
+  </div>
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:shield-check-outline"></iconify-icon></div>
+    <h3>Pembayaran Aman</h3>
+    <p>QRIS, e-wallet, dan transfer bank terverifikasi dengan enkripsi standar industri.</p>
+  </div>
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:tag-outline"></iconify-icon></div>
+    <h3>Harga Termurah</h3>
+    <p>Bersaing langsung dengan harga resmi, tanpa biaya tersembunyi.</p>
+  </div>
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:headset"></iconify-icon></div>
+    <h3>CS 24/7</h3>
+    <p>Tim support siap membantu kendala transaksi kapan saja.</p>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>
+
+<script>
+// ══ Carousel (Swiper center mode, autoplay 3.5s) ══
+(function () {
+  function init() {
+    if (typeof Swiper === 'undefined') return setTimeout(init, 100);
+    new Swiper('#pg-carousel', {
+      modules: [Swiper.Autoplay, Swiper.Pagination],
+      loop: true,
+      centeredSlides: true,
+      slidesPerView: 'auto',
+      spaceBetween: 16,
+      autoplay: { delay: 3500, disableOnInteraction: false },
+      pagination: { el: '.swiper-pagination', clickable: true },
+    });
+  }
+  init();
+})();
+
+// ══ Flash Deal countdown (reset tiap 3 jam, kosmetik) ══
+(function () {
+  const el = document.getElementById('flash-countdown');
+  if (!el) return;
+  let remaining = 2 * 3600 + 59 * 60 + 59;
+  setInterval(() => {
+    if (remaining <= 0) remaining = 3 * 3600;
+    remaining--;
+    const h = String(Math.floor(remaining / 3600)).padStart(2, '0');
+    const m = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
+    const s = String(remaining % 60).padStart(2, '0');
+    el.textContent = `${h}:${m}:${s}`;
+  }, 1000);
+})();
+
+// ══ Filter kategori (client-side, filter game grid) ══
+document.querySelectorAll('.pg-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.pg-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const filter = tab.dataset.filter;
+    applyFilter(filter);
+  });
+});
+function applyFilter(filter) {
+  document.querySelectorAll('#pg-game-list .pg-game-item').forEach(item => {
+    const cats = (item.dataset.categories || '').split(',');
+    const name = (item.querySelector('span')?.textContent || '').toLowerCase();
+    const q = (window._fzQ || '').toLowerCase();
+    const matchCat = (filter === 'all' || cats.includes(filter));
+    const matchQ = !q || name.includes(q);
+    item.style.display = (matchCat && matchQ) ? '' : 'none';
+  });
+}
+// ══ Search dari header (?q=) ══
+(function () {
+  const q = new URLSearchParams(window.location.search).get('q');
+  if (!q) return;
+  window._fzQ = q;
+  const input = document.getElementById('pg-search-input');
+  if (input) input.value = q;
+  applyFilter('all');
+  const active = document.querySelector('.pg-tab.active');
+  if (active) active.classList.remove('active');
+  const allTab = document.querySelector('.pg-tab[data-filter="all"]');
+  if (allTab) allTab.classList.add('active');
+})();
+</script>
+</body>
+</html>

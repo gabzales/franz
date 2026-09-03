@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<%
+/*
+  FranzzStore — Cek Pesanan / Invoice (rewrite PointGo dark theme, 1 Sep 2026)
+  Halaman form cek pesanan + tampilan invoice QRIS/key. Skrip copyKey
+  dipertahankan VERBATIM (id keyDisplay/copyKeyBtn/copyBtnText dijaga).
+*/
+const pageTitle = 'Cek Pesanan';
+const noIndex = true; // halaman privat user, jangan di-index Google
+%>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= settings?.siteName || 'FranzzStore' %> - <%= pageTitle %></title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <link rel="stylesheet" href="/css/pointgo-theme.css">
+  <style>
+    .hidden { display: none !important; }
+    .uppercase { text-transform: uppercase !important; }
+  </style>
+  <script>
+    window.IconifyPreload = <%- iconBundle %>;
+  </script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+</head>
+<body>
+
+<%- include('../partials/navbar', { active: 'cek-pesanan' }) %>
+
+<main class="inner-page">
+  <div class="pg-container" style="max-width:560px;">
+
+    <div class="pg-invoice-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <iconify-icon icon="mdi:package-variant-closed" style="color:var(--accent);font-size:17px;"></iconify-icon>
+        <h3 style="font-size:14px;font-weight:800;color:#fff;">Cek Pesanan</h3>
+      </div>
+
+      <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:18px;">
+        Masukkan <strong style="color:var(--accent);">Kode Pesanan</strong> yang Anda dapatkan saat pembelian.
+      </p>
+
+      <form method="POST" action="/invoice">
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;">Kode Pesanan</label>
+        <input type="text" name="code" required class="uppercase"
+          style="width:100%;padding:13px 14px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--bg-soft);color:#fff;font-size:13px;font-family:monospace;letter-spacing:.06em;outline:none;margin-bottom:14px;"
+          placeholder="Contoh: FX-A1B2-C3D4" maxlength="14" autofocus>
+
+        <% if (error) { %>
+        <div style="display:flex;align-items:center;gap:8px;background:rgba(255,77,94,0.1);border:1px solid rgba(255,77,94,0.3);color:#ff8b96;font-size:12px;padding:10px 12px;border-radius:var(--radius-sm);margin-bottom:14px;">
+          <iconify-icon icon="mdi:alert-circle" style="font-size:17px;"></iconify-icon>
+          <span><%= error %></span>
+        </div>
+        <% } %>
+
+        <% if (transaction) { %>
+        <div style="background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);">
+            <span style="font-size:11px;color:var(--muted);">Status</span>
+            <% if (transaction.status === 'done') { %>
+              <span class="pg-status-badge pg-status-done">SELESAI</span>
+            <% } else if (transaction.status === 'pending') { %>
+              <span class="pg-status-badge pg-status-pending">PENDING</span>
+            <% } else { %>
+              <span class="pg-status-badge pg-status-failed">BATAL</span>
+            <% } %>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);">
+            <span style="font-size:11px;color:var(--muted);">Produk</span>
+            <span style="font-size:12px;color:#fff;font-weight:600;text-align:right;"><%= transaction.productName %></span>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);">
+            <span style="font-size:11px;color:var(--muted);">Durasi</span>
+            <span style="font-size:12px;color:#fff;font-weight:600;"><%= transaction.duration %></span>
+          </div>
+
+          <% if (transaction.originalPrice && transaction.voucherDiscount) { %>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);">
+            <span style="font-size:11px;color:var(--muted);">Harga Awal</span>
+            <span style="font-size:12px;color:var(--muted);text-decoration:line-through;">Rp <%= transaction.originalPrice.toLocaleString('id-ID') %></span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);">
+            <span style="font-size:11px;color:var(--muted);">Voucher</span>
+            <span style="font-size:12px;font-weight:800;color:#34d399;">-Rp <%= transaction.voucherDiscount.toLocaleString('id-ID') %></span>
+          </div>
+          <% } %>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);">
+            <span style="font-size:11px;color:var(--muted);">Total</span>
+            <span style="font-size:13px;font-weight:800;color:var(--accent);">Rp <%= transaction.price.toLocaleString('id-ID') %></span>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;">
+            <span style="font-size:11px;color:var(--muted);">Waktu</span>
+            <span style="font-size:12px;color:#fff;"><%= transaction.time %></span>
+          </div>
+
+          <% if (transaction.status === 'done' && transaction.key) { %>
+            <div style="padding-top:12px;border-top:1px solid var(--line);">
+              <span style="font-size:11px;color:var(--muted);display:block;margin-bottom:8px;">Key / Lisensi:</span>
+              <div style="padding:12px;border-radius:var(--radius-sm);background:var(--panel);border:1px solid rgba(52,211,153,.35);">
+                <code id="keyDisplay" style="font-family:monospace;font-size:13px;color:#34d399;word-break:break-all;font-weight:900;line-height:1.5;">
+                  <%= transaction.key %><% if (transaction.selectedDays) { %> — <%= transaction.selectedDays %> <%= transaction.selectedUnit === 'h' ? 'Jam' : 'Hari' %><% } %>
+                </code>
+              </div>
+              <button onclick="copyKey()" id="copyKeyBtn"
+                style="margin-top:10px;width:100%;padding:11px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:800;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);color:#34d399;">
+                <iconify-icon icon="mdi:content-copy" style="font-size:15px;"></iconify-icon>
+                <span id="copyBtnText">Salin Key</span>
+              </button>
+              <script>
+              function copyKey() {
+                  const raw = <%- safeJson(String(transaction.key || '') + (transaction.selectedDays ? (' — ' + transaction.selectedDays + (transaction.selectedUnit === 'h' ? ' Jam' : ' Hari')) : '')) %>;
+                  navigator.clipboard.writeText(raw).then(() => {
+                      const btn = document.getElementById('copyKeyBtn');
+                      const txt = document.getElementById('copyBtnText');
+                      btn.style.background = 'rgba(52,211,153,.25)';
+                      txt.textContent = 'Tersalin!';
+                      setTimeout(() => { btn.style.background = 'rgba(52,211,153,.12)'; txt.textContent = 'Salin Key'; }, 2000);
+                  }).catch(() => {
+                      const r = document.createRange();
+                      r.selectNode(document.getElementById('keyDisplay'));
+                      window.getSelection().removeAllRanges();
+                      window.getSelection().addRange(r);
+                  });
+              }
+              </script>
+
+              <% if (typeof productChannelUrl !== 'undefined' && productChannelUrl) { %>
+              <a href="<%= productChannelUrl %>" target="_blank" rel="noopener"
+                style="margin-top:10px;width:100%;padding:11px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:800;background:rgba(47,111,237,.12);border:1px solid rgba(47,111,237,.35);color:var(--accent);">
+                <iconify-icon icon="mdi:download-circle" style="font-size:16px;"></iconify-icon>
+                Download / Join Channel <%= transaction.productName %>
+              </a>
+              <% } %>
+
+              <% if (settings?.buyerGroupUrl) { %>
+              <a href="<%= settings.buyerGroupUrl %>" target="_blank" rel="noopener"
+                style="margin-top:10px;width:100%;padding:11px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:800;background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.35);color:#4ade80;">
+                <iconify-icon icon="mdi:whatsapp" style="font-size:16px;"></iconify-icon>
+                Gabung Grup <%= settings.buyerGroupName || 'Buyer VIP' %>
+              </a>
+              <% } %>
+            </div>
+          <% } else if (transaction.status === 'done' && transaction.outOfStock) { %>
+            <div style="padding-top:12px;border-top:1px solid var(--line);">
+              <div style="padding:12px;border-radius:var(--radius-sm);background:rgba(240,131,19,.08);border:1px solid rgba(240,131,19,.3);display:flex;align-items:flex-start;gap:8px;">
+                <iconify-icon icon="mdi:clock-alert-outline" style="color:var(--orange);font-size:16px;margin-top:1px;"></iconify-icon>
+                <span style="font-size:12px;color:var(--orange);line-height:1.6;">Pembayaran sudah diterima, namun stok produk sedang kosong. Admin akan segera memproses dan mengirimkan key kamu manual via WhatsApp.</span>
+              </div>
+            </div>
+          <% } %>
+        </div>
+        <% } %>
+
+        <button type="submit" class="pg-btn pg-btn-primary pg-btn-block" style="padding:13px;font-size:14px;">
+          <iconify-icon icon="mdi:magnify" style="font-size:16px;"></iconify-icon>
+          <span>Cek Status</span>
+        </button>
+      </form>
+    </div>
+
+  </div>
+</main>
+
+<%- include('../partials/footer') %>
+</body>
+</html>
