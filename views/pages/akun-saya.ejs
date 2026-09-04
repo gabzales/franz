@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listing Akun Saya — <%= settings?.siteName || 'FranzzStore' %></title>
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <link rel="stylesheet" href="/css/pointgo-theme.css">
+  <script>window.IconifyPreload = <%- iconBundle %>;</script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+  <style>
+    .mylist-wrap { max-width: 680px; margin: 0 auto; padding: 20px 16px 60px; }
+    .mylist-wrap h1 { font-size: 19px; font-weight: 900; color: #fff; margin-bottom: 4px; }
+    .mylist-wrap > p { font-size: 12.5px; color: var(--muted); margin-bottom: 20px; }
+    .mylist-card { display: flex; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 10px; }
+    .mylist-card img { width: 74px; height: 74px; object-fit: cover; border-radius: 10px; flex-shrink: 0; background: var(--bg-soft); }
+    .mylist-status { display: inline-block; font-size: 9.5px; font-weight: 800; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .03em; }
+    .mylist-status.pending { background: rgba(234,179,8,.15); color: #eab308; }
+    .mylist-status.approved { background: rgba(34,197,94,.15); color: #22c55e; }
+    .mylist-status.sold { background: rgba(148,163,184,.15); color: #94a3b8; }
+    .mylist-status.rejected { background: rgba(239,68,68,.15); color: #f87171; }
+    .mylist-title { font-size: 13px; font-weight: 700; color: #fff; margin-top: 5px; }
+    .mylist-price { font-size: 12.5px; font-weight: 800; color: #8EF9FF; margin-top: 3px; }
+    .mylist-reject-reason { font-size: 10.5px; color: #f87171; margin-top: 4px; }
+    .mylist-empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .mylist-cta { display: inline-flex; align-items: center; gap: 6px; padding: 12px 20px; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+<%- include('../partials/navbar', { active: 'riwayat' }) %>
+
+<div class="mylist-wrap">
+  <h1>Listing Akun Saya</h1>
+  <p>Status listing akun yang pernah kamu submit untuk dijual.</p>
+  <a href="/jual-beli-akun-jual" class="mylist-cta"><iconify-icon icon="mdi:plus-circle"></iconify-icon> Jual Akun Baru</a>
+
+  <% if (!accounts.length) { %>
+  <div class="mylist-empty">
+    <iconify-icon icon="mdi:cart-off" style="font-size:40px;display:block;margin:0 auto 10px;"></iconify-icon>
+    <p style="font-size:13px;">Kamu belum pernah submit listing akun.</p>
+  </div>
+  <% } else { %>
+  <% accounts.forEach(function(a) { %>
+  <div class="mylist-card">
+    <img src="<%= a.images?.[0] || '' %>" alt="<%= a.title %>" onerror="this.style.opacity=0">
+    <div style="flex:1;min-width:0;">
+      <span class="mylist-status <%= a.status %>"><%= ({pending:'Pending', approved:'Approved', sold:'Terjual', rejected:'Ditolak'})[a.status] || a.status %></span>
+      <div class="mylist-title"><%= a.title %></div>
+      <div class="mylist-price">Rp <%= (a.price||0).toLocaleString('id-ID') %></div>
+      <% if (a.status === 'rejected' && a.rejectReason) { %>
+      <div class="mylist-reject-reason">Alasan ditolak: <%= a.rejectReason %></div>
+      <% } %>
+      <% if (a.status === 'approved') { %>
+      <a href="/jual-beli-akun/<%= a.id %>" style="font-size:10.5px;color:var(--accent);font-weight:700;">Lihat listing publik →</a>
+      <% } %>
+    </div>
+  </div>
+  <% }); %>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>
+
+</body>
+</html>

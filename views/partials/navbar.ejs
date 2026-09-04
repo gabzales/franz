@@ -54,8 +54,16 @@
     <a href="/invoice" class="pg-dropdown-link">
       <iconify-icon icon="mdi:package-variant-closed"></iconify-icon> Cek Pesanan
     </a>
+    <a href="/jual-beli-akun" class="pg-dropdown-link">
+      <iconify-icon icon="mdi:cart-variant"></iconify-icon> Jual Beli Akun
+    </a>
+    <!-- FIX LOGIC (audit 3 Sep 2026): sebelumnya link ini dilabeli "Beli Akun"
+         tapi mengarah ke /reseller (halaman daftar jadi reseller diskon) --
+         gak ada hubungannya sama jual-beli akun game. Sekarang labelnya
+         sesuai tujuan aslinya, dan link "Jual Beli Akun" yang benar
+         ditambahkan terpisah di atas. -->
     <a href="/reseller" class="pg-dropdown-link">
-      <iconify-icon icon="mdi:cart-variant"></iconify-icon> Beli Akun
+      <iconify-icon icon="mdi:crown-outline"></iconify-icon> Jadi Reseller
     </a>
     <div class="pg-dropdown-divider"></div>
     <% if (user) { %>

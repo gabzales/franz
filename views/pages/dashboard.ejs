@@ -152,7 +152,10 @@ const noIndex = true; // halaman privat user, jangan di-index Google
           <tbody>
             <% transactions.forEach(t => { %>
             <tr>
-              <td style="font-weight:600;color:#fff;"> <%= t.productName || t.type || 'Produk' %></td>
+              <td style="font-weight:600;color:#fff;">
+                <%= t.productName || t.type || 'Produk' %>
+                <% if (t.gameUserId) { %><div style="font-size:9.5px;font-weight:500;color:var(--muted);font-family:monospace;">ID: <%= t.gameUserId %><% if (t.gameZoneId) { %> (<%= t.gameZoneId %>)<% } %></div><% } %>
+              </td>
               <td>
                 <span class="pg-status-badge pg-status-<%= t.status === 'done' ? 'done' : t.status === 'pending' ? 'pending' : 'failed' %>">
                   <%= t.status === 'done' ? 'SELESAI' : t.status === 'pending' ? 'PENDING' : 'BATAL' %>

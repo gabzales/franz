@@ -24,7 +24,53 @@ function lowestPrice(p) {
   if (Array.isArray(p.items) && p.items.length) return Math.min(...p.items.map(i => i.p));
   return 0;
 }
+// Persentase diskon buat ribbon segitiga di flash deal card (ala PointGo
+// "-16%") -- ditambahkan 3 Sep 2026, diminta user. Dihitung dari
+// strike_price (harga coret per opsi) vs harga jual terendah yang sedang
+// ditampilkan; kalau produk gak punya strike_price di opsi manapun,
+// discountPct null dan ribbon-nya gak dirender sama sekali.
+function discountPct(p) {
+  const opts = Array.isArray(p.pricingOptions) ? p.pricingOptions : (Array.isArray(p.items) ? p.items : []);
+  const withStrike = opts.filter(o => (o.strike_price || o.strikePrice) > (o.price || o.p));
+  if (!withStrike.length) return null;
+  const o = withStrike[0];
+  const strike = o.strike_price || o.strikePrice;
+  const price = o.price || o.p;
+  return Math.round(((strike - price) / strike) * 100);
+}
+// Harga coret (strike_price) buat ditampilkan sebagai <del> di atas harga
+// final -- ala PointGo (lihat .deal-price di CSS). null kalau produk gak
+// punya strike_price sama sekali (baris <del> gak dirender).
+function strikePriceOf(p) {
+  const opts = Array.isArray(p.pricingOptions) ? p.pricingOptions : (Array.isArray(p.items) ? p.items : []);
+  const withStrike = opts.filter(o => (o.strike_price || o.strikePrice) > (o.price || o.p));
+  if (!withStrike.length) return null;
+  return withStrike[0].strike_price || withStrike[0].strikePrice;
+}
 const allCategories = Array.isArray(categories) ? categories : [];
+
+// FIX BUG UI (dilaporkan user 3 Sep 2026): hero carousel sebelumnya nampilin
+// gambar PRODUK (products.slice(0,6)) -- thumbnail kotak kecil yang didesain
+// buat kartu produk, bukan buat slot banner promosi lebar. Hasilnya banner
+// jadi kepotong/ketarik gak proporsional. Sekarang pakai settings.banners
+// (yang memang didesain admin lewat Admin Panel khusus buat slot ini).
+const heroBanners = (Array.isArray(settings?.banners) ? settings.banners : [])
+  .filter(b => b.active !== false && b.imageUrl);
+
+// FIX LOGIC (diminta owner 3 Sep 2026): "Jual Beli Akun" sekarang jadi tab
+// kategori khusus di grid game homepage (bukan link nyasar di menu dropdown
+// seperti sebelumnya -- lihat fix di navbar.ejs). Klik tab ini -> grid game
+// berganti nampilin daftar GAME (bukan produk topup), klik salah satu game
+// -> masuk ke /jual-beli-akun?game=X buat game itu. Gambar tiap game dicomot
+// dari produk pertama yang match kategori itu (biar konsisten sama ikon yang
+// dipakai di grid topup), fallback ke logo kalau kategori itu belum punya
+// produk sama sekali.
+const categoryImage = {};
+allCategories.forEach(cat => {
+  const label = (categoryLabels && categoryLabels[cat]) || cat;
+  const match = products.find(p => (Array.isArray(p.categories) ? p.categories : (p.category ? [p.category] : [])).includes(cat));
+  categoryImage[cat] = match?.image || settings?.logoUrl || '/uploads/logo-main.png';
+});
 %>
 <html lang="id">
 <head>
@@ -44,22 +90,39 @@ const allCategories = Array.isArray(categories) ? categories : [];
 
 <%- include('../partials/navbar', { active: 'home' }) %>
 
-<!-- ══ HERO CAROUSEL (Swiper center mode) ══ -->
-<section class="swiper" id="pg-carousel">
-  <div class="swiper-wrapper">
-    <% products.slice(0, 6).forEach(function(p) { %>
-    <div class="swiper-slide">
-      <img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy">
+<!-- ══ HERO CAROUSEL (Swiper center mode) — pakai banner promosi dari Admin,
+     bukan gambar produk (lihat catatan fix di atas) ══ -->
+<div class="hero-decor">
+  <section class="swiper" id="pg-carousel">
+    <div class="swiper-wrapper">
+      <% if (heroBanners.length > 0) { %>
+        <% heroBanners.forEach(function(b) { %>
+        <div class="swiper-slide">
+          <a href="<%= b.link || '/' %>" style="display:block;position:relative;">
+            <img src="<%= b.imageUrl %>" alt="<%= b.title || pageTitle %>" loading="lazy">
+            <% if (b.title || b.subtitle) { %>
+            <div class="hero-slide-caption">
+              <% if (b.title) { %><strong><%= b.title %></strong><% } %>
+              <% if (b.subtitle) { %><span><%= b.subtitle %></span><% } %>
+            </div>
+            <% } %>
+          </a>
+        </div>
+        <% }); %>
+      <% } else { %>
+        <!-- Belum ada banner yang di-upload admin -- fallback rapi (logo di
+             tengah, bukan gambar produk yang ditarik paksa ke ukuran banner) -->
+        <div class="swiper-slide">
+          <div class="hero-slide-fallback">
+            <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= pageTitle %>">
+            <span>Top Up Game Tercepat &amp; Termurah</span>
+          </div>
+        </div>
+      <% } %>
     </div>
-    <% }); %>
-    <% if (products.length === 0) { %>
-    <div class="swiper-slide">
-      <img src="/uploads/logo-main.png" alt="Promo">
-    </div>
-    <% } %>
-  </div>
-  <div class="swiper-pagination"></div>
-</section>
+    <div class="swiper-pagination"></div>
+  </section>
+</div>
 
 <!-- ══ FLASH DEAL ══ -->
 <% if (flashDeals.length > 0) { %>
@@ -69,18 +132,32 @@ const allCategories = Array.isArray(categories) ? categories : [];
     <strong id="flash-countdown">02:59:59</strong>
   </div>
   <div class="deal-grid">
-    <% flashDeals.forEach(function(p) { %>
+    <% flashDeals.forEach(function(p) {
+      const disc = discountPct(p);
+      const strike = strikePriceOf(p);
+    %>
     <a href="/buy/<%= p.id %>" class="deal">
-      <img class="deal-logo" src="<%= p.image %>" alt="" loading="lazy">
       <div class="deal-image">
         <img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy">
+        <!-- Logo/icon game sekarang DI DALAM area gambar (pojok kiri-atas),
+             bukan avatar bulat melayang keluar card seperti sebelumnya. -->
+        <img class="deal-logo" src="<%= p.image %>" alt="" loading="lazy">
         <span>Terjual <%= p._displaySold.toLocaleString('id-ID') %></span>
+        <% if (disc) { %>
+        <div class="deal-ribbon"><span>-<%= disc %>%</span></div>
+        <% } %>
       </div>
       <div class="deal-body">
         <small><%= (Array.isArray(p.categories) ? p.categories[0] : p.category) || '' %></small>
         <strong><%= p.name %></strong>
-        <div>
-          <b><%= formatRp(lowestPrice(p)) %></b>
+        <!-- Blok harga ala PointGo: harga coret (kalau ada) di baris atas,
+             harga final besar + badge flash deal di baris bawah. -->
+        <div class="deal-price">
+          <% if (strike) { %><del><%= formatRp(strike) %></del><% } %>
+          <div class="deal-price-row">
+            <b><%= formatRp(lowestPrice(p)) %></b>
+            <span class="deal-flash-badge"><iconify-icon icon="mdi:fire"></iconify-icon>FLASH</span>
+          </div>
         </div>
       </div>
     </a>
@@ -96,12 +173,15 @@ const allCategories = Array.isArray(categories) ? categories : [];
     <% allCategories.forEach(function(cat) { %>
     <button class="pg-tab" data-filter="<%= cat %>"><%= (categoryLabels && categoryLabels[cat]) || cat %></button>
     <% }); %>
+    <!-- FIX LOGIC (3 Sep 2026): "Jual Beli Akun" sekarang tab kategori
+         khusus, bukan link nyasar di menu -- lihat catatan di atas. -->
+    <button class="pg-tab" data-filter="jual-beli-akun"><iconify-icon icon="mdi:swap-horizontal-bold" style="vertical-align:-2px;"></iconify-icon> Jual Beli Akun</button>
   </div>
 </div>
 
-<!-- ══ GAME GRID ══ -->
+<!-- ══ GAME GRID (topup) ══ -->
 <section class="game-strip">
-  <h2>PILIH GAME FAVORITMU</h2>
+  <h2 id="pg-game-heading">PILIH GAME FAVORITMU</h2>
   <div class="game-list" id="pg-game-list">
     <% products.forEach(function(p) {
       const prodCategories = Array.isArray(p.categories) ? p.categories : (p.category ? [p.category] : []);
@@ -114,6 +194,22 @@ const allCategories = Array.isArray(categories) ? categories : [];
   </div>
   <% if (products.length === 0) { %>
   <p style="text-align:center;color:var(--muted);padding:40px 0;">Belum ada produk tersedia.</p>
+  <% } %>
+
+  <!-- ══ GAME GRID (jual beli akun) -- disembunyikan default, muncul kalau
+       tab "Jual Beli Akun" dipilih. Klik game -> listing akun buat game itu. ══ -->
+  <div class="game-list" id="pg-akun-list" style="display:none;">
+    <% allCategories.forEach(function(cat) {
+      const label = (categoryLabels && categoryLabels[cat]) || cat;
+    %>
+    <a href="/jual-beli-akun?game=<%= encodeURIComponent(label) %>" class="pg-game-item">
+      <img src="<%= categoryImage[cat] %>" alt="<%= label %>" loading="lazy">
+      <span><%= label %></span>
+    </a>
+    <% }); %>
+  </div>
+  <% if (allCategories.length === 0) { %>
+  <p id="pg-akun-empty" style="display:none;text-align:center;color:var(--muted);padding:40px 0;">Belum ada kategori game tersedia.</p>
   <% } %>
 </section>
 
@@ -145,15 +241,26 @@ const allCategories = Array.isArray(categories) ? categories : [];
 
 <script>
 // ══ Carousel (Swiper center mode, autoplay 3.5s) ══
+// FIX BUG UI (3 Sep 2026): loop:true dipaksa nyala sebelumnya bikin tampilan
+// carousel pecah/salah ukuran kalau slide-nya cuma sedikit (loop mode Swiper
+// perlu cukup banyak slide buat bikin klon buat ilusi infinite-scroll --
+// dengan cuma 1-2 slide, klon itu gagal kebentuk rapi). Sekarang loop cuma
+// diaktifkan kalau slide-nya 3 atau lebih.
+//
+// FIX (diminta user 3 Sep 2026): sebelumnya centeredSlides:true +
+// slidesPerView:'auto' -- itu yang bikin slide di kiri/kanan keliatan
+// menyempit & miring/scaled (lihat CSS .swiper-slide di atas). PointGo
+// pakai 1 slide penuh per layar, flat, no center/scale effect.
 (function () {
   function init() {
     if (typeof Swiper === 'undefined') return setTimeout(init, 100);
+    const slideCount = document.querySelectorAll('#pg-carousel .swiper-slide').length;
     new Swiper('#pg-carousel', {
       modules: [Swiper.Autoplay, Swiper.Pagination],
-      loop: true,
-      centeredSlides: true,
-      slidesPerView: 'auto',
-      spaceBetween: 16,
+      loop: slideCount >= 3,
+      centeredSlides: false,
+      slidesPerView: 1,
+      spaceBetween: 0,
       autoplay: { delay: 3500, disableOnInteraction: false },
       pagination: { el: '.swiper-pagination', clickable: true },
     });
@@ -186,6 +293,25 @@ document.querySelectorAll('.pg-tab').forEach(tab => {
   });
 });
 function applyFilter(filter) {
+  const gameList = document.getElementById('pg-game-list');
+  const akunList = document.getElementById('pg-akun-list');
+  const heading = document.getElementById('pg-game-heading');
+  const akunEmpty = document.getElementById('pg-akun-empty');
+
+  // FIX LOGIC (3 Sep 2026): tab "Jual Beli Akun" nampilin grid GAME (buat
+  // masuk ke listing jual-beli akun per game), bukan grid produk topup.
+  if (filter === 'jual-beli-akun') {
+    gameList.style.display = 'none';
+    akunList.style.display = '';
+    if (akunEmpty) akunEmpty.style.display = akunList.children.length === 0 ? '' : 'none';
+    if (heading) heading.textContent = 'PILIH GAME UNTUK JUAL/BELI AKUN';
+    return;
+  }
+  gameList.style.display = '';
+  akunList.style.display = 'none';
+  if (akunEmpty) akunEmpty.style.display = 'none';
+  if (heading) heading.textContent = 'PILIH GAME FAVORITMU';
+
   document.querySelectorAll('#pg-game-list .pg-game-item').forEach(item => {
     const cats = (item.dataset.categories || '').split(',');
     const name = (item.querySelector('span')?.textContent || '').toLowerCase();

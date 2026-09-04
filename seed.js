@@ -5,7 +5,13 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
-const dbPath = path.join(__dirname, 'database');
+// Bisa dioverride lewat env SEED_DB_PATH -- dipakai saat seed.js dipanggil
+// dari route /admin/migrate-seed di Vercel, karena __dirname/database di
+// Vercel itu read-only (bagian dari deployment bundle). Route itu set
+// SEED_DB_PATH ke /tmp/database (satu-satunya folder writable di runtime
+// serverless) sebelum require() file ini. Kalau dijalankan manual lewat
+// `node seed.js` di lokal, env ini kosong -> tetap pakai ./database seperti biasa.
+const dbPath = process.env.SEED_DB_PATH || path.join(__dirname, 'database');
 if (!fs.existsSync(dbPath)) fs.mkdirSync(dbPath, { recursive: true });
 
 const writeDB = (f, d) => fs.writeFileSync(path.join(dbPath, f), JSON.stringify(d, null, 2));

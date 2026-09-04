@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jual Akun Kamu — <%= settings?.siteName || 'FranzzStore' %></title>
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <link rel="stylesheet" href="/css/pointgo-theme.css">
+  <script>window.IconifyPreload = <%- iconBundle %>;</script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+  <style>
+    .jual-wrap { max-width: 560px; margin: 0 auto; padding: 20px 16px 60px; }
+    .jual-wrap h1 { font-size: 19px; font-weight: 900; color: #fff; }
+    .jual-wrap > p { font-size: 12.5px; color: var(--muted); margin: 6px 0 22px; line-height: 1.6; }
+    .jf-field { margin-bottom: 16px; }
+    .jf-label { display: block; font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 7px; }
+    .jf-input, .jf-select, .jf-textarea { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-soft); color: #fff; font-size: 13px; font-family: 'Inter', Arial, sans-serif; }
+    .jf-input:focus, .jf-select:focus, .jf-textarea:focus { border-color: var(--accent); outline: none; }
+    .jf-textarea { resize: none; min-height: 110px; }
+    .jf-img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+    .jf-img-slot { aspect-ratio: 1; border-radius: 10px; border: 1.5px dashed var(--line); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; background: var(--bg-soft); cursor: pointer; }
+    .jf-img-slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+    .jf-img-slot iconify-icon { font-size: 22px; color: var(--muted); }
+    .jf-img-remove { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,.7); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; z-index: 2; }
+    .jf-submit { width: 100%; padding: 15px; border-radius: 14px; background: var(--accent); color: #fff; font-weight: 800; font-size: 14px; border: none; margin-top: 6px; }
+    .jf-submit:disabled { opacity: .5; }
+    .jf-note { font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.5; display: flex; gap: 6px; }
+
+    #toast-wrap { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; width: calc(100% - 32px); max-width: 360px; pointer-events: none; }
+    .toast-item { padding: 12px 16px; border-radius: 10px; font-size: 12.5px; font-weight: 600; color: #fff; box-shadow: 0 8px 20px rgba(0,0,0,.4); animation: toastIn .25s ease; }
+    .toast-info { background: #2F6FED; }
+    .toast-success { background: #16a34a; }
+    .toast-error { background: #dc2626; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+<%- include('../partials/navbar', { active: 'home' }) %>
+
+<div id="toast-wrap"></div>
+
+<div class="jual-wrap">
+  <h1>Jual Akun Kamu</h1>
+  <p>Isi data akun dengan jujur & lengkap. Listing kamu akan diverifikasi admin dulu sebelum tampil di halaman publik.</p>
+
+  <form id="jualAkunForm">
+    <div class="jf-field">
+      <label class="jf-label">Game</label>
+      <select class="jf-select" name="game" id="gameSelect" required>
+        <option value="">-- Pilih Game --</option>
+        <% allCategories.forEach(function(cat) { %>
+        <option value="<%= (categoryLabels && categoryLabels[cat]) || cat %>"><%= (categoryLabels && categoryLabels[cat]) || cat %></option>
+        <% }); %>
+        <option value="Lainnya">Lainnya</option>
+      </select>
+    </div>
+
+    <div class="jf-field">
+      <label class="jf-label">Judul Listing</label>
+      <input class="jf-input" name="title" id="titleInput" maxlength="80" placeholder="Contoh: Akun MLBB 200 Skin + Rank Mythic" required>
+    </div>
+
+    <div class="jf-field">
+      <label class="jf-label">Deskripsi Akun</label>
+      <textarea class="jf-textarea" name="description" id="descInput" placeholder="Jelaskan detail akun: rank, jumlah skin/item, bind email/HP, alasan jual, dll." required></textarea>
+    </div>
+
+    <div class="jf-field">
+      <label class="jf-label">Harga (Rp)</label>
+      <input class="jf-input" name="price" id="priceInput" type="number" min="1000" placeholder="Contoh: 500000" required>
+    </div>
+
+    <div class="jf-field">
+      <label class="jf-label">Nomor WhatsApp Kamu (untuk dihubungi calon pembeli)</label>
+      <input class="jf-input" name="sellerWa" id="waInput" type="tel" placeholder="08xxxxxxxxxx" required>
+    </div>
+
+    <div class="jf-field">
+      <label class="jf-label">Foto Akun (screenshot profil/skin/rank — maks 5 foto, 4MB/foto)</label>
+      <input type="file" id="imgFileInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none;">
+      <div class="jf-img-grid" id="imgGrid">
+        <div class="jf-img-slot" id="imgAddSlot" onclick="document.getElementById('imgFileInput').click()">
+          <iconify-icon icon="mdi:camera-plus-outline"></iconify-icon>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="jf-submit" id="submitBtn">Submit Listing</button>
+    <div class="jf-note">
+      <iconify-icon icon="mdi:information-outline" style="flex-shrink:0;margin-top:1px;"></iconify-icon>
+      <span>Setelah disubmit, listing berstatus "Pending" — cek statusnya di <a href="/dashboard/jual-akun" style="color:var(--accent);">Listing Akun Saya</a>. Kami tidak menjadi perantara transaksi; jual-beli dilakukan langsung antara kamu &amp; pembeli.</span>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+function showToast(msg, type='info') {
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = `toast-item toast-${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+let selectedFiles = [];
+const MAX_IMAGES = 5;
+
+document.getElementById('imgFileInput').addEventListener('change', function(e) {
+  const files = Array.from(e.target.files || []);
+  for (const f of files) {
+    if (selectedFiles.length >= MAX_IMAGES) { showToast(`Maksimal ${MAX_IMAGES} foto`, 'error'); break; }
+    if (f.size > 4 * 1024 * 1024) { showToast(`"${f.name}" lebih dari 4MB`, 'error'); continue; }
+    selectedFiles.push(f);
+  }
+  this.value = '';
+  renderImgGrid();
+});
+
+function renderImgGrid() {
+  const grid = document.getElementById('imgGrid');
+  const addSlot = document.getElementById('imgAddSlot');
+  grid.querySelectorAll('.jf-img-preview').forEach(el => el.remove());
+  selectedFiles.forEach((file, idx) => {
+    const slot = document.createElement('div');
+    slot.className = 'jf-img-slot jf-img-preview';
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    const rm = document.createElement('div');
+    rm.className = 'jf-img-remove';
+    rm.innerHTML = '&times;';
+    rm.onclick = (e) => { e.stopPropagation(); selectedFiles.splice(idx, 1); renderImgGrid(); };
+    slot.appendChild(img);
+    slot.appendChild(rm);
+    grid.insertBefore(slot, addSlot);
+  });
+  addSlot.style.display = selectedFiles.length >= MAX_IMAGES ? 'none' : 'flex';
+}
+
+document.getElementById('jualAkunForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+
+  const game = document.getElementById('gameSelect').value;
+  const title = document.getElementById('titleInput').value.trim();
+  const description = document.getElementById('descInput').value.trim();
+  const price = document.getElementById('priceInput').value;
+  const sellerWa = document.getElementById('waInput').value.trim();
+
+  if (!game) { showToast('Pilih game dulu', 'error'); return; }
+  if (!title) { showToast('Judul listing wajib diisi', 'error'); return; }
+  if (!description) { showToast('Deskripsi wajib diisi', 'error'); return; }
+  if (!price || price < 1000) { showToast('Harga minimal Rp 1.000', 'error'); return; }
+  if (!/^(\+62|62|0)[0-9]{8,13}$/.test(sellerWa)) { showToast('Format nomor WhatsApp tidak valid', 'error'); return; }
+  if (!selectedFiles.length) { showToast('Upload minimal 1 foto akun', 'error'); return; }
+
+  const fd = new FormData();
+  fd.append('game', game);
+  fd.append('title', title);
+  fd.append('description', description);
+  fd.append('price', price);
+  fd.append('sellerWa', sellerWa);
+  selectedFiles.forEach(f => fd.append('images', f));
+
+  btn.disabled = true;
+  btn.textContent = 'Mengirim...';
+  try {
+    const res = await fetch('/jual-beli-akun-jual', { method: 'POST', body: fd });
+    const d = await res.json();
+    if (d.success) {
+      showToast(d.message, 'success');
+      setTimeout(() => { window.location.href = '/dashboard/jual-akun'; }, 1200);
+    } else {
+      showToast(d.message || 'Gagal submit listing', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Submit Listing';
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan jaringan', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Submit Listing';
+  }
+});
+</script>
+
+</body>
+</html>

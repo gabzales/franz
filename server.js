@@ -1,4 +1,6 @@
 const express = require('express');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const cookieSession = require('cookie-session');
 const expressLayouts = require('express-ejs-layouts');
 const path = require('path');
@@ -34,17 +36,32 @@ const timingSafeStringEqual = (a, b) => {
 // tahu secret-nya, lalu memalsukan cookie session sendiri — termasuk bikin
 // cookie isAdmin:true atau menyamar jadi reseller manapun untuk menguras
 // saldo wallet mereka — TANPA perlu password sama sekali.
-// Sekarang: kalau SESSION_SECRET tidak di-set, generate secret acak yang
-// unik per kali server nyala (bukan string tetap yang bisa dibaca orang).
-// Konsekuensinya session akan ke-reset tiap restart server kalau kamu belum
-// set SESSION_SECRET — supaya aman SEKALIGUS stabil di production, WAJIB
-// set SESSION_SECRET di environment variables (Vercel/hosting kamu).
-const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+//
+// FIX (audit 3 Sep 2026): sebelumnya fallback pakai crypto.randomBytes()
+// PURE RANDOM tiap kali proses nyala. Ini "aman" (gak hardcoded/predictable)
+// TAPI di Vercel serverless tiap cold start = proses baru = secret baru
+// = SEMUA session lama otomatis invalid = user (termasuk admin) kelogout
+// mendadak tanpa alasan jelas, bisa berkali-kali sehari tergantung traffic.
+// Fallback sekarang di-derive dari SUPABASE_URL (env var yang sudah WAJIB
+// ada dan stabil per-project di Vercel) di-hash SHA-256 -- hasilnya
+// konsisten selama SUPABASE_URL gak berubah (jadi session stabil di semua
+// instance/cold-start), TAPI tetap gak predictable dari luar (attacker gak
+// bisa tebak SESSION_SECRET walau tau SUPABASE_URL project publik, karena
+// proses hash-nya searah/one-way). Kalau SUPABASE_URL juga belum di-set
+// (dev lokal awal banget, belum config Supabase sama sekali), baru jatuh
+// ke random murni sebagai last resort.
+// TETAP disarankan keras set SESSION_SECRET sendiri di env Vercel untuk
+// keamanan maksimal -- fallback ini cuma jaring pengaman supaya app gak
+// force-logout semua orang kalau lupa set.
+const SESSION_SECRET = process.env.SESSION_SECRET
+  || (process.env.SUPABASE_URL
+      ? crypto.createHash('sha256').update('franzfront-session-fallback:' + process.env.SUPABASE_URL).digest('hex')
+      : crypto.randomBytes(32).toString('hex'));
 
 // Production warning tapi JANGAN exit — Vercel kadat lambat inject env
 if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
-  console.warn('⚠️  SESSION_SECRET belum di-set! Pakai secret acak sementara (reset tiap restart server).');
-  console.warn('⚠️  WAJIB set SESSION_SECRET di environment variables untuk keamanan & session yang stabil.');
+  console.warn('⚠️  SESSION_SECRET belum di-set! Pakai fallback yang di-derive dari SUPABASE_URL (stabil, tapi TIDAK sekuat secret acak sendiri).');
+  console.warn('⚠️  Disarankan set SESSION_SECRET manual di environment variables (Vercel) untuk keamanan maksimal.');
 }
 
 // Load DB module AFTER dotenv so env vars are available
@@ -53,31 +70,135 @@ const db = require('./supabase');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ══ AUDIT KEAMANAN 3 Sep 2026 (diminta user): security headers ══
+// Sebelumnya TIDAK ADA security header sama sekali (no helmet) -- artinya
+// browser gak dikasih tahu untuk block clickjacking (X-Frame-Options),
+// MIME-sniffing (X-Content-Type-Options), dsb. helmet() pasang semua
+// header standar ini otomatis. contentSecurityPolicy dimatikan (false)
+// karena EJS + inline <script> dipakai luas di views/ -- CSP default
+// helmet akan blokir semua inline script itu dan bikin web rusak total;
+// mengaktifkan CSP yang benar butuh audit terpisah per halaman (nonce/hash
+// di tiap <script> inline), jadi disengaja dimatikan dulu supaya tidak
+// break functionality, TAPI header lain (X-Frame-Options: SAMEORIGIN,
+// X-Content-Type-Options: nosniff, Strict-Transport-Security, dll) tetap
+// aktif dan itu yang paling penting buat sekarang.
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
+
+// ══ AUDIT KEAMANAN 3 Sep 2026: rate limiting global ══
+// Sebelumnya TIDAK ADA rate limiter di level Express sama sekali (cuma ada
+// Map() in-memory khusus buat QR & login, dan itupun punya kelemahan di
+// Vercel -- lihat catatan di checkLoginBlocked/isQrRateLimited di bawah).
+// generalLimiter ini pasang batas kasar di SEMUA request supaya satu IP
+// gak bisa spam ratusan request/detik ke endpoint manapun (mis. flooding
+// /api/products berkali-kali buat bikin server berat -- pola DDoS paling
+// dasar). Di-skip untuk asset statis (gambar/css/js) karena itu sudah
+// di-serve CDN Vercel, bukan lewat Node process ini.
+const generalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 120, // 120 request/menit/IP -- longgar untuk pemakaian normal, ketat untuk bot/flood
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Terlalu banyak request. Coba lagi sebentar lagi.' },
+});
+app.use((req, res, next) => {
+  if (req.path.startsWith('/uploads/') || req.path.startsWith('/css/') || req.path.startsWith('/js/') || req.path.startsWith('/images/')) {
+    return next();
+  }
+  return generalLimiter(req, res, next);
+});
+
+// ══ AUDIT KEAMANAN 3 Sep 2026: rate limiter khusus endpoint sensitif ══
+// Lebih ketat dari generalLimiter, dipasang manual di route login admin,
+// login user, dan endpoint OTP/pembayaran (lihat pemakaian authLimiter
+// dan otpLimiter di bawah).
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20, // 20 percobaan/15 menit/IP -- di atas ini keburu kena checkLoginBlocked juga
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Terlalu banyak percobaan login. Coba lagi dalam beberapa menit.' },
+});
+
 // Rate limiting untuk QR Code
 const qrRateLimit = new Map();
 const QR_RATE_LIMIT = 30;
 const QR_RATE_WINDOW = 60000;
 
 // Rate limiting untuk login (brute force protection)
+// CATATAN AUDIT (3 Sep 2026): Map() ini in-memory per-instance. Di Vercel,
+// tiap cold start / instance serverless punya memory KOSONG dan TERPISAH
+// satu sama lain -- Vercel bisa route request ke instance manapun yang
+// available. Artinya penyerang yang brute-force login bisa "reset" hitungan
+// percobaannya cuma dengan kena-route ke instance baru (misal request lambat
+// beruntun yang masing-masing spawn cold start berbeda), sehingga proteksi
+// ini TIDAK sepenuhnya efektif di production Vercel walau tetap membantu di
+// VPS/server tradisional. Perbaikan proper: pindahkan counter ini ke
+// Supabase (tabel/keyvalue_store terpisah dengan TTL), supaya konsisten
+// di semua instance. Ditambahkan sebagai TODO -- lihat loginAttemptsToSupabase
+// helper di bawah untuk versi yang sudah dipindah (dipanggil dari
+// /vpr-secure-panel-8x POST handler).
 const loginFailMap = new Map();
 const LOGIN_MAX_FAIL = 5;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 menit
 
-const checkLoginBlocked = (ip) => {
+const checkLoginBlocked = async (ip) => {
   const rec = loginFailMap.get(ip);
-  if (!rec) return { blocked: false };
-  if (Date.now() > rec.resetAt) { loginFailMap.delete(ip); return { blocked: false }; }
-  return { blocked: rec.count >= LOGIN_MAX_FAIL, wait: Math.ceil((rec.resetAt - Date.now()) / 60000) };
+  if (rec && Date.now() <= rec.resetAt && rec.count >= LOGIN_MAX_FAIL) {
+    return { blocked: true, wait: Math.ceil((rec.resetAt - Date.now()) / 60000) };
+  }
+  if (rec && Date.now() > rec.resetAt) loginFailMap.delete(ip);
+
+  // ══ AUDIT KEAMANAN 3 Sep 2026 (FIX): cek juga ke Supabase, bukan cuma
+  // Map() in-memory. Ini yang membuat proteksi brute-force efektif di
+  // Vercel -- kalau IP kena block di instance A, instance B (yang gak
+  // punya Map lokal itu) tetap akan lihat block-nya karena baca dari
+  // Supabase (shared antar semua instance). Kalau Supabase gagal/timeout,
+  // fail-open ke hasil Map lokal saja (bukan fail sampai error 500 -- lebih
+  // baik proteksi berkurang sedikit daripada login page mati total kalau
+  // Supabase down).
+  try {
+    const key = `login-block:${ip}`;
+    const rows = await db.readFresh('login-attempts.json');
+    const entry = rows && rows[key];
+    if (entry && Date.now() <= entry.resetAt && entry.count >= LOGIN_MAX_FAIL) {
+      loginFailMap.set(ip, { count: entry.count, resetAt: entry.resetAt }); // sinkronkan cache lokal
+      return { blocked: true, wait: Math.ceil((entry.resetAt - Date.now()) / 60000) };
+    }
+  } catch (e) {
+    console.warn('checkLoginBlocked: gagal baca dari Supabase, pakai cache lokal saja:', e.message);
+  }
+  return { blocked: false };
 };
 
-const recordLoginFail = (ip) => {
+const recordLoginFail = async (ip) => {
   const now = Date.now();
   const rec = loginFailMap.get(ip);
-  if (!rec || now > rec.resetAt) loginFailMap.set(ip, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
-  else { rec.count++; loginFailMap.set(ip, rec); }
+  const updated = (!rec || now > rec.resetAt) ? { count: 1, resetAt: now + LOGIN_WINDOW_MS } : { count: rec.count + 1, resetAt: rec.resetAt };
+  loginFailMap.set(ip, updated);
+
+  try {
+    const key = `login-block:${ip}`;
+    const rows = (await db.readFresh('login-attempts.json')) || {};
+    rows[key] = updated;
+    await db.writeDB('login-attempts.json', rows);
+  } catch (e) {
+    console.warn('recordLoginFail: gagal tulis ke Supabase, hitungan cuma lokal:', e.message);
+  }
 };
 
-const clearLoginFail = (ip) => loginFailMap.delete(ip);
+const clearLoginFail = async (ip) => {
+  loginFailMap.delete(ip);
+  try {
+    const key = `login-block:${ip}`;
+    const rows = (await db.readFresh('login-attempts.json')) || {};
+    if (rows[key]) { delete rows[key]; await db.writeDB('login-attempts.json', rows); }
+  } catch (e) {
+    console.warn('clearLoginFail: gagal hapus dari Supabase:', e.message);
+  }
+};
 
 // ── Cloudflare Turnstile verification ────────────────────────────────────────
 async function verifyTurnstile(token) {
@@ -334,6 +455,58 @@ app.use(cookieSession({
   secure: process.env.NODE_ENV === 'production',
 }));
 
+// ══ AUDIT KEAMANAN 3 Sep 2026 (diminta user): CSRF protection ══
+// Kenapa gak pakai library csurf/token klasik: proyek ini punya puluhan
+// state-changing request (5 <form method="POST"> + 24 fetch() POST/PUT/
+// DELETE tersebar di banyak file EJS + inline <script>). Nambah CSRF
+// token butuh nyentuh SEMUA titik itu satu-satu (inject token ke form,
+// tambah header di tiap fetch call) -- risiko regresi sangat tinggi kalau
+// dikerjakan sekaligus tanpa test manual tiap form.
+//
+// Solusi yang dipilih: Origin/Referer validation. Ini independen dari
+// cookie (gak perlu ubah form/fetch manapun) dan efektif menutup CSRF
+// klasik -- request state-changing (POST/PUT/DELETE/PATCH) HARUS datang
+// dari origin yang sama dengan server ini. Attacker yang bikin form/fetch
+// di website lain untuk auto-submit ke sini akan gagal karena
+// Origin/Referer browser-nya beda domain (browser modern selalu kirim
+// header ini untuk cross-origin request, gak bisa dipalsukan dari sisi
+// attacker lewat JS biasa).
+//
+// sameSite:'lax' di atas TIDAK diketatkan ke 'strict' karena akan merusak
+// Google OAuth callback (browser gak kirim cookie session pas redirect
+// balik dari accounts.google.com -- itu third-party navigation). Jadi dua
+// lapis ini saling melengkapi: sameSite:'lax' handle sebagian besar kasus
+// + origin check ini nutup celah yang tersisa.
+//
+// Dikecualikan: webhook GensPay (pembayaran) karena requestnya DATANG dari
+// server GensPay, bukan browser -- gak akan pernah punya Origin header
+// browser yang valid, dan sudah divalidasi terpisah pakai signature HMAC.
+const CSRF_EXEMPT_PATHS = ['/webhook/genspay', '/api/webhook/genspay', '/webhook/pakasir', '/api/webhook/pakasir'];
+app.use((req, res, next) => {
+  const stateChangingMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
+  if (!stateChangingMethods.includes(req.method)) return next();
+  if (CSRF_EXEMPT_PATHS.some(p => req.path.startsWith(p))) return next();
+
+  const origin = req.get('origin') || req.get('referer');
+  if (!origin) {
+    // Request tanpa Origin/Referer sama sekali -- browser modern SELALU
+    // kirim salah satu untuk POST/PUT/DELETE, jadi ini kemungkinan besar
+    // request non-browser (curl/script) atau percobaan bypass. Ditolak.
+    return res.status(403).json({ success: false, error: 'Origin tidak valid.' });
+  }
+  try {
+    const originHost = new URL(origin).host;
+    const requestHost = req.get('host');
+    if (originHost !== requestHost) {
+      console.warn(`⚠️  CSRF blocked: origin=${originHost} != host=${requestHost} pada ${req.method} ${req.path}`);
+      return res.status(403).json({ success: false, error: 'Origin tidak valid.' });
+    }
+  } catch (e) {
+    return res.status(403).json({ success: false, error: 'Origin tidak valid.' });
+  }
+  next();
+});
+
 // ══════════════════════════════════════════════════════════════════
 // GOOGLE OAUTH LOGIN (opsional, diminta client 21 Agu 2026 -- "daftar
 // bisa pilih menggunakan login akun ggl (optional)")
@@ -518,6 +691,24 @@ function requireValidImageMagicBytesBuffer(req, res, next) {
   next();
 }
 
+// Versi multi-file (untuk multer .array(), req.files bukan req.file tunggal)
+// -- dipakai upload multi-gambar seperti listing Jual Beli Akun. FIX BUG
+// KEAMANAN (3 Sep 2026): tanpa ini, requireValidImageMagicBytes/Buffer yang
+// cuma ngecek req.file (singular) akan DIAM-DIAM SKIP validasi sama sekali
+// buat endpoint yang pakai .array() -- req.file selalu undefined di situ,
+// jadi kondisi "if (!req.file) return next()" bikin validasi gak pernah
+// jalan, menerima file apapun asal mimetype-nya di-spoof jadi image/*.
+function requireValidImageMagicBytesArray(req, res, next) {
+  if (!req.files || !req.files.length) return next();
+  for (const file of req.files) {
+    if (!verifyImageMagicBytes(file.path)) {
+      req.files.forEach(f => fs.unlink(f.path, () => {})); // best-effort cleanup semua file di batch ini
+      return res.status(400).json({ success: false, message: `File "${file.originalname}" bukan gambar asli (gagal validasi format file).` });
+    }
+  }
+  next();
+}
+
 const uploadsBase = isVercel ? '/tmp' : path.join(__dirname, 'public', 'uploads');
 const uploadsDir = isVercel ? '/tmp/products' : path.join(__dirname, 'public', 'uploads', 'products');
 
@@ -657,7 +848,7 @@ const initDB = async () => {
     theme: { primaryColor: '#2563eb', accentColor: '#0b1f45' }
   };
 
-  const arrayFiles = ['users.json', 'products.json', 'transactions.json', 'testimonials.json', 'notifications.json', 'keyspool.json', 'vouchers.json'];
+  const arrayFiles = ['users.json', 'products.json', 'transactions.json', 'testimonials.json', 'notifications.json', 'keyspool.json', 'vouchers.json', 'accounts.json'];
 
   // Seed arrays only if they don't exist at all
   for (const filename of arrayFiles) {
@@ -1291,8 +1482,7 @@ app.get('/', async (req, res) => {
   const settings = res.locals.settings || readDB('settings.json');
   const user = res.locals.user || getSessionUser(req);
 
-  res.render('pages/home', {
-    products,
+  res.render('pages/home', { products,
     settings,
     user,
     categories: settings.categories || [],
@@ -1320,9 +1510,9 @@ app.get('/login', (req, res) => {
   });
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', authLimiter, async (req, res) => {
   const ip = req.ip;
-  const { blocked, wait } = checkLoginBlocked(ip);
+  const { blocked, wait } = await checkLoginBlocked(ip);
   if (blocked) {
     return res.render('pages/login', {
       error: `Terlalu banyak percobaan login. Coba lagi dalam ${wait} menit.`,
@@ -1357,7 +1547,7 @@ app.post('/login', async (req, res) => {
 
   // Admin login diblokir dari /login — gunakan halaman khusus
   if (username === settings.adminUsername) {
-    recordLoginFail(ip);
+    await recordLoginFail(ip);
     return res.render('pages/login', {
       error: 'Username atau password salah.',
       redirect: req.body.redirect || '/',
@@ -1370,13 +1560,13 @@ app.post('/login', async (req, res) => {
   const user = users.find(u => u.username === username);
 
   if (user && await bcrypt.compare(password, user.password)) {
-    clearLoginFail(ip);
+    await clearLoginFail(ip);
     req.session.userId = user.id;
     req.session.isAdmin = (user.role === 'admin');
     return res.redirect(req.body.redirect || (req.session.isAdmin ? '/admin' : '/'));
   }
 
-  recordLoginFail(ip);
+  await recordLoginFail(ip);
   const remaining = LOGIN_MAX_FAIL - (loginFailMap.get(ip)?.count || 0);
   const errMsg = remaining > 0
     ? `Username atau password salah. Sisa percobaan: ${remaining}`
@@ -1401,9 +1591,9 @@ app.get('/register', (req, res) => {
 // popup di homepage manggil endpoint JSON ini supaya submit tidak perlu
 // reload/pindah halaman sama sekali. Logic validasinya identik dengan
 // /login /register lama, cuma bentuk response-nya JSON bukan render/redirect.
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   const ip = req.ip;
-  const { blocked, wait } = checkLoginBlocked(ip);
+  const { blocked, wait } = await checkLoginBlocked(ip);
   if (blocked) {
     return res.json({ success: false, message: `Terlalu banyak percobaan login. Coba lagi dalam ${wait} menit.` });
   }
@@ -1419,7 +1609,7 @@ app.post('/api/auth/login', async (req, res) => {
   const settings = readDB('settings.json');
 
   if (username === settings.adminUsername) {
-    recordLoginFail(ip);
+    await recordLoginFail(ip);
     return res.json({ success: false, message: 'Username atau password salah.' });
   }
 
@@ -1427,13 +1617,13 @@ app.post('/api/auth/login', async (req, res) => {
   const user = users.find(u => u.username === username);
 
   if (user && await bcrypt.compare(password, user.password)) {
-    clearLoginFail(ip);
+    await clearLoginFail(ip);
     req.session.userId = user.id;
     req.session.isAdmin = (user.role === 'admin');
     return res.json({ success: true, redirect: req.body.redirect || (req.session.isAdmin ? '/admin' : '/') });
   }
 
-  recordLoginFail(ip);
+  await recordLoginFail(ip);
   const remaining = LOGIN_MAX_FAIL - (loginFailMap.get(ip)?.count || 0);
   const errMsg = remaining > 0
     ? `Username atau password salah. Sisa percobaan: ${remaining}`
@@ -1622,9 +1812,9 @@ app.get('/vpr-secure-panel-8x', (req, res) => {
   });
 });
 
-app.post('/vpr-secure-panel-8x', async (req, res) => {
+app.post('/vpr-secure-panel-8x', authLimiter, async (req, res) => {
   const ip = req.ip;
-  const { blocked, wait } = checkLoginBlocked(ip);
+  const { blocked, wait } = await checkLoginBlocked(ip);
   if (blocked) {
     return res.render('pages/admin-login', {
       error: `Terlalu banyak percobaan. Coba lagi dalam ${wait} menit.`,
@@ -1660,14 +1850,14 @@ app.post('/vpr-secure-panel-8x', async (req, res) => {
           }
         });
       }
-      clearLoginFail(ip);
+      await clearLoginFail(ip);
       req.session.userId = 'admin';
       req.session.isAdmin = true;
       req.session.adminSessionId = await acquireAdminLock(req);
       return res.redirect('/admin');
     }
   }
-  recordLoginFail(ip);
+  await recordLoginFail(ip);
   const remaining = LOGIN_MAX_FAIL - (loginFailMap.get(ip)?.count || 0);
   res.render('pages/admin-login', {
     error: remaining > 0
@@ -2160,6 +2350,169 @@ app.post('/admin/banners/toggle/:id', requireAdmin, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
+// ══════════════════════════════════════════════════════════════════
+// ── JUAL BELI AKUN ──
+// Marketplace jual-beli akun game, dipisah per kategori game (dipilih dari
+// "Jual Beli Akun" di tab kategori homepage -> pilih game -> listing akun
+// untuk game itu). User submit listing (status pending) -> admin
+// approve/reject/tandai terjual -> publik lihat listing yang approved.
+// ══════════════════════════════════════════════════════════════════
+const accountImgUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = isVercel ? '/tmp/accounts' : path.join(__dirname, 'public', 'uploads', 'accounts');
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      cb(null, `akun-${Date.now()}-${Math.round(Math.random() * 1e5)}${path.extname(file.originalname)}`);
+    }
+  }),
+  limits: { fileSize: 4 * 1024 * 1024, files: 5 },
+  fileFilter: (req, file, cb) => {
+    if (['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Format harus JPEG/PNG/WebP'));
+  }
+});
+
+// Listing publik -- hanya akun yang sudah di-approve admin, opsional filter per game
+app.get('/jual-beli-akun', async (req, res) => {
+  const settings = res.locals.settings || readDB('settings.json');
+  const accounts = (await readSmart('accounts.json')).filter(a => a.status === 'approved');
+  const { game } = req.query;
+  const filtered = game ? accounts.filter(a => a.game === game) : accounts;
+  filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.render('pages/jual-beli-akun', {
+    layout: false, settings, user: res.locals.user || getSessionUser(req),
+    accounts: filtered, gameFilter: game || '',
+    allCategories: settings.categories || [], categoryLabels: settings.categoryLabels || {}
+  });
+});
+
+app.get('/jual-beli-akun/:id', async (req, res) => {
+  const settings = res.locals.settings || readDB('settings.json');
+  const accounts = await readSmart('accounts.json');
+  const account = accounts.find(a => a.id === req.params.id && a.status === 'approved');
+  if (!account) return res.redirect('/jual-beli-akun');
+  res.render('pages/akun-detail', { layout: false, settings, user: res.locals.user || getSessionUser(req), account });
+});
+
+// Form jual akun (harus login supaya kontaknya jelas & anti-spam)
+app.get('/jual-beli-akun-jual', requireAuth, (req, res) => {
+  const settings = res.locals.settings || readDB('settings.json');
+  res.render('pages/jual-akun-form', {
+    layout: false, settings, user: res.locals.user || getSessionUser(req),
+    allCategories: settings.categories || [], categoryLabels: settings.categoryLabels || {}
+  });
+});
+
+app.post('/jual-beli-akun-jual', requireAuth, accountImgUpload.array('images', 5), requireValidImageMagicBytesArray, async (req, res) => {
+  try {
+    const { game, title, description, price, sellerWa } = req.body;
+    if (!game || !title || !description || !price || !sellerWa) {
+      return res.json({ success: false, message: 'Semua field wajib diisi' });
+    }
+    if (!/^(\+62|62|0)[0-9]{8,13}$/.test(sellerWa.trim())) {
+      return res.json({ success: false, message: 'Format WhatsApp tidak valid' });
+    }
+    if (!req.files || !req.files.length) return res.json({ success: false, message: 'Minimal 1 foto akun wajib diupload' });
+
+    let images = [];
+    for (const file of req.files) {
+      if (!isVercel) {
+        images.push(`/uploads/accounts/${file.filename}`);
+      } else {
+        try {
+          images.push(await db.uploadImage(fs.readFileSync(file.path), file.originalname, file.mimetype));
+        } catch (uploadErr) {
+          return res.json({ success: false, message: 'Gagal upload foto ke storage: ' + uploadErr.message });
+        }
+      }
+    }
+
+    const users = readDB('users.json');
+    const user = users.find(u => u.id === req.session.userId);
+
+    const accounts = await readFresh('accounts.json');
+    accounts.unshift({
+      id: uuidv4(),
+      userId: req.session.userId,
+      sellerName: user?.username || 'Pengguna',
+      sellerWa: sellerWa.trim(),
+      game: game.trim(),
+      title: title.trim(),
+      description: description.trim(),
+      price: parseInt(price) || 0,
+      images,
+      status: 'pending', // pending -> approved / rejected -> sold
+      createdAt: new Date().toISOString()
+    });
+    await writeDB('accounts.json', accounts);
+    res.json({ success: true, message: 'Akun berhasil disubmit, menunggu verifikasi admin.' });
+  } catch (e) {
+    res.json({ success: false, message: e.message });
+  }
+});
+
+app.get('/dashboard/jual-akun', requireAuth, async (req, res) => {
+  const settings = res.locals.settings || readDB('settings.json');
+  const accounts = (await readSmart('accounts.json')).filter(a => a.userId === req.session.userId);
+  accounts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.render('pages/akun-saya', { layout: false, settings, user: res.locals.user || getSessionUser(req), accounts });
+});
+
+// ── ADMIN: MODERASI JUAL BELI AKUN ──
+app.post('/admin/akun/approve/:id', requireAdmin, async (req, res) => {
+  try {
+    const accounts = await readFresh('accounts.json');
+    const acc = accounts.find(a => a.id === req.params.id);
+    if (!acc) return res.json({ success: false, message: 'Listing tidak ditemukan' });
+    acc.status = 'approved';
+    await writeDB('accounts.json', accounts);
+    res.json({ success: true, message: 'Listing akun disetujui' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+app.post('/admin/akun/reject/:id', requireAdmin, async (req, res) => {
+  try {
+    const accounts = await readFresh('accounts.json');
+    const acc = accounts.find(a => a.id === req.params.id);
+    if (!acc) return res.json({ success: false, message: 'Listing tidak ditemukan' });
+    acc.status = 'rejected';
+    acc.rejectReason = (req.body.reason || '').trim();
+    await writeDB('accounts.json', accounts);
+    res.json({ success: true, message: 'Listing akun ditolak' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+app.post('/admin/akun/sold/:id', requireAdmin, async (req, res) => {
+  try {
+    const accounts = await readFresh('accounts.json');
+    const acc = accounts.find(a => a.id === req.params.id);
+    if (!acc) return res.json({ success: false, message: 'Listing tidak ditemukan' });
+    acc.status = 'sold';
+    await writeDB('accounts.json', accounts);
+    res.json({ success: true, message: 'Listing ditandai terjual' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+app.post('/admin/akun/delete/:id', requireAdmin, async (req, res) => {
+  try {
+    let accounts = await readFresh('accounts.json');
+    const acc = accounts.find(a => a.id === req.params.id);
+    (acc?.images || []).forEach(img => {
+      if (img.startsWith('/uploads/accounts/')) {
+        const fp = path.join(__dirname, 'public', img);
+        if (fs.existsSync(fp)) fs.unlinkSync(fp);
+      }
+    });
+    accounts = accounts.filter(a => a.id !== req.params.id);
+    await writeDB('accounts.json', accounts);
+    res.json({ success: true, message: 'Listing dihapus' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+
 // ── QRIS STATIS UPLOAD ──
 const qrisUpload = multer({
   storage: multer.diskStorage({
@@ -2222,8 +2575,7 @@ app.get('/dashboard', requireAuth, (req, res) => {
   const doneTransactions = myTransactions.filter(t => t.status === 'done').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const recentTransactions = myTransactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 20);
 
-  res.render('pages/dashboard', {
-    user, settings,
+  res.render('pages/dashboard', { user, settings,
     stats: { totalOrders, successOrders, pendingOrders, totalSpent },
     doneTransactions,
     transactions: recentTransactions,
@@ -3047,16 +3399,59 @@ app.get('/admin/migrate-images', async (req, res) => {
   }
 });
 
+// Migrasi seed data (users/products/transactions/dll) langsung ke Supabase
+// keyvalue_store, dijalankan LANGSUNG dari Vercel (gak perlu terminal lokal).
+// Pola akses sama persis dengan /admin/migrate-images di atas:
+// /admin/migrate-seed?secret=SETUP_SECRET (dari env var Vercel).
+// Set SETUP_SECRET di env Vercel dulu, akses URL-nya, lalu HAPUS
+// SETUP_SECRET dari env Vercel setelah selesai. Endpoint ini otomatis
+// nonaktif (403) selama SETUP_SECRET tidak di-set di env.
+//
+// PERHATIAN: ini nge-generate ULANG semua data fake (users/products/dst)
+// dan overwrite key yang sama di keyvalue_store -- kalau sudah ada data
+// PRODUKSI asli (bukan seed), JANGAN akses endpoint ini karena akan ketimpa.
+app.get('/admin/migrate-seed', async (req, res) => {
+  const secret = process.env.SETUP_SECRET;
+  if (!timingSafeStringEqual(req.query.secret, secret)) {
+    return res.status(403).send('<pre>❌ Akses ditolak. Set SETUP_SECRET di env Vercel, lalu akses /admin/migrate-seed?secret=SETUP_SECRET_KAMU</pre>');
+  }
+
+  const client = db.getClient();
+  if (!client) {
+    return res.status(500).send('<pre>Supabase belum terkonfigurasi (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY belum di-set di env Vercel).</pre>');
+  }
+
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.write('Memulai migrasi seed data ke Supabase...\n\n');
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+
+  try {
+    const { runMigration } = require('./migrate-seed');
+    const result = await runMigration(client, {
+      onProgress: (line) => res.write(line + '\n')
+    });
+    res.write('\n✅ Migrasi selesai! Key yang berhasil di-upsert:\n');
+    result.upserted.forEach((k) => res.write(`   - ${k}\n`));
+    res.write('\nSemua dilakukan dalam SATU kali request, tidak ada insert manual per baris.\n');
+    res.write('Jangan lupa hapus SETUP_SECRET dari env Vercel kalau sudah tidak dipakai lagi.\n');
+    res.end();
+  } catch (err) {
+    res.write('\n❌ Migrasi gagal: ' + err.message + '\n');
+    res.end();
+  }
+});
+
 app.get('/admin', requireAdmin, async (req, res) => {
   // ── FIX: readFresh() bypass cache per-instance Vercel ──
   // Sebelumnya pakai readDB (cache lokal tiap instance), jadi setelah
   // tambah/edit produk di satu instance, refresh halaman bisa nyasar ke
   // instance lain yang cache-nya masih lama → produk kelihatan hilang/berubah.
-  const [products, transactions, users, settings] = await Promise.all([
+  const [products, transactions, users, settings, accounts] = await Promise.all([
     readFresh('products.json'),
     readFresh('transactions.json'),
     readFresh('users.json'),
-    readFresh('settings.json')
+    readFresh('settings.json'),
+    readFresh('accounts.json')
   ]);
   if (normalizeBanners(settings)) await writeDB('settings.json', settings);
 
@@ -3119,7 +3514,8 @@ app.get('/admin', requireAdmin, async (req, res) => {
     users,
     settings,
     stats,
-    chartData
+    chartData,
+    accounts: accounts.slice().reverse()
   });
 });
 
@@ -4363,8 +4759,7 @@ app.post('/activate-key', requireAuth, async (req, res) => {
   key.usedAt = new Date().toISOString();
   await writeDB('keyspool.json', keyspool);
 
-  res.render('pages/activate-key', {
-    user, settings, code,
+  res.render('pages/activate-key', { user, settings, code,
     result: { code: key.code, duration: key.duration, label: key.label || `${key.duration} Hari`, note: key.note || '' },
     error: null
   });

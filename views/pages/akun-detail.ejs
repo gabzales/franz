@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= account.title %> — <%= settings?.siteName || 'FranzzStore' %></title>
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <link rel="stylesheet" href="/css/pointgo-theme.css">
+  <script>window.IconifyPreload = <%- iconBundle %>;</script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+  <style>
+    .akun-detail-wrap { max-width: 720px; margin: 0 auto; padding: 20px 16px 100px; }
+    .akun-gallery { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; -ms-overflow-style: none; scrollbar-width: none; }
+    .akun-gallery::-webkit-scrollbar { display: none; }
+    .akun-gallery img { width: 220px; height: 165px; object-fit: cover; border-radius: 12px; flex-shrink: 0; background: var(--bg-soft); }
+    .akun-detail-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-top: 16px; }
+    .akun-detail-game { font-size: 10.5px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; }
+    .akun-detail-title { font-size: 18px; font-weight: 900; color: #fff; margin-top: 6px; }
+    .akun-detail-price { font-size: 24px; font-weight: 900; color: #8EF9FF; margin-top: 6px; }
+    .akun-detail-divider { height: 1px; background: var(--line); margin: 16px 0; }
+    .akun-detail-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 8px; }
+    .akun-detail-desc { font-size: 13px; color: var(--text); line-height: 1.7; white-space: pre-line; }
+    .akun-contact-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 15px; border-radius: 14px; background: #25D366; color: #fff; font-weight: 800; font-size: 14px; text-decoration: none; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<%- include('../partials/navbar', { active: 'home' }) %>
+
+<div class="akun-detail-wrap">
+  <a href="/jual-beli-akun?game=<%= encodeURIComponent(account.game) %>" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;font-weight:700;text-decoration:none;margin-bottom:14px;">
+    <iconify-icon icon="mdi:arrow-left"></iconify-icon> Kembali ke <%= account.game %>
+  </a>
+
+  <div class="akun-gallery">
+    <% (account.images||[]).forEach(function(img) { %>
+    <img src="<%= img %>" alt="<%= account.title %>" loading="lazy">
+    <% }); %>
+  </div>
+
+  <div class="akun-detail-card">
+    <div class="akun-detail-game"><%= account.game %></div>
+    <div class="akun-detail-title"><%= account.title %></div>
+    <div class="akun-detail-price">Rp <%= (account.price||0).toLocaleString('id-ID') %></div>
+    <div class="akun-detail-divider"></div>
+    <div class="akun-detail-label">Deskripsi Akun</div>
+    <div class="akun-detail-desc"><%= account.description %></div>
+
+    <a href="https://wa.me/<%= (account.sellerWa||'').replace(/^0/,'62') %>?text=<%= encodeURIComponent('Halo, saya tertarik dengan akun ' + account.game + ' - ' + account.title + ' yang dijual di ' + (settings?.siteName||'')) %>"
+       target="_blank" rel="noopener" class="akun-contact-btn">
+      <iconify-icon icon="mdi:whatsapp" style="font-size:18px;"></iconify-icon> Hubungi Penjual
+    </a>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+</body>
+</html>

@@ -7,10 +7,10 @@ const path = require('path');
 let supabase = null;
 let dbCache = {};
 let lastClientInitError = null; // pesan error asli kalau createClient() gagal, supaya bisa ditampilkan ke admin
-const DB_FILES = ['users.json','products.json','transactions.json','testimonials.json','notifications.json','settings.json','keyspool.json','vouchers.json','admin-lock.json'];
+const DB_FILES = ['users.json','products.json','transactions.json','testimonials.json','notifications.json','settings.json','keyspool.json','vouchers.json','admin-lock.json','accounts.json','login-attempts.json'];
 
 // File yang defaultnya object {} bukan array [] saat cache masih kosong
-const OBJECT_FILES = new Set(['settings.json', 'admin-lock.json']);
+const OBJECT_FILES = new Set(['settings.json', 'admin-lock.json', 'login-attempts.json']);
 
 // Lazy init Supabase client
 const getClient = () => {

@@ -569,6 +569,20 @@ textarea.hm-input, textarea.form-input { color: #eef1f4 !important; }
                 <% if(t.selectedDays){ %>
                 <div class="text-[10px] text-zinc-500 col-span-2">Durasi: <span class="text-sky-400 font-bold"><%= t.selectedDays %> <%= t.selectedUnit === 'h' ? 'Jam' : 'Hari' %></span></div>
                 <% } %>
+                <!-- FIX BUG LOGIC (audit 3 Sep 2026): User ID / Zone ID yang diisi
+                     customer buat top up sebelumnya divalidasi & disimpan ke
+                     transaksi TAPI TIDAK PERNAH ditampilkan di sini -- admin gak
+                     punya cara liat akun mana yang harus di-topup dari panel ini
+                     sama sekali (harus tanya ulang ke customer via WA). Ditaruh
+                     menonjol (kuning + border) karena ini data yang WAJIB dicek
+                     admin sebelum konfirmasi/proses pesanan. -->
+                <% if(t.gameUserId || t.gameZoneId){ %>
+                <div class="col-span-2 mt-1 p-2 rounded-lg" style="background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.25);">
+                    <div class="text-[9px] font-bold uppercase tracking-wide text-amber-400 mb-1"><iconify-icon icon="mdi:account-key" style="vertical-align:-2px;"></iconify-icon> Data Akun Tujuan Top Up</div>
+                    <% if(t.gameUserId){ %><div class="text-[11px] text-zinc-200">User ID: <span class="font-mono font-bold text-amber-300"><%= t.gameUserId %></span></div><% } %>
+                    <% if(t.gameZoneId){ %><div class="text-[11px] text-zinc-200">Zone ID: <span class="font-mono font-bold text-amber-300"><%= t.gameZoneId %></span></div><% } %>
+                </div>
+                <% } %>
             </div>
             <div class="flex gap-2">
                 <% if(t.status !== 'done'){ %>
@@ -693,6 +707,52 @@ textarea.hm-input, textarea.form-input { color: #eef1f4 !important; }
         </button>
     </div>
 </div>
+</div>
+
+<!-- ── JUAL BELI AKUN ── -->
+<div id="pane-akun" class="tab-pane">
+    <div class="flex items-center justify-between mb-4">
+        <div class="section-label mb-0">Moderasi Jual Beli Akun</div>
+        <div class="flex gap-2">
+            <button onclick="filterAkun('all')" id="akunf-all" class="akun-filter px-2.5 py-1 rounded-lg text-[10px] font-bold bg-blue-500/20 border border-zinc-500/40 text-blue-300">Semua</button>
+            <button onclick="filterAkun('pending')" id="akunf-pending" class="akun-filter px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white/3 border border-white/10 text-zinc-500">Pending</button>
+            <button onclick="filterAkun('approved')" id="akunf-approved" class="akun-filter px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white/3 border border-white/10 text-zinc-500">Approved</button>
+        </div>
+    </div>
+    <div class="space-y-2" id="akun-list">
+        <% (accounts||[]).forEach(a => { %>
+        <div class="neon-card p-3.5 fade-in akun-item" data-akun-id="<%= a.id %>" data-status="<%= a.status %>">
+            <div class="flex items-start gap-3">
+                <img src="<%= a.images?.[0] || '' %>" style="width:64px;height:64px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#111;" onerror="this.style.opacity=0">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-[10px] font-bold text-blue-400 uppercase"><%= a.game %></span>
+                        <% if(a.status==='pending'){ %><span class="badge badge-pending">Pending</span>
+                        <% } else if(a.status==='approved'){ %><span class="badge badge-done">Approved</span>
+                        <% } else if(a.status==='sold'){ %><span class="badge" style="background:rgba(148,163,184,.15);color:#94a3b8;border:1px solid rgba(148,163,184,.3)">Terjual</span>
+                        <% } else { %><span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)">Ditolak</span><% } %>
+                    </div>
+                    <div class="text-sm font-semibold text-white mt-0.5 truncate"><%= a.title %></div>
+                    <div class="text-[10px] text-zinc-500 mt-0.5">Penjual: <span class="text-zinc-300"><%= a.sellerName %></span> · WA: <span class="text-zinc-300"><%= a.sellerWa %></span></div>
+                    <div class="text-emerald-400 font-bold text-xs mt-1">Rp <%= (a.price||0).toLocaleString('id-ID') %></div>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-3">
+                <% if(a.status==='pending'){ %>
+                <button onclick="moderateAkun('<%= a.id %>','approve')" class="btn-success py-1 px-3 text-[10px]"><iconify-icon icon="mdi:check-circle"></iconify-icon> Approve</button>
+                <button onclick="moderateAkun('<%= a.id %>','reject')" class="btn-danger py-1 px-3 text-[10px]"><iconify-icon icon="mdi:close-circle"></iconify-icon> Reject</button>
+                <% } %>
+                <% if(a.status==='approved'){ %>
+                <button onclick="moderateAkun('<%= a.id %>','sold')" class="py-1 px-3 text-[10px] rounded-lg font-bold bg-white/5 border border-white/10 text-zinc-300"><iconify-icon icon="mdi:tag-check"></iconify-icon> Tandai Terjual</button>
+                <% } %>
+                <button onclick="moderateAkun('<%= a.id %>','delete')" class="btn-danger py-1 px-3 text-[10px]"><iconify-icon icon="mdi:trash-can"></iconify-icon></button>
+            </div>
+        </div>
+        <% }) %>
+        <% if(!accounts || !accounts.length){ %>
+        <p style="text-align:center;color:#71717a;padding:40px 0;font-size:12px;">Belum ada listing akun yang masuk.</p>
+        <% } %>
+    </div>
 </div>
 
 <!-- ── TESTIMONI ── -->
@@ -1334,6 +1394,11 @@ textarea.hm-input, textarea.form-input { color: #eef1f4 !important; }
         <iconify-icon icon="mdi:account-group" class="n-icon"></iconify-icon>
         <span class="n-label">Users</span>
     </div>
+    <div class="nav-btn" id="nav-akun" onclick="switchTab('akun')" style="position:relative">
+        <iconify-icon icon="mdi:account-key" class="n-icon"></iconify-icon>
+        <span class="n-label">Jual Akun</span>
+        <% if(accounts && accounts.filter(a=>a.status==='pending').length>0){ %><div class="nav-dot"></div><% } %>
+    </div>
     <div class="nav-btn" id="nav-keys" onclick="switchTab('keys')">
         <iconify-icon icon="mdi:key-chain" class="n-icon"></iconify-icon>
         <span class="n-label">Keys</span>
@@ -1913,6 +1978,30 @@ async function deleteTransaction(id) {
         toast('Transaksi dihapus', 'warn');
         const card = document.querySelector(`[data-trx-id="${id}"]`);
         if (card) { card.style.transition='opacity .3s'; card.style.opacity='0'; setTimeout(()=>card.remove(),300); }
+    } else toast(d.message, 'error');
+}
+
+// ── JUAL BELI AKUN ──
+function filterAkun(status) {
+    document.querySelectorAll('.akun-filter').forEach(b => { b.classList.remove('bg-blue-500/20','text-blue-300'); b.classList.add('bg-white/3','text-zinc-500'); });
+    document.getElementById('akunf-'+status).classList.add('bg-blue-500/20','text-blue-300');
+    document.querySelectorAll('.akun-item').forEach(item => {
+        item.style.display = (status === 'all' || item.dataset.status === status) ? '' : 'none';
+    });
+}
+async function moderateAkun(id, action) {
+    if (action === 'delete' && !confirm('Hapus listing akun ini permanen?')) return;
+    if (action === 'reject' && !confirm('Tolak listing akun ini?')) return;
+    if (action === 'sold' && !confirm('Tandai akun ini sudah terjual?')) return;
+    const d = await api(`/admin/akun/${action}/${id}`, {});
+    if (d.success) {
+        toast(d.message, action === 'reject' || action === 'delete' ? 'warn' : 'success');
+        if (action === 'delete') {
+            const card = document.querySelector(`[data-akun-id="${id}"]`);
+            if (card) { card.style.transition='opacity .3s'; card.style.opacity='0'; setTimeout(()=>card.remove(),300); }
+        } else {
+            location.reload(); // status berubah -- reload biar badge & filter tetap konsisten
+        }
     } else toast(d.message, 'error');
 }
 

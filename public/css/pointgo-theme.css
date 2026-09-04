@@ -6,22 +6,31 @@
    pixel-perfect, TAPI warna aksen diganti biru (var(--accent), brand
    FranzzStore) menggantikan lime green asli PointGo. Nama variabel
    CSS tetap --accent (bukan --lime) supaya jelas ini sudah di-rebrand.
-   ══════════════════════════════════════════════════════════════ */
 
+   UPDATE (3 Sep 2026, diminta user): palet lama (--accent biru #2F6FED)
+   kelihatan flat/kurang "energi" dibanding PointGo asli yang kontrasnya
+   tinggi (lime neon + oranye terang di atas panel gelap pekat). Diganti
+   ke cyan-electric neon supaya tetap BEDA warna dari PointGo (bukan niru
+   hijau mereka persis) tapi level kontras & "gamer energy"-nya setara --
+   accent lebih terang, background lebih gelap/pekat, dan --accent-2
+   (oranye/kuning) ditambah sebagai warna kedua untuk badge/ribbon,
+   persis pola PointGo yang pakai 2 warna aksen (lime + oranye) bukan 1. */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg: #121212;
-  --bg-soft: #151517;
-  --panel: #1b1b1e;
-  --panel-soft: #18181a;
-  --line: #2a2a2e;
-  --accent: #2F6FED;
-  --accent-dim: #1d4ed8;
-  --orange: #f08313;
+  --bg: #0c0d10;
+  --bg-soft: #101115;
+  --panel: #16171c;
+  --panel-soft: #131419;
+  --line: #26272e;
+  --accent: #00e5ff;
+  --accent-dim: #00b8cc;
+  --accent-2: #ff8a00;
+  --orange: #ff8a00;
   --text: #f4f6f8;
   --muted: #8e9299;
-  --red: #ff4d5e;
+  --red: #ff3b5c;
+  --green: #2ee66b;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
@@ -51,7 +60,24 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 /* ══════════════════════════════════════════════════════════════
    HEADER
    ══════════════════════════════════════════════════════════════ */
-.site-header { position: sticky; top: 0; z-index: 30; background: var(--panel-soft); box-shadow: 0 5px 18px rgba(0,0,0,0.5); }
+/* FIX BUG UI (dilaporkan user 3 Sep 2026): header sebelumnya position:sticky,
+   tapi html/body punya overflow-x:hidden (buat nahan scroll horizontal) --
+   kombinasi ini terkenal bikin position:sticky gagal nempel di banyak browser
+   Android/Chrome mobile (overflow non-visible di ancestor mengganggu
+   perhitungan containing-block buat sticky). position:fixed jauh lebih kebal
+   dari masalah ini karena selalu dihitung relatif ke viewport, bukan ke
+   ancestor mana pun (selama tidak ada transform/filter/will-change di
+   ancestor -- sudah dicek, tidak ada). Body dikasih padding-top pengganti
+   tinggi header supaya konten gak ketutup begitu header lepas dari alur
+   dokumen normal. */
+.site-header { position: fixed; top: 0; left: 0; right: 0; width: 100%; z-index: 30; background: var(--panel-soft); box-shadow: 0 5px 18px rgba(0,0,0,0.5); }
+/* padding-top DIBATASI hanya ke halaman yang benar-benar punya .site-header
+   (pakai :has()) -- pointgo-theme.css juga dipakai halaman lain (login,
+   admin, complete-profile) yang TIDAK punya header ini, jadi kalau
+   padding-top dipasang tanpa syarat, halaman-halaman itu ikut kedorong ke
+   bawah tanpa alasan. */
+body:has(.site-header) { padding-top: 113px; } /* header-top 74px + site-nav 39px (desktop) */
+@media (max-width: 900px) { body:has(.site-header) { padding-top: 60px; } } /* site-nav disembunyikan di mobile -- lihat media query header-top di bawah */
 .header-top { height: 74px; display: flex; align-items: center; gap: 28px; padding: 0 2.2%; max-width: 1180px; margin: 0 auto; }
 .pointgo-logo { display: flex; align-items: center; gap: 10px; min-width: 125px; font-size: 20px; font-weight: 900; letter-spacing: .02em; }
 .pointgo-logo b { font-size: 22px; font-style: italic; border: 3px solid #fff; border-radius: 6px; padding: 0 3px; line-height: 1.3; }
@@ -102,40 +128,126 @@ nav.site-nav .green { color: var(--accent); }
 /* ══════════════════════════════════════════════════════════════
    CAROUSEL (Hero)
    ══════════════════════════════════════════════════════════════ */
-/* ══ CAROUSEL (Swiper center mode) ══ */
-#pg-carousel { padding: 24px 0 40px; }
-.swiper-slide { width: 72vw; max-width: 420px; border-radius: 16px; overflow: hidden; opacity: 0.45; transition: opacity 0.4s ease, transform 0.4s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
-.swiper-slide-active { opacity: 1; transform: scale(1.04); box-shadow: 0 16px 44px rgba(0,0,0,0.5); }
-.swiper-slide img { width: 100%; height: 200px; object-fit: cover; display: block; }
+/* ══ CAROUSEL (full-width flat slider, ala PointGo) ══
+   FIX (diminta user 3 Sep 2026): sebelumnya pakai "center mode" —
+   slide menyempit (72vw/50vw/36vw) dengan opacity 0.45 + scale(1.04)
+   di slide aktif, plus background garis diagonal biru sebagai dekorasi.
+   Efeknya banner keliatan miring/kepotong dan norak dibanding referensi
+   PointGo yang bannernya FULL WIDTH, flat, tanpa scale/tilt effect,
+   dan tanpa pattern dekoratif -- cuma satu gambar landscape penuh di
+   dalam container. Diganti total ke pola itu. */
+.hero-decor {
+  padding-top: 4px;
+}
+.hero-decor #pg-carousel { position: relative; max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+.hero-slide-caption {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 28px 16px 14px;
+  background: linear-gradient(0deg, rgba(0,0,0,.82) 0%, rgba(0,0,0,.35) 55%, transparent 100%);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.hero-slide-caption strong { font-size: 15px; font-weight: 800; color: #fff; line-height: 1.25; }
+.hero-slide-caption span { font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+.hero-slide-fallback {
+  height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+}
+.hero-slide-fallback img { height: 46px; width: auto; }
+.hero-slide-fallback span { font-size: 12.5px; font-weight: 700; color: var(--muted); letter-spacing: .02em; }
+#pg-carousel { padding: 16px 0 32px; }
+/* Slide sekarang full-width (bukan lebar parsial di tengah), rata dan flat --
+   tidak ada scale/opacity transform, cuma fade antar slide via Swiper. */
+.swiper-slide { width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+.swiper-slide img { width: 100%; height: 180px; object-fit: cover; display: block; }
 .swiper-pagination { bottom: 8px !important; }
 .swiper-pagination-bullet { width: 7px; height: 7px; background: rgba(255,255,255,0.35); opacity: 1; transition: all 0.25s ease; }
 .swiper-pagination-bullet-active { width: 20px; border-radius: 999px; background: var(--accent); }
-@media (min-width: 640px) { .swiper-slide { width: 50vw; } .swiper-slide img { height: 260px; } }
-@media (min-width: 900px) { .swiper-slide { width: 36vw; max-width: 480px; } .swiper-slide img { height: 300px; } }
+@media (min-width: 640px) { .hero-slide-fallback { height: 260px; } .swiper-slide img { height: 260px; } }
+@media (min-width: 900px) { .hero-slide-fallback { height: 320px; } .swiper-slide img { height: 320px; } }
 
 /* ══════════════════════════════════════════════════════════════
    FLASH DEAL
    ══════════════════════════════════════════════════════════════ */
 .flash { padding: 32px 16px 8px; max-width: 1180px; margin: 0 auto; }
 .flash-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.flash-title h1 { font-size: 22px; color: var(--accent); letter-spacing: .08em; font-weight: 900; }
+/* FIX UI (3 Sep 2026): sebelumnya 22px reguler -- dibesarkan + italic +
+   glow biar senada sama referensi pointgo.id (heading Flash Deal di sana
+   jauh lebih tebal/mencolok). Icon petir juga dibesarkan & dikasih
+   drop-shadow warna aksen supaya gak keliatan flat. */
+.flash-title h1 { font-size: 28px; font-style: italic; color: var(--accent); letter-spacing: .04em; font-weight: 900; text-shadow: 0 0 22px rgba(0,229,255,.5); display: flex; align-items: center; gap: 8px; }
+.flash-title h1 iconify-icon { font-size: 24px; filter: drop-shadow(0 0 8px var(--accent)); }
 .flash-title strong { background: var(--panel); color: #fff; font-size: 13px; padding: 8px 14px; border-radius: 999px; font-variant-numeric: tabular-nums; }
-.deal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+/* Grid flash-deal card (3 Sep 2026, diminta user): PointGo pakai 2 kolom
+   compact di mobile (bukan 3 kolom sempit / 1 kolom raksasa), card lebih
+   pendek dan padat. Disamakan ke 2 kolom di layar kecil, naik ke lebih
+   banyak kolom di layar lebar. */
+.deal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (min-width: 640px) { .deal-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 900px) { .deal-grid { grid-template-columns: repeat(6, 1fr); } }
-.deal { position: relative; background: var(--panel); border-radius: var(--radius-md); transition: transform .15s ease; }
-.deal:hover { transform: translateY(-3px); }
-.deal-image { position: relative; height: 150px; border-radius: var(--radius-md) var(--radius-md) 0 0; overflow: hidden; }
+.deal {
+  position: relative; background: var(--panel); border-radius: var(--radius-md);
+  border: 1px solid var(--line); overflow: hidden;
+  transition: transform .15s ease, border-color .15s ease;
+}
+.deal:hover { transform: translateY(-3px); border-color: var(--accent-dim); }
+/* Gambar produk (3 Sep 2026): rasio landscape lebih pendek (dulu 150px
+   kotak-ish), senada proporsi card PointGo yang lebih pendek/wide. */
+.deal-image { position: relative; height: 108px; overflow: hidden; }
 .deal-image img { width: 100%; height: 100%; object-fit: cover; }
-.deal-image span { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.65); color: #fff; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 5px; }
-.deal-logo { position: absolute; top: -12px; left: -12px; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--bg); object-fit: cover; z-index: 3; box-shadow: 0 4px 12px rgba(0,0,0,0.4); background: var(--panel); }
-.deal-body { padding: 10px 12px 14px; }
-.deal-body small, .deal-body strong, .deal-body del { display: block; }
-.deal-body small { color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
-.deal-body strong { font-size: 11.5px; line-height: 1.3; margin-bottom: 6px; min-height: 2.4em; }
-.deal-body del { color: var(--muted); font-size: 10px; }
-.deal-body b { color: var(--accent); font-size: 13px; }
-.deal-body div { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
-.deal-body em { font-style: normal; color: var(--orange); font-size: 8px; font-weight: 800; background: rgba(240,131,19,0.15); padding: 2px 6px; border-radius: 4px; }
+/* Badge "Terjual X" -- ribbon miring nempel sudut kiri-atas GAMBAR (bukan
+   pil melayang di luar card), ala badge "TERSISA: 20" PointGo. Warna pakai
+   --accent (bukan hitam transparan) biar lebih "nyala"/energik. */
+.deal-image span {
+  position: absolute; top: 0; left: 0;
+  background: var(--accent); color: #06222a;
+  font-size: 9px; font-weight: 800; letter-spacing: .01em;
+  padding: 3px 10px 3px 8px; border-radius: 0 0 8px 0; z-index: 2;
+}
+/* Logo/icon game (3 Sep 2026, FIX diminta user): sebelumnya position
+   top:-12px/left:-12px -- nongol KELUAR dari card (avatar bulat melayang
+   di luar batas kartu). PointGo naruh logo game DI DALAM area gambar,
+   pojok kiri-atas, tanpa nongol keluar batas card sama sekali. Diposisikan
+   ulang jadi inset di dalam .deal-image, kotak rounded (bukan bulat) biar
+   makin mirip referensi. */
+.deal-logo {
+  position: absolute; top: 6px; left: 6px; width: 28px; height: 28px;
+  border-radius: 7px; border: 1.5px solid rgba(255,255,255,.25);
+  object-fit: cover; z-index: 3; box-shadow: 0 3px 8px rgba(0,0,0,.5);
+  background: var(--panel);
+}
+/* Ribbon segitiga diskon pojok kanan-atas (ala PointGo "-16%") */
+.deal-ribbon {
+  position: absolute; top: 0; right: 0; width: 56px; height: 56px;
+  overflow: hidden; z-index: 3; pointer-events: none;
+}
+.deal-ribbon span {
+  position: absolute; top: 10px; right: -20px; width: 80px;
+  transform: rotate(45deg); text-align: center;
+  background: var(--red); color: #fff;
+  font-size: 9px; font-weight: 800; letter-spacing: .02em;
+  padding: 3px 0; box-shadow: 0 2px 6px rgba(0,0,0,.35);
+}
+.deal-body { padding: 8px 10px 10px; }
+.deal-body small, .deal-body strong { display: block; }
+.deal-body small { color: var(--muted); font-size: 9px; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; }
+.deal-body strong { font-size: 11px; line-height: 1.3; margin-bottom: 6px; min-height: 2.2em; color: var(--text); font-weight: 700; }
+/* Blok harga (3 Sep 2026, FIX diminta user — "ui harga beda banget"):
+   PointGo nampilin DUA baris: harga lama dicoret kecil di atas, harga
+   final BESAR & HIJAU NEON di bawah, plus badge oranye kecil "FLASH DEAL"
+   di ujung kanan baris harga final. Sebelumnya cuma 1 baris harga polos
+   warna accent. Markup baru (lihat home.ejs): .deal-price membungkus
+   <del> (harga coret, opsional) + .deal-price-row (harga final + badge). */
+.deal-price { display: block; }
+.deal-price del { display: block; color: var(--muted); font-size: 10px; text-decoration: line-through; margin-bottom: 1px; }
+.deal-price-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.deal-price-row b { color: var(--green); font-size: 13.5px; font-weight: 800; letter-spacing: -.01em; }
+.deal-flash-badge {
+  display: flex; align-items: center; gap: 2px;
+  background: var(--accent-2); color: #2a1400;
+  font-size: 8px; font-weight: 800; letter-spacing: .01em;
+  padding: 3px 6px; border-radius: 5px; white-space: nowrap;
+}
+.deal-flash-badge iconify-icon { font-size: 10px; }
 
 /* ══════════════════════════════════════════════════════════════
    GAME STRIP / GRID
@@ -371,7 +483,8 @@ table.pg-table th { color: var(--muted); font-size: 10.5px; text-transform: uppe
   .search { flex: 1; min-width: 0; padding: 0 12px; gap: 8px; }
   .header-icon-btn { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); color: #fff; }
   nav.site-nav { display: none; }
-  .flash-title h1 { font-size: 17px; }
+  .flash-title h1 { font-size: 21px; }
+  .flash-title h1 iconify-icon { font-size: 19px; }
   .deal-grid { grid-template-columns: repeat(2,1fr); }
   .game-hero { height: auto; min-height: 200px; padding: 20px 16px; flex-direction: column; align-items: flex-start; gap: 12px; text-align: left; }
   .game-hero > img { width: 70px; height: 70px; }
