@@ -3504,6 +3504,88 @@ app.get('/admin/migrate-seed', async (req, res) => {
   }
 });
 
+// ══ Reset kredensial admin langsung dari Vercel (4 Sep 2026, diminta user) ══
+// Porting logic reset-admin.js jadi endpoint HTTP -- dipakai kalau user gak
+// punya Node.js di lokal buat jalanin `node reset-admin.js`. Pola akses
+// SAMA PERSIS dengan /admin/migrate-seed: proteksi SETUP_SECRET (env var
+// Vercel), akses lewat browser, HAPUS SETUP_SECRET setelah selesai.
+//
+// Bedanya endpoint ini nerima username & password BARU lewat query string
+// juga (?username=...&password=...) -- karena itu WAJIB diakses HANYA
+// sekali lalu URL-nya jangan disimpan di riwayat browser/dishare, dan
+// SETUP_SECRET harus dihapus dari env Vercel segera setelah dipakai
+// (persis prosedur yang sama seperti /admin/migrate-seed).
+//
+// Endpoint ini HANYA update field adminUsername + adminPassword (hash
+// bcrypt) di settings.json -- tidak menyentuh data lain (produk, user,
+// transaksi, dll), sama seperti reset-admin.js aslinya.
+app.get('/admin/reset-admin', async (req, res) => {
+  const secret = process.env.SETUP_SECRET;
+  if (!timingSafeStringEqual(req.query.secret, secret)) {
+    return res.status(403).send('<pre>❌ Akses ditolak. Set SETUP_SECRET di env Vercel, lalu akses /admin/reset-admin?secret=SETUP_SECRET_KAMU&username=USERNAME_BARU&password=PASSWORD_BARU</pre>');
+  }
+
+  const { username, password } = req.query;
+  if (!username || !password) {
+    return res.status(400).send('<pre>❌ Wajib isi username dan password.\nContoh: /admin/reset-admin?secret=SETUP_SECRET_KAMU&username=admin&password=passwordBaru123</pre>');
+  }
+  if (String(password).length < 8) {
+    return res.status(400).send('<pre>❌ Password minimal 8 karakter demi keamanan.</pre>');
+  }
+
+  const client = db.getClient();
+  if (!client) {
+    return res.status(500).send('<pre>Supabase belum terkonfigurasi (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY belum di-set di env Vercel).</pre>');
+  }
+
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.write('Reset kredensial admin...\n\n');
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+
+  try {
+    // 1. Ambil settings existing (biar field lain gak ketimpa)
+    const current = (await db.readFresh('settings.json')) || {};
+    res.write(`Username lama: ${current.adminUsername || '(belum ada)'}\n`);
+
+    // 2. Hash password baru
+    res.write('Hashing password baru...\n');
+    const newHash = await bcrypt.hash(String(password), 12);
+
+    // 3. Verifikasi hash sebelum simpan
+    const verifyOk = await bcrypt.compare(String(password), newHash);
+    if (!verifyOk) {
+      res.write('❌ Hash verification gagal! Dibatalkan, tidak ada yang disimpan.\n');
+      return res.end();
+    }
+    res.write('✅ Hash password OK\n');
+
+    // 4. Update HANYA adminUsername + adminPassword
+    const updatedSettings = { ...current, adminUsername: String(username), adminPassword: newHash };
+    await db.writeDB('settings.json', updatedSettings);
+
+    // 5. Verifikasi ulang dari Supabase (bukan dari cache lokal)
+    const saved = await db.readFresh('settings.json');
+    const finalVerify = await bcrypt.compare(String(password), saved?.adminPassword || '');
+
+    if (!finalVerify) {
+      res.write('❌ GAGAL: password yang tersimpan tidak match. Coba lagi.\n');
+      return res.end();
+    }
+
+    res.write('\n🎉 BERHASIL! Kredensial admin sudah diupdate.\n');
+    res.write(`   Username: ${username}\n`);
+    res.write('   Password: (sesuai yang barusan kamu masukkan di URL)\n\n');
+    res.write('📌 Langkah selanjutnya:\n');
+    res.write('   1. Buka /vpr-secure-panel-8x lalu login pakai kredensial di atas.\n');
+    res.write('   2. HAPUS SETUP_SECRET dari environment variables Vercel sekarang juga.\n');
+    res.write('   3. Setelah login, disarankan ganti password lagi lewat Admin Panel → Settings.\n');
+    res.end();
+  } catch (err) {
+    res.write('\n❌ Gagal: ' + err.message + '\n');
+    res.end();
+  }
+});
+
 app.get('/admin', requireAdmin, async (req, res) => {
   // ── FIX: readFresh() bypass cache per-instance Vercel ──
   // Sebelumnya pakai readDB (cache lokal tiap instance), jadi setelah
