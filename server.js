@@ -82,9 +82,21 @@ const PORT = process.env.PORT || 3000;
 // break functionality, TAPI header lain (X-Frame-Options: SAMEORIGIN,
 // X-Content-Type-Options: nosniff, Strict-Transport-Security, dll) tetap
 // aktif dan itu yang paling penting buat sekarang.
+//
+// FIX BUG (4 Sep 2026): helmet() default set Referrer-Policy: no-referrer,
+// yang bikin browser BERHENTI kirim header Referer di semua navigasi --
+// termasuk pas submit form login (/login, /vpr-secure-panel-8x, /register).
+// Itu bentrok langsung sama CSRF Origin/Referer check di bawah (yang
+// nolak request tanpa Origin/Referer sama sekali), jadi semua orang gagal
+// login dengan pesan "Origin tidak valid." walau login dari web sendiri.
+// Diganti ke 'same-origin' -- browser tetap kirim Referer untuk request
+// SESAMA domain (yang justru dibutuhkan CSRF check di bawah), tapi tetap
+// TIDAK kirim Referer ke situs lain kalau ada link keluar (privasi tetap
+// terjaga, cuma dibatasi ke same-origin bukan no-referrer total).
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
+  referrerPolicy: { policy: 'same-origin' },
 }));
 
 // ══ AUDIT KEAMANAN 3 Sep 2026: rate limiting global ══
