@@ -118,6 +118,19 @@ const noIndex = true; // halaman admin, jangan di-index Google
                     Ambil alih sesi ini, logout paksa perangkat lain
                 </label>
                 <% } %>
+
+                <!-- Cloudflare Turnstile (audit 3 Sep 2026, diminta user): login
+                     admin sebelumnya SAMA SEKALI gak ada captcha, padahal ini
+                     endpoint paling kritis buat brute-force. Pola persis sama
+                     dengan login.ejs supaya konsisten. -->
+                <% if (typeof turnstileSiteKey !== 'undefined' && turnstileSiteKey) { %>
+                <div class="pg-field">
+                    <div style="border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;justify-content:center;">
+                        <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-theme="dark" data-size="flexible"></div>
+                    </div>
+                </div>
+                <% } %>
+
                 <button type="submit" class="pg-btn pg-btn-primary pg-btn-block" style="width:100%;background:var(--accent);border:1px solid rgba(47,111,237,.5);color:#08130a;">
                     <iconify-icon icon="mdi:lock-open-outline"></iconify-icon>
                     Masuk ke Panel Admin
@@ -132,5 +145,8 @@ const noIndex = true; // halaman admin, jangan di-index Google
         </div>
     </div>
 </div>
+<% if (typeof turnstileSiteKey !== 'undefined' && turnstileSiteKey) { %>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<% } %>
 </body>
 </html>

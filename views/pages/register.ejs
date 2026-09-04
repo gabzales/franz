@@ -108,6 +108,14 @@ const pageTitle = 'Daftar';
           <p id="confirm-msg" class="hidden" style="font-size:10px;margin-top:6px;margin-left:2px;"></p>
         </div>
 
+        <% if (turnstileSiteKey) { %>
+        <div class="pg-field">
+          <div style="border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;justify-content:center;">
+            <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-theme="dark" data-size="flexible"></div>
+          </div>
+        </div>
+        <% } %>
+
         <button type="submit" class="pg-btn pg-btn-primary pg-btn-block"
                 style="padding:13px 22px;border-radius:8px;color:#fff;">
           <iconify-icon icon="mdi:account-check" style="font-size:16px;"></iconify-icon>
@@ -180,5 +188,8 @@ function validateRegister(e) {
   return true;
 }
 </script>
+<% if (turnstileSiteKey) { %>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<% } %>
 </body>
 </html>

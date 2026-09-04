@@ -1580,7 +1580,7 @@ app.post('/login', authLimiter, async (req, res) => {
 
 app.get('/register', (req, res) => {
   if (req.session?.userId) return res.redirect('/');
-  res.render('pages/register', { error: null });
+  res.render('pages/register', { error: null, turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null });
 });
 
 // ══════════════════════════════════════════════════════════════════
@@ -1696,31 +1696,48 @@ app.post('/register', async (req, res) => {
   // per IP) karena registrasi akun itu action yang jarang dilakukan
   // berkali-kali oleh user normal dalam waktu singkat.
   if (!checkApiRateLimit(req.ip, 5, 15 * 60 * 1000)) {
-    return res.render('pages/register', { error: 'Terlalu banyak percobaan pendaftaran. Coba lagi dalam beberapa menit.' });
+    return res.render('pages/register', { error: 'Terlalu banyak percobaan pendaftaran. Coba lagi dalam beberapa menit.', turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null });
   }
+
+  // FIX KEAMANAN (audit 3 Sep 2026, diminta user): sebelumnya halaman
+  // register SAMA SEKALI gak ada Turnstile -- cuma diproteksi rate limit
+  // per-IP (yang gampang dilewati pakai proxy/residential IP rotator).
+  // Ditambahkan verifikasi di posisi paling awal, sebelum baca field
+  // form apapun, biar bot ditolak lebih dini.
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    const token = req.body['cf-turnstile-response'];
+    if (!token) {
+      return res.render('pages/register', { error: 'Verifikasi keamanan diperlukan. Mohon selesaikan captcha.', turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null });
+    }
+    const valid = await verifyTurnstile(token);
+    if (!valid) {
+      return res.render('pages/register', { error: 'Verifikasi keamanan gagal. Coba lagi.', turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null });
+    }
+  }
+
   const { username, password, confirmPassword, wa } = req.body;
 
   if (!username || !password || !wa) {
-    return res.render('pages/register', { error: 'Semua field wajib diisi' });
+    return res.render('pages/register', { error: 'Semua field wajib diisi', turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null });
   }
 
   const pwError = validatePasswordStrength(password);
   if (pwError) {
-    return res.render('pages/register', { error: pwError });
+    return res.render('pages/register', { error: pwError, turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null });
   }
 
   if (confirmPassword && password !== confirmPassword) {
-    return res.render('pages/register', { error: 'Konfirmasi password tidak cocok' });
+    return res.render('pages/register', { error: 'Konfirmasi password tidak cocok', turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null });
   }
 
   if (username === 'Abdurahman Mulvi') {
-    return res.render('pages/register', { error: 'Username tidak diizinkan' });
+    return res.render('pages/register', { error: 'Username tidak diizinkan', turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null });
   }
 
   const users = readDB('users.json');
 
   if (users.find(u => u.username === username)) {
-    return res.render('pages/register', { error: 'Username sudah digunakan' });
+    return res.render('pages/register', { error: 'Username sudah digunakan', turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -1808,7 +1825,8 @@ app.get('/vpr-secure-panel-8x', (req, res) => {
   res.render('pages/admin-login', {
     error: kicked ? 'Anda logout otomatis karena ada login admin dari perangkat lain.' : null,
     lockedInfo: null,
-    username: ''
+    username: '',
+    turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null,
   });
 });
 
@@ -1818,9 +1836,39 @@ app.post('/vpr-secure-panel-8x', authLimiter, async (req, res) => {
   if (blocked) {
     return res.render('pages/admin-login', {
       error: `Terlalu banyak percobaan. Coba lagi dalam ${wait} menit.`,
-      lockedInfo: null, username: ''
+      lockedInfo: null, username: '',
+      turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null,
     });
   }
+
+  // ── FIX KEAMANAN (audit 3 Sep 2026): login admin sebelumnya SAMA SEKALI
+  // tidak diverifikasi Turnstile -- padahal ini target paling berharga
+  // buat bot brute-force (kalau tembus, penyerang dapat akses PENUH ke
+  // seluruh toko: saldo semua user, produk, dsb). checkLoginBlocked/
+  // authLimiter di atas cuma membatasi KECEPATAN percobaan per-IP, bukan
+  // membedakan bot vs manusia -- bot yang pakai banyak IP/residential
+  // proxy tetap bisa jalan terus tanpa captcha ini. Ditambahkan di posisi
+  // PALING AWAL (sebelum baca username/password) supaya bot yang gak
+  // punya token ditolak lebih dini, sebelum sempat mencoba kredensial. */
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    const token = req.body['cf-turnstile-response'];
+    if (!token) {
+      return res.render('pages/admin-login', {
+        error: 'Verifikasi keamanan diperlukan. Mohon selesaikan captcha.',
+        lockedInfo: null, username: '',
+        turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null,
+      });
+    }
+    const valid = await verifyTurnstile(token);
+    if (!valid) {
+      return res.render('pages/admin-login', {
+        error: 'Verifikasi keamanan gagal. Coba lagi.',
+        lockedInfo: null, username: '',
+        turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null,
+      });
+    }
+  }
+
   const { username, password, forceTakeover } = req.body;
 
   // ── FIX: readFresh() ambil langsung dari Supabase, bypass cache ──
@@ -1830,7 +1878,8 @@ app.post('/vpr-secure-panel-8x', authLimiter, async (req, res) => {
   if (!settings || !settings.adminUsername) {
     return res.render('pages/admin-login', {
       error: 'Konfigurasi admin belum tersedia. Coba beberapa saat lagi.',
-      lockedInfo: null, username: ''
+      lockedInfo: null, username: '',
+      turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null,
     });
   }
 
@@ -1847,7 +1896,8 @@ app.post('/vpr-secure-panel-8x', authLimiter, async (req, res) => {
           lockedInfo: {
             device: currentLock.device || 'Perangkat tidak diketahui',
             minutesAgo
-          }
+          },
+          turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null,
         });
       }
       await clearLoginFail(ip);
@@ -1863,7 +1913,8 @@ app.post('/vpr-secure-panel-8x', authLimiter, async (req, res) => {
     error: remaining > 0
       ? `Username atau password salah. Sisa percobaan: ${remaining}`
       : 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.',
-    lockedInfo: null, username: ''
+    lockedInfo: null, username: '',
+    turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null,
   });
 });
 
