@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lengkapi Profil</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <link rel="stylesheet" href="/css/pointgo-theme.css">
+  <script>
+    window.IconifyPreload = <%- iconBundle %>;
+  </script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+  <style>.hidden { display: none !important; }</style>
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-art"></div>
+  <div class="auth-form-wrap">
+    <div class="auth-form-card">
+
+      <div class="auth-head">
+        <div class="auth-logo">
+          <% if (settings?.logoUrl) { %>
+          <img src="<%= settings.logoUrl %>" alt="Logo" style="height:40px;width:auto;object-fit:contain;">
+          <% } else { %>
+          <div style="width:44px;height:44px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;">
+            <iconify-icon icon="mdi:account-check" style="color:#08130a;font-size:24px;"></iconify-icon>
+          </div>
+          <% } %>
+        </div>
+        <h1 class="auth-title">Satu langkah lagi!</h1>
+        <p class="auth-sub">Selamat datang, <%= user?.username || '' %>! Isi nomor WhatsApp kamu untuk menerima notifikasi key &amp; transaksi.</p>
+      </div>
+
+      <div id="errBox" class="pg-auth-error hidden">
+        <iconify-icon icon="mdi:alert-circle" style="flex-shrink:0;"></iconify-icon>
+        <span id="errText"></span>
+      </div>
+
+      <form id="cpForm">
+        <div class="pg-field">
+          <label class="pg-field-label" for="wa">No. WhatsApp</label>
+          <div class="pg-input-wrap">
+            <span class="pg-input-icon"><iconify-icon icon="mdi:whatsapp" style="color:var(--accent);"></iconify-icon></span>
+            <input type="tel" id="wa" name="wa" required class="pg-input" placeholder="08xxxxxxxxxx" pattern="[0-9]+" maxlength="15" autofocus>
+          </div>
+          <p style="font-size:10.5px;color:var(--muted);margin-top:8px;line-height:1.5;">Format: 08xxx atau 628xxx. Dipakai untuk kirim key &amp; notifikasi transaksi.</p>
+        </div>
+
+        <button type="submit" id="cpBtn" class="pg-btn pg-btn-primary pg-btn-block" style="padding:14px;font-size:14px;">
+          <iconify-icon icon="mdi:check-circle" style="font-size:18px;"></iconify-icon>
+          <span>Lanjutkan</span>
+        </button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('cpForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('cpBtn');
+    const errBox = document.getElementById('errBox');
+    const errText = document.getElementById('errText');
+    errBox.classList.add('hidden');
+    btn.disabled = true;
+    const fd = new FormData(this);
+    try {
+        const res = await fetch('/complete-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ wa: fd.get('wa') }) });
+        const data = await res.json();
+        if (data.success) {
+            window.location.href = '/';
+        } else {
+            errText.textContent = data.message || 'Gagal menyimpan';
+            errBox.classList.remove('hidden');
+            btn.disabled = false;
+        }
+    } catch (err) {
+        errText.textContent = 'Koneksi error: ' + err.message;
+        errBox.classList.remove('hidden');
+        btn.disabled = false;
+    }
+});
+</script>
+</body>
+</html>

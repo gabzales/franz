@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<%
+/*
+  FranzzStore — Homepage (rewrite total, 1 Sep 2026)
+  UI di-porting dari referensi desain poingoanj (Next.js clone PointGo.id)
+  ke EJS. Backend/data TETAP dari server.js gpay-main yang sudah ada --
+  file ini HANYA presentasi, semua variabel (products, settings, dst)
+  datang dari route asli, tidak ada logic baru di sini.
+*/
+const pageTitle = settings?.siteName || 'FranzzStore';
+
+// Produk dengan _displaySold > 0 (atau fallback ke semua produk kalau
+// belum ada yang laku) -- lihat catatan lengkap fix 31 Agu 2026 di bawah.
+const productsWithSold = products
+  .map(p => ({ ...p, _displaySold: (p.fakeSold != null ? p.fakeSold : (p.sold || 0)) }))
+  .filter(p => p._displaySold > 0)
+  .sort((a, b) => b._displaySold - a._displaySold);
+const flashDeals = (productsWithSold.length > 0 ? productsWithSold : products.map(p => ({ ...p, _displaySold: p.fakeSold != null ? p.fakeSold : (p.sold || 0) })))
+  .slice(0, 6);
+
+function formatRp(n) { return 'Rp' + n.toLocaleString('id-ID'); }
+function lowestPrice(p) {
+  if (Array.isArray(p.pricingOptions) && p.pricingOptions.length) return Math.min(...p.pricingOptions.map(o => o.price));
+  if (Array.isArray(p.items) && p.items.length) return Math.min(...p.items.map(i => i.p));
+  return 0;
+}
+// Persentase diskon buat ribbon segitiga di flash deal card (ala PointGo
+// "-16%") -- ditambahkan 3 Sep 2026, diminta user. Dihitung dari
+// strike_price (harga coret per opsi) vs harga jual terendah yang sedang
+// ditampilkan; kalau produk gak punya strike_price di opsi manapun,
+// discountPct null dan ribbon-nya gak dirender sama sekali.
+function discountPct(p) {
+  const opts = Array.isArray(p.pricingOptions) ? p.pricingOptions : (Array.isArray(p.items) ? p.items : []);
+  const withStrike = opts.filter(o => (o.strike_price || o.strikePrice) > (o.price || o.p));
+  if (!withStrike.length) return null;
+  const o = withStrike[0];
+  const strike = o.strike_price || o.strikePrice;
+  const price = o.price || o.p;
+  return Math.round(((strike - price) / strike) * 100);
+}
+// Harga coret (strike_price) buat ditampilkan sebagai <del> di atas harga
+// final -- ala PointGo (lihat .deal-price di CSS). null kalau produk gak
+// punya strike_price sama sekali (baris <del> gak dirender).
+function strikePriceOf(p) {
+  const opts = Array.isArray(p.pricingOptions) ? p.pricingOptions : (Array.isArray(p.items) ? p.items : []);
+  const withStrike = opts.filter(o => (o.strike_price || o.strikePrice) > (o.price || o.p));
+  if (!withStrike.length) return null;
+  return withStrike[0].strike_price || withStrike[0].strikePrice;
+}
+const allCategories = Array.isArray(categories) ? categories : [];
+
+// FIX BUG UI (dilaporkan user 3 Sep 2026): hero carousel sebelumnya nampilin
+// gambar PRODUK (products.slice(0,6)) -- thumbnail kotak kecil yang didesain
+// buat kartu produk, bukan buat slot banner promosi lebar. Hasilnya banner
+// jadi kepotong/ketarik gak proporsional. Sekarang pakai settings.banners
+// (yang memang didesain admin lewat Admin Panel khusus buat slot ini).
+const heroBanners = (Array.isArray(settings?.banners) ? settings.banners : [])
+  .filter(b => b.active !== false && b.imageUrl);
+
+// FIX LOGIC (diminta owner 3 Sep 2026): "Jual Beli Akun" sekarang jadi tab
+// kategori khusus di grid game homepage (bukan link nyasar di menu dropdown
+// seperti sebelumnya -- lihat fix di navbar.ejs). Klik tab ini -> grid game
+// berganti nampilin daftar GAME (bukan produk topup), klik salah satu game
+// -> masuk ke /jual-beli-akun?game=X buat game itu. Gambar tiap game dicomot
+// dari produk pertama yang match kategori itu (biar konsisten sama ikon yang
+// dipakai di grid topup), fallback ke logo kalau kategori itu belum punya
+// produk sama sekali.
+const categoryImage = {};
+allCategories.forEach(cat => {
+  const label = (categoryLabels && categoryLabels[cat]) || cat;
+  const match = products.find(p => (Array.isArray(p.categories) ? p.categories : (p.category ? [p.category] : [])).includes(cat));
+  categoryImage[cat] = match?.image || settings?.logoUrl || '/uploads/logo-main.png';
+});
+%>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= pageTitle %> - Top Up Game Termurah, Tercepat &amp; Aman</title>
+  <meta name="description" content="Top up game favoritmu di <%= pageTitle %>! Proses instan, aman, harga terjangkau.">
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+  <script>
+    window.IconifyPreload = <%- iconBundle %>;
+  </script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
+</head>
+<body>
+
+<%- include('../partials/navbar', { active: 'home' }) %>
+
+<!-- ══ HERO CAROUSEL (Swiper center mode) — pakai banner promosi dari Admin,
+     bukan gambar produk (lihat catatan fix di atas) ══ -->
+<div class="hero-decor">
+  <section class="swiper" id="pg-carousel">
+    <div class="swiper-wrapper">
+      <% if (heroBanners.length > 0) { %>
+        <% heroBanners.forEach(function(b) { %>
+        <div class="swiper-slide">
+          <a href="<%= b.link || '/' %>" style="display:block;position:relative;">
+            <img src="<%= b.imageUrl %>" alt="<%= b.title || pageTitle %>" loading="lazy">
+            <% if (b.title || b.subtitle) { %>
+            <div class="hero-slide-caption">
+              <% if (b.title) { %><strong><%= b.title %></strong><% } %>
+              <% if (b.subtitle) { %><span><%= b.subtitle %></span><% } %>
+            </div>
+            <% } %>
+          </a>
+        </div>
+        <% }); %>
+      <% } else { %>
+        <!-- Belum ada banner yang di-upload admin -- fallback rapi (logo di
+             tengah, bukan gambar produk yang ditarik paksa ke ukuran banner) -->
+        <div class="swiper-slide">
+          <div class="hero-slide-fallback">
+            <img src="<%= settings?.logoUrl || '/uploads/logo-main.png' %>" alt="<%= pageTitle %>">
+            <span>Top Up Game Tercepat &amp; Termurah</span>
+          </div>
+        </div>
+      <% } %>
+    </div>
+    <div class="swiper-pagination"></div>
+  </section>
+</div>
+
+<!-- ══ FLASH DEAL ══ -->
+<% if (flashDeals.length > 0) { %>
+<section class="flash">
+  <div class="flash-title">
+    <h1><iconify-icon icon="mdi:lightning-bolt" style="vertical-align:-4px;"></iconify-icon> FLASH DEAL</h1>
+    <strong id="flash-countdown">02:59:59</strong>
+  </div>
+  <div class="deal-grid">
+    <% flashDeals.forEach(function(p) {
+      const disc = discountPct(p);
+      const strike = strikePriceOf(p);
+    %>
+    <a href="/buy/<%= p.id %>" class="deal">
+      <div class="deal-image">
+        <img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy">
+        <!-- Logo/icon game sekarang DI DALAM area gambar (pojok kiri-atas),
+             bukan avatar bulat melayang keluar card seperti sebelumnya. -->
+        <img class="deal-logo" src="<%= p.image %>" alt="" loading="lazy">
+        <span>Terjual <%= p._displaySold.toLocaleString('id-ID') %></span>
+        <% if (disc) { %>
+        <div class="deal-ribbon"><span>-<%= disc %>%</span></div>
+        <% } %>
+      </div>
+      <div class="deal-body">
+        <small><%= (Array.isArray(p.categories) ? p.categories[0] : p.category) || '' %></small>
+        <strong><%= p.name %></strong>
+        <!-- Blok harga ala PointGo: harga coret (kalau ada) di baris atas,
+             harga final besar + badge flash deal di baris bawah. -->
+        <div class="deal-price">
+          <% if (strike) { %><del><%= formatRp(strike) %></del><% } %>
+          <div class="deal-price-row">
+            <b><%= formatRp(lowestPrice(p)) %></b>
+            <span class="deal-flash-badge"><iconify-icon icon="mdi:fire"></iconify-icon>FLASH</span>
+          </div>
+        </div>
+      </div>
+    </a>
+    <% }); %>
+  </div>
+</section>
+<% } %>
+
+<!-- ══ FILTER TABS ══ -->
+<div class="pg-container">
+  <div class="pg-tabs" role="tablist">
+    <button class="pg-tab active" data-filter="all">Semua</button>
+    <% allCategories.forEach(function(cat) { %>
+    <button class="pg-tab" data-filter="<%= cat %>"><%= (categoryLabels && categoryLabels[cat]) || cat %></button>
+    <% }); %>
+    <!-- FIX LOGIC (3 Sep 2026): "Jual Beli Akun" sekarang tab kategori
+         khusus, bukan link nyasar di menu -- lihat catatan di atas. -->
+    <button class="pg-tab" data-filter="jual-beli-akun"><iconify-icon icon="mdi:swap-horizontal-bold" style="vertical-align:-2px;"></iconify-icon> Jual Beli Akun</button>
+  </div>
+</div>
+
+<!-- ══ GAME GRID (topup) ══ -->
+<section class="game-strip">
+  <h2 id="pg-game-heading">PILIH GAME FAVORITMU</h2>
+  <div class="game-list" id="pg-game-list">
+    <% products.forEach(function(p) {
+      const prodCategories = Array.isArray(p.categories) ? p.categories : (p.category ? [p.category] : []);
+    %>
+    <a href="/buy/<%= p.id %>" class="pg-game-item" data-categories="<%= prodCategories.join(',') %>">
+      <img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy">
+      <span><%= p.name %></span>
+    </a>
+    <% }); %>
+  </div>
+  <% if (products.length === 0) { %>
+  <p style="text-align:center;color:var(--muted);padding:40px 0;">Belum ada produk tersedia.</p>
+  <% } %>
+
+  <!-- ══ GAME GRID (jual beli akun) -- disembunyikan default, muncul kalau
+       tab "Jual Beli Akun" dipilih. Klik game -> listing akun buat game itu. ══ -->
+  <div class="game-list" id="pg-akun-list" style="display:none;">
+    <% allCategories.forEach(function(cat) {
+      const label = (categoryLabels && categoryLabels[cat]) || cat;
+    %>
+    <a href="/jual-beli-akun?game=<%= encodeURIComponent(label) %>" class="pg-game-item">
+      <img src="<%= categoryImage[cat] %>" alt="<%= label %>" loading="lazy">
+      <span><%= label %></span>
+    </a>
+    <% }); %>
+  </div>
+  <% if (allCategories.length === 0) { %>
+  <p id="pg-akun-empty" style="display:none;text-align:center;color:var(--muted);padding:40px 0;">Belum ada kategori game tersedia.</p>
+  <% } %>
+</section>
+
+<!-- ══ FEATURE HIGHLIGHTS ══ -->
+<section class="pg-features">
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:timer-outline"></iconify-icon></div>
+    <h3>Proses Instan</h3>
+    <p>Pesanan diproses otomatis dalam hitungan detik setelah pembayaran berhasil.</p>
+  </div>
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:shield-check-outline"></iconify-icon></div>
+    <h3>Pembayaran Aman</h3>
+    <p>QRIS, e-wallet, dan transfer bank terverifikasi dengan enkripsi standar industri.</p>
+  </div>
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:tag-outline"></iconify-icon></div>
+    <h3>Harga Termurah</h3>
+    <p>Bersaing langsung dengan harga resmi, tanpa biaya tersembunyi.</p>
+  </div>
+  <div class="pg-feature">
+    <div class="pg-feature-icon"><iconify-icon icon="mdi:headset"></iconify-icon></div>
+    <h3>CS 24/7</h3>
+    <p>Tim support siap membantu kendala transaksi kapan saja.</p>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>
+
+<script>
+// ══ Carousel (Swiper center mode, autoplay 3.5s) ══
+// FIX BUG UI (3 Sep 2026): loop:true dipaksa nyala sebelumnya bikin tampilan
+// carousel pecah/salah ukuran kalau slide-nya cuma sedikit (loop mode Swiper
+// perlu cukup banyak slide buat bikin klon buat ilusi infinite-scroll --
+// dengan cuma 1-2 slide, klon itu gagal kebentuk rapi). Sekarang loop cuma
+// diaktifkan kalau slide-nya 3 atau lebih.
+//
+// FIX (diminta user 3 Sep 2026): sebelumnya centeredSlides:true +
+// slidesPerView:'auto' -- itu yang bikin slide di kiri/kanan keliatan
+// menyempit & miring/scaled (lihat CSS .swiper-slide di atas). PointGo
+// pakai 1 slide penuh per layar, flat, no center/scale effect.
+(function () {
+  function init() {
+    if (typeof Swiper === 'undefined') return setTimeout(init, 100);
+    const slideCount = document.querySelectorAll('#pg-carousel .swiper-slide').length;
+    new Swiper('#pg-carousel', {
+      modules: [Swiper.Autoplay, Swiper.Pagination],
+      loop: slideCount >= 3,
+      centeredSlides: false,
+      slidesPerView: 1,
+      spaceBetween: 0,
+      autoplay: { delay: 3500, disableOnInteraction: false },
+      pagination: { el: '.swiper-pagination', clickable: true },
+    });
+  }
+  init();
+})();
+
+// ══ Flash Deal countdown (reset tiap 3 jam, kosmetik) ══
+(function () {
+  const el = document.getElementById('flash-countdown');
+  if (!el) return;
+  let remaining = 2 * 3600 + 59 * 60 + 59;
+  setInterval(() => {
+    if (remaining <= 0) remaining = 3 * 3600;
+    remaining--;
+    const h = String(Math.floor(remaining / 3600)).padStart(2, '0');
+    const m = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
+    const s = String(remaining % 60).padStart(2, '0');
+    el.textContent = `${h}:${m}:${s}`;
+  }, 1000);
+})();
+
+// ══ Filter kategori (client-side, filter game grid) ══
+document.querySelectorAll('.pg-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.pg-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const filter = tab.dataset.filter;
+    applyFilter(filter);
+  });
+});
+function applyFilter(filter) {
+  const gameList = document.getElementById('pg-game-list');
+  const akunList = document.getElementById('pg-akun-list');
+  const heading = document.getElementById('pg-game-heading');
+  const akunEmpty = document.getElementById('pg-akun-empty');
+
+  // FIX LOGIC (3 Sep 2026): tab "Jual Beli Akun" nampilin grid GAME (buat
+  // masuk ke listing jual-beli akun per game), bukan grid produk topup.
+  if (filter === 'jual-beli-akun') {
+    gameList.style.display = 'none';
+    akunList.style.display = '';
+    if (akunEmpty) akunEmpty.style.display = akunList.children.length === 0 ? '' : 'none';
+    if (heading) heading.textContent = 'PILIH GAME UNTUK JUAL/BELI AKUN';
+    return;
+  }
+  gameList.style.display = '';
+  akunList.style.display = 'none';
+  if (akunEmpty) akunEmpty.style.display = 'none';
+  if (heading) heading.textContent = 'PILIH GAME FAVORITMU';
+
+  document.querySelectorAll('#pg-game-list .pg-game-item').forEach(item => {
+    const cats = (item.dataset.categories || '').split(',');
+    const name = (item.querySelector('span')?.textContent || '').toLowerCase();
+    const q = (window._fzQ || '').toLowerCase();
+    const matchCat = (filter === 'all' || cats.includes(filter));
+    const matchQ = !q || name.includes(q);
+    item.style.display = (matchCat && matchQ) ? '' : 'none';
+  });
+}
+// ══ Search dari header (?q=) ══
+(function () {
+  const q = new URLSearchParams(window.location.search).get('q');
+  if (!q) return;
+  window._fzQ = q;
+  const input = document.getElementById('pg-search-input');
+  if (input) input.value = q;
+  applyFilter('all');
+  const active = document.querySelector('.pg-tab.active');
+  if (active) active.classList.remove('active');
+  const allTab = document.querySelector('.pg-tab[data-filter="all"]');
+  if (allTab) allTab.classList.add('active');
+})();
+</script>
+</body>
+</html>

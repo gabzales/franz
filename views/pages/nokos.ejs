@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<%
+/*
+  FranzzStore — NOKOS (Nomor Virtual OTP)
+  Halaman katalog + checkout NOKOS. Modal pembayaran (paymentModal) SENGAJA
+  disalin persis dari buy.ejs (id/field sama) supaya showPaymentModal(data)/
+  checkPay()/closePayment() perilakunya identik dengan alur top up game --
+  bedanya cuma request checkout-nya ke /nokos/checkout, bukan /create-order.
+*/
+const pageTitle = 'NOKOS - Nomor Virtual OTP';
+%>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= settings?.siteName || 'FranzzStore' %> - <%= pageTitle %></title>
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <link rel="stylesheet" href="/css/pointgo-theme.css">
+  <style>.hidden{display:none!important;}</style>
+  <script>window.IconifyPreload = <%- iconBundle %>;</script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+</head>
+<body>
+
+<%- include('../partials/navbar', { active: 'nokos' }) %>
+
+<main class="inner-page">
+  <div class="pg-container" style="max-width:640px;">
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <iconify-icon icon="mdi:cellphone-key" style="color:var(--accent);font-size:18px;"></iconify-icon>
+      <h3 style="font-size:15px;font-weight:800;color:#fff;">NOKOS - Nomor Virtual OTP</h3>
+    </div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:18px;">
+      Sewa nomor virtual buat verifikasi WhatsApp, Telegram, dan layanan lain. Nomor & kode OTP muncul otomatis di halaman <a href="/invoice" style="color:var(--accent);">Cek Pesanan</a> begitu pembayaran dikonfirmasi.
+    </p>
+
+    <% if (!services || services.length === 0) { %>
+      <div style="padding:24px;text-align:center;border-radius:var(--radius-md);border:1px solid var(--line);background:var(--bg-soft);">
+        <iconify-icon icon="mdi:cellphone-off" style="font-size:32px;color:var(--muted);"></iconify-icon>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;">Belum ada layanan NOKOS yang tersedia. Coba lagi nanti.</p>
+      </div>
+    <% } else { %>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <% services.forEach(function(s) { %>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:var(--radius-md);border:1px solid var(--line);background:var(--bg-soft);">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#fff;"><%= s.platformName %></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;"><%= s.countryName %></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:13px;font-weight:800;color:var(--accent);margin-bottom:6px;">Rp <%= Number(s.sellPrice).toLocaleString('id-ID') %></div>
+            <button onclick="beliNokos('<%= s.id %>')" class="pg-btn pg-btn-primary" style="padding:8px 16px;font-size:12px;">Beli</button>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+    <% } %>
+
+  </div>
+</main>
+
+<!-- Modal pembayaran -- SALINAN PERSIS dari buy.ejs, jangan ubah id/field -->
+<div id="paymentModal" class="hidden pg-modal">
+  <div class="pg-modal-overlay" onclick="closePayment()"></div>
+  <div class="pg-modal-sheet">
+    <div class="flex justify-center" style="padding:10px 0 4px;">
+      <div style="width:40px;height:4px;border-radius:999px;background:rgba(255,255,255,.15);"></div>
+    </div>
+    <div class="flex items-center justify-between" style="padding:12px 20px;border-bottom:1px solid var(--line);">
+      <h3 class="flex items-center" style="gap:8px;font-size:14px;font-weight:800;color:#fff;">
+        <iconify-icon icon="mdi:qrcode-scan" style="color:var(--accent);"></iconify-icon>
+        Pembayaran QRIS
+      </h3>
+      <button onclick="closePayment()" class="pg-modal-close" aria-label="Tutup">
+        <iconify-icon icon="mdi:close"></iconify-icon>
+      </button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+      <div class="flex flex-col items-center">
+        <div id="qrCodeWrap" class="flex items-center justify-center" style="min-height:80px;">
+          <iconify-icon icon="mdi:loading" class="animate-spin" style="font-size:36px;color:var(--accent);"></iconify-icon>
+        </div>
+        <p class="text-[10px] text-zinc-500" style="margin-top:8px;">Scan dengan aplikasi mobile banking / e-wallet</p>
+      </div>
+      <div class="grid grid-cols-2" style="gap:8px;">
+        <div class="pg-modal-box">
+          <small>Kode Pesanan</small>
+          <div class="pg-modal-value" id="orderCodeShow">—</div>
+        </div>
+        <div class="pg-modal-box">
+          <small>Total Bayar</small>
+          <div class="pg-modal-value" style="color:#34d399;" id="payAmountShow">—</div>
+        </div>
+      </div>
+      <div id="timerWrap" class="hidden" style="border-radius:var(--radius-md);padding:12px;text-align:center;background:rgba(240,131,19,.08);border:1px solid rgba(240,131,19,.25);">
+        <div class="text-[10px] text-zinc-500 flex items-center justify-center" style="gap:4px;margin-bottom:4px;">
+          <iconify-icon icon="mdi:clock-outline" style="color:#eab308;font-size:12px;"></iconify-icon>
+          Batas Waktu Pembayaran
+        </div>
+        <div id="timerDisplay" style="font-size:22px;font-weight:900;color:#eab308;font-family:monospace;">--:--</div>
+      </div>
+      <div id="payStatusRow" class="flex items-center justify-center" style="gap:8px;padding:8px 0;">
+        <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+        <span class="text-xs text-zinc-400">Menunggu pembayaran...</span>
+      </div>
+      <div id="staticNote" class="hidden text-center" style="border-radius:var(--radius-md);padding:12px;background:rgba(47,111,237,.1);border:1px solid rgba(47,111,237,.25);">
+        <p class="text-xs" style="color:#93c5fd;">Setelah transfer, kirim bukti ke admin via WhatsApp / Telegram</p>
+        <div class="flex justify-center" style="gap:8px;margin-top:8px;">
+          <a id="waConfirmBtn" href="#" target="_blank"
+             class="pg-btn flex items-center" style="gap:6px;padding:10px 14px;font-size:12px;font-weight:700;color:#fff;background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.35);">
+              <iconify-icon icon="mdi:whatsapp" style="color:#4ade80;font-size:14px;"></iconify-icon> WhatsApp
+          </a>
+        </div>
+      </div>
+      <button id="recheckBtn" onclick="recheckNow()" class="hidden pg-btn pg-btn-outline pg-btn-block">
+        <iconify-icon icon="mdi:refresh"></iconify-icon> Cek Status Sekarang
+      </button>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+let currentRefId = null;
+let payInterval = null;
+let timerInterval = null;
+
+async function beliNokos(serviceId) {
+  try {
+    const res = await fetch('/nokos/checkout', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ serviceId }),
+    });
+    const data = await res.json();
+    if (!data.success) { showToast ? showToast(data.message || 'Gagal checkout', 'error') : alert(data.message || 'Gagal checkout'); return; }
+    showPaymentModal(data);
+  } catch (e) {
+    alert('Gagal checkout: ' + e.message);
+  }
+}
+
+function showPaymentModal(data) {
+  const { qrString, orderCode, refId, isStatic, qrisStaticImage, totalPayment, expiredAt } = data;
+  currentRefId = refId;
+  document.getElementById('paymentModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('orderCodeShow').textContent = orderCode || '—';
+  document.getElementById('payAmountShow').textContent = totalPayment ? 'Rp ' + Number(totalPayment).toLocaleString('id-ID') : '—';
+  document.getElementById('payStatusRow').innerHTML =
+    '<div class="w-2 h-2 rounded-full bg-yellow-400"></div><span class="text-xs text-zinc-400">Menunggu pembayaran...</span>';
+
+  const wrap = document.getElementById('qrCodeWrap');
+  if (isStatic && qrisStaticImage) {
+    wrap.innerHTML = `<div style="background:#fff;padding:12px;border-radius:16px;display:inline-block;">
+      <img src="${qrisStaticImage}" style="display:block;width:210px;height:210px;object-fit:contain;border-radius:6px;"
+           onerror="this.style.display='none';this.parentNode.innerHTML='<p style=color:#666;font-size:11px;padding:20px>Gambar QRIS tidak ditemukan</p>'"></div>`;
+    document.getElementById('staticNote').classList.remove('hidden');
+    const waNum = '<%= settings.contact?.whatsapp || "6285181236886" %>';
+    document.getElementById('waConfirmBtn').href = `https://wa.me/${waNum}?text=${encodeURIComponent('Konfirmasi pembayaran NOKOS kode: ' + orderCode)}`;
+  } else if (qrString) {
+    wrap.innerHTML = `<div style="background:#fff;padding:12px;border-radius:16px;display:inline-block;">
+      <img id="qrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=210x210&color=000000&bgcolor=ffffff&qzone=1&data=${encodeURIComponent(qrString)}"
+           style="display:block;width:210px;height:210px;border-radius:4px;" onerror="qrFallback('${encodeURIComponent(qrString)}')"></div>`;
+    document.getElementById('recheckBtn').classList.remove('hidden');
+  } else {
+    wrap.innerHTML = `<div class="text-center py-4"><iconify-icon icon="mdi:qrcode-remove" class="text-5xl text-zinc-700 block mb-2"></iconify-icon>
+      <p class="text-xs text-zinc-500">QRIS belum dikonfigurasi.<br>Hubungi admin.</p></div>`;
+  }
+  if (expiredAt) { document.getElementById('timerWrap').classList.remove('hidden'); startTimer(expiredAt); }
+  if (refId && !isStatic) { payInterval = setInterval(() => checkPay(refId), 4000); }
+}
+
+window.qrFallback = function(encoded) {
+  document.getElementById('qrCodeWrap').innerHTML =
+    `<div style="background:#fff;padding:12px;border-radius:16px;display:inline-block;">
+      <img src="https://quickchart.io/qr?text=${encoded}&size=210&margin=1&ecLevel=M" style="display:block;width:210px;height:210px;border-radius:4px;"
+           onerror="this.parentNode.parentNode.innerHTML='<p style=color:#999;font-size:11px;padding:16px>Gagal load QR. Cek koneksi internet.</p>'"></div>`;
+};
+
+function startTimer(expiredAt) {
+  const el = document.getElementById('timerDisplay');
+  const end = new Date(expiredAt).getTime();
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const diff = end - Date.now();
+    if (diff <= 0) { clearInterval(timerInterval); el.textContent = '00:00'; return; }
+    const m = Math.floor(diff / 60000), s = Math.floor((diff % 60000) / 1000);
+    el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }, 1000);
+}
+
+async function checkPay(refId) {
+  try {
+    const r = await fetch(`/check-payment/${refId}`);
+    const d = await r.json();
+    if (d.success && (d.status === 'done' || d.status === 'processing')) {
+      clearInterval(payInterval); clearInterval(timerInterval);
+      document.getElementById('payStatusRow').innerHTML =
+        '<iconify-icon icon="mdi:check-circle" class="text-emerald-400 text-xl"></iconify-icon><span class="text-sm font-bold text-emerald-400">Pembayaran berhasil!</span>';
+      setTimeout(() => { closePayment(); window.location.href = '/invoice?code=' + d.code; }, 1500);
+    } else if (d.status === 'expired') {
+      clearInterval(payInterval);
+      document.getElementById('payStatusRow').innerHTML =
+        '<iconify-icon icon="mdi:clock-alert" class="text-red-400"></iconify-icon><span class="text-xs text-red-400">Pembayaran expired</span>';
+    }
+  } catch (e) {}
+}
+
+async function recheckNow() {
+  if (!currentRefId) return;
+  const btn = document.getElementById('recheckBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<iconify-icon icon="mdi:loading" class="text-sm animate-spin"></iconify-icon> Mengecek...';
+  await checkPay(currentRefId);
+  setTimeout(() => { btn.disabled = false; btn.innerHTML = '<iconify-icon icon="mdi:refresh" class="text-sm"></iconify-icon> Cek Status Sekarang'; }, 1000);
+}
+
+function closePayment() {
+  if (payInterval) { clearInterval(payInterval); payInterval = null; }
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  document.getElementById('paymentModal').classList.add('hidden');
+  document.getElementById('timerWrap').classList.add('hidden');
+  document.getElementById('staticNote').classList.add('hidden');
+  document.getElementById('recheckBtn').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+</script>
+</body>
+</html>

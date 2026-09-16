@@ -1,0 +1,38 @@
+# ── SECRET / KREDENSIAL — JANGAN PERNAH commit ──
+.env
+.env.local
+.env.*.local
+
+# ── DATA DATABASE LOKAL ──
+# FIX KEAMANAN (audit 3 Sep 2026): folder ini berisi fallback lokal untuk
+# users.json (password hash + nomor WA user asli), transactions.json
+# (riwayat transaksi & key yang sudah terjual), settings.json (bisa berisi
+# API key Pakasir/GensPay/Fonnte kalau sempat diisi manual di sini), dsb.
+# Sebelumnya folder ini TIDAK di-gitignore sama sekali -- kalau project ini
+# pernah/akan di-push ke Git repo (apalagi repo publik) atau di-zip untuk
+# dibagikan, semua data itu ikut bocor apa adanya. Supabase yang jadi
+# sumber kebenaran utama; folder ini cuma fallback offline, jadi aman untuk
+# tidak ikut di-commit.
+database/
+
+# ── NODE ──
+node_modules/
+npm-debug.log*
+
+# ── BUILD OUTPUT ──
+public/css/tailwind.css
+
+# ── UPLOAD LOKAL (dev only — production pakai Supabase Storage) ──
+public/uploads/products/
+public/uploads/banners/
+public/uploads/avatars/
+public/uploads/qris/
+
+# ── OS / EDITOR ──
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── VERCEL ──
+.vercel/
