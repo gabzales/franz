@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FRANZZ Orbit</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+:root{--purple:#7B3FE4;--blue:#2F6BFF;--ink:#1B1640;--grad:linear-gradient(135deg,#7B3FE4,#2F6BFF);--ok:#1F9D63;--err:#D9480F;--busy:#E0A100;--grey:#9AA0B4}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#fff}
+#app{display:flex;flex-direction:column;height:100%;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.bar{display:flex;gap:6px;padding:8px}
+.bar input{flex:1;min-width:0;padding:10px 12px;border:1px solid #CFCBE6;border-radius:10px;font:inherit;color:var(--ink);background:#fff}
+button{font:600 .9rem system-ui,sans-serif;border:0;border-radius:10px;padding:9px 14px;color:#fff;cursor:pointer}
+.g{background:var(--grad)}.d{background:var(--ink)}.r{background:var(--err)}.l{background:#fff;color:var(--ink);border:1px solid #CFCBE6}
+button:focus-visible,input:focus-visible,textarea:focus-visible,#bubble:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+#stage{position:relative;flex:1;min-height:0;background:#F1EFFC;overflow:hidden}
+#frame{width:100%;height:100%;border:0;display:none;background:#fff}
+#empty{margin:0;padding:32px 24px;text-align:center;color:#5A5780}
+#bubble{position:absolute;width:56px;height:56px;border-radius:50%;background:var(--grad);border:2px solid var(--ink);display:grid;place-items:center;cursor:grab;touch-action:none;user-select:none;z-index:5;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+#bubble img{width:100%;height:100%;object-fit:contain;padding:2px;pointer-events:none;animation:bob 2.8s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(-3px)}50%{transform:translateY(3px)}}
+@media (prefers-reduced-motion:reduce){#bubble img{animation:none}}
+#dot{position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:var(--grey);border:2px solid #fff}
+#panel{position:absolute;width:250px;max-width:calc(100% - 16px);z-index:6;border:2px solid var(--ink);border-radius:16px;padding:12px;display:none;box-shadow:0 6px 16px rgba(0,0,0,.2)}
+#panel.open{display:block}
+#status{margin:0 0 8px;font-weight:700;font-size:.92rem}
+#panel .fade button{width:100%;margin-bottom:8px}
+#oprow{background:#fff;border-radius:10px;padding:8px;margin-top:2px;font-size:.85rem}
+#oprow input{width:100%;margin:6px 0 0}
+#newtab{display:none;margin:0 0 8px;font-size:.85rem}
+dialog{border:2px solid var(--ink);border-radius:16px;padding:18px;max-width:440px;width:calc(100% - 32px);color:var(--ink)}
+dialog::backdrop{background:rgba(27,22,64,.45)}
+dialog h2{margin:0 0 12px;font-size:1.1rem}
+dialog label{display:block;font-size:.85rem;margin:10px 0 4px;font-weight:600}
+dialog input[type=text],dialog input[type=password],dialog textarea{width:100%;padding:9px 10px;border:1px solid #CFCBE6;border-radius:8px;font:inherit}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+dialog .chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;margin-top:12px}
+#pvlist{max-height:50vh;overflow:auto;font-size:.9rem;white-space:pre-wrap}
+.note{font-size:.78rem;color:#5A5780;margin:6px 0 0}
+#login{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:#F1EFFC;padding:16px}
+#login .card{width:100%;max-width:360px;background:#fff;border:2px solid var(--ink);border-radius:20px;padding:24px;box-shadow:0 8px 24px rgba(27,22,64,.15)}
+#login h1{margin:0 0 4px;font-size:1.4rem}#login p{margin:0 0 16px;color:#5A5780;font-size:.9rem}
+#login label,#adm label{display:block;font-size:.85rem;font-weight:600;margin:10px 0 4px}
+#login input,#adm input,#adm select{width:100%;padding:10px 12px;border:1px solid #CFCBE6;border-radius:10px;font:inherit;color:var(--ink);background:#fff}
+#login button{width:100%;margin-top:16px;padding:12px}
+#lerr,#admsg{color:var(--err);font-size:.85rem;min-height:1.2em;margin:10px 0 0}
+.hide{display:none!important}
+#reader{position:absolute;inset:0;overflow:auto;padding:16px;background:var(--card);z-index:1}
+#reader h2{margin:0 0 4px;font-size:1.1rem}#reader a{color:var(--accent);word-break:break-all}
+#reader summary{cursor:pointer;font-weight:600;margin:10px 0 4px}#reader li{margin:2px 0}
+#rd-text,#ai-out{white-space:pre-wrap;word-break:break-word;font:inherit;font-size:.9rem;margin:6px 0 0}
+#ai-out{background:#F1EFFC;border-radius:10px;padding:10px;min-height:0}#ai-out:empty{display:none}
+#aidlg{max-width:560px}#aidlg textarea{width:100%;padding:9px 10px;border:1px solid #CFCBE6;border-radius:8px;font:inherit}
+#panel #aib{margin-bottom:8px}
+#adm{max-width:720px}
+#adm h3{margin:18px 0 6px;font-size:1rem}
+#adm table{width:100%;border-collapse:collapse;font-size:.85rem}
+#adm th,#adm td{text-align:left;padding:6px 4px;border-bottom:1px solid #E4E0F5;vertical-align:middle}
+#adm td button{padding:4px 8px;font-size:.75rem;margin:2px 2px 2px 0}
+#adm .grid{display:grid;grid-template-columns:1fr 1fr 90px;gap:8px;align-items:end}
+#adm .box{overflow-x:auto}
+@media (max-width:560px){#adm .grid{grid-template-columns:1fr}}
+
+dialog h3{margin:16px 0 4px;font-size:.95rem}
+#chatdlg{max-width:640px}
+#c-ctx{margin:0 0 8px}
+#c-log{max-height:46vh;min-height:140px;overflow:auto;background:#F1EFFC;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px}
+#c-log:empty::before{content:"Tanya apa saja. Kalau ada halaman terbuka, AI bisa membaca isinya.";color:#5A5780;font-size:.85rem}
+#c-log .m{max-width:90%;padding:8px 10px;border-radius:12px;white-space:pre-wrap;word-break:break-word;font-size:.92rem}
+#c-log .u{align-self:flex-end;background:var(--grad);color:#fff}
+#c-log .a{align-self:flex-start;background:#fff;border:1px solid #CFCBE6}
+#c-log .e{color:var(--err)}
+#c-log .m button{display:block;margin-top:8px;padding:6px 10px;font-size:.8rem}
+#c-bar{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
+#c-bar textarea{flex:1;resize:vertical;max-height:30vh}
+.bm{display:inline-block;padding:7px 12px;border-radius:10px;background:var(--grad);color:#fff;font-weight:700;text-decoration:none;cursor:grab}
+</style>
+</head>
+<body>
+<div id="login" class="hide">
+  <div class="card">
+    <h1>FRANZZ Orbit</h1>
+    <p>Masuk dengan akun dari admin.</p>
+    <label for="l-user">Username</label>
+    <input id="l-user" autocomplete="username" autocapitalize="none" spellcheck="false">
+    <label for="l-pass">Password</label>
+    <input id="l-pass" type="password" autocomplete="current-password">
+    <p id="lerr" role="alert"></p>
+    <button id="l-go" class="g" type="button">Masuk</button>
+  </div>
+</div>
+<div id="app" class="hide">
+  <div class="bar">
+    <input id="url" type="url" inputmode="url" placeholder="Tempel link apa saja (Google Form = isi otomatis)" aria-label="Link" autocomplete="off">
+    <button id="auto" class="g" type="button">Isi otomatis</button>
+    <button id="chatb" class="l" type="button">Chat AI</button>
+    <button id="admb" class="l hide" type="button">Admin</button>
+    <button id="cfg" class="d" type="button" aria-label="Pengaturan">⚙</button>
+  </div>
+  <div id="stage">
+    <p id="empty">Tempel link Google Form untuk diisi otomatis, atau link situs apa saja untuk dilihat dan dianalisis AI. Untuk situs yang butuh login, pakai bookmark Orbit (Pengaturan). Tombol Chat AI untuk ngobrol dengan AI.</p>
+    <div id="reader" class="hide">
+      <h2 id="rd-title"></h2>
+      <p class="mute"><a id="rd-link" target="_blank" rel="noopener noreferrer"></a></p>
+      <p id="rd-note" class="mute"></p>
+      <details open><summary>Kolom dan pertanyaan terdeteksi (<span id="rd-fc">0</span>)</summary><ul id="rd-fl"></ul></details>
+      <details><summary>Isi halaman</summary><pre id="rd-text"></pre></details>
+    </div>
+    <iframe id="frame" title="Form" sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer"></iframe>
+
+    <div id="panel" role="dialog" aria-label="Panel asisten">
+      <div class="fade">
+        <p id="status" role="status" aria-live="polite">Siap</p>
+        <button id="go" class="g" type="button">Scan &amp; Fill</button>
+        <button id="stop" class="r" type="button" style="display:none">STOP</button>
+        <button id="aib" class="g hide" type="button">Analisis halaman (AI)</button>
+        <a id="newtab" href="#" target="_blank" rel="noopener noreferrer">Buka di tab baru</a>
+      </div>
+      <div id="oprow"><label for="op" id="oplabel">Opasitas 100%</label><input id="op" type="range" min="0" max="100" value="100"></div>
+    </div>
+
+    <div id="bubble" tabindex="0" role="button" aria-label="Buka asisten robot FRANZZ Orbit" aria-expanded="false">
+      <img id="robot" alt="" src="robot/robot_y0.png" draggable="false">
+      <span id="dot"></span>
+    </div>
+  </div>
+</div>
+
+<dialog id="dlg">
+  <h2>Pengaturan</h2>
+  <p class="note" id="who"></p>
+  <label for="s-prof">Tentang saya (dikirim ke Gemini sebagai konteks jawaban)</label>
+  <textarea id="s-prof" rows="3"></textarea>
+  <label class="chk"><input id="s-prev" type="checkbox"> Tampilkan jawaban dulu sebelum mengisi</label>
+  <h3>Pakai di situs lain</h3>
+  <p class="note">Seret tombol ini ke bar bookmark. Di situs apa saja (termasuk yang butuh login atau dirender JavaScript), klik bookmark itu: Orbit membaca halamannya, membuka chat AI, dan bisa mengisi kolom di halaman itu. Sebagian situs memblokir bookmarklet.</p>
+  <p><a id="bm" class="bm" href="#" draggable="true">Orbit</a> <button id="bm-copy" class="l" type="button">Salin kode</button></p>
+  <div class="row"><button id="s-out" class="l" type="button">Keluar</button><button id="s-cancel" class="l" type="button">Batal</button><button id="s-save" class="g" type="button">Simpan</button></div>
+</dialog>
+
+<dialog id="chatdlg">
+  <h2>Chat AI</h2>
+  <p class="note" id="c-ctx"></p>
+  <div id="c-log" aria-live="polite"></div>
+  <label class="chk"><input id="c-use" type="checkbox" checked> Sertakan isi halaman ke AI</label>
+  <div id="c-bar"><textarea id="c-in" rows="2" placeholder="Tulis pesan… (Enter kirim, Shift+Enter baris baru)" aria-label="Pesan"></textarea><button id="c-send" class="g" type="button">Kirim</button></div>
+  <div class="row"><button id="c-fill" class="l hide" type="button">Isi kolom di halaman</button><button id="c-clr" class="l" type="button">Hapus chat</button><button id="c-close" class="l" type="button">Tutup</button></div>
+</dialog>
+
+<dialog id="adm">
+  <h2>Admin</h2>
+  <h3>Pengguna</h3>
+  <div class="box"><table><thead><tr><th>Username</th><th>Status</th><th>Hari ini / kuota</th><th>Aksi</th></tr></thead><tbody id="utb"></tbody></table></div>
+  <h3>Tambah pengguna</h3>
+  <div class="grid">
+    <div><label for="a-u">Username</label><input id="a-u" autocapitalize="none" spellcheck="false"></div>
+    <div><label for="a-p">Password (min. 8)</label><input id="a-p" type="text" autocomplete="off"></div>
+    <div><label for="a-q">Kuota/hari</label><input id="a-q" inputmode="numeric" placeholder="bawaan"></div>
+    <div><label for="a-r">Peran</label><select id="a-r"><option value="user">Pengguna</option><option value="admin">Admin</option></select></div>
+  </div>
+  <div class="row"><button id="a-add" class="g" type="button">Tambah</button></div>
+  <h3>Gemini</h3>
+  <p class="note" id="a-keystat"></p>
+  <label for="a-key">API key baru (kosongkan untuk tidak mengubah)</label>
+  <input id="a-key" type="password" autocomplete="off">
+  <div class="grid">
+    <div><label for="a-model">Model</label><input id="a-model"></div>
+    <div><label for="a-fb">Model cadangan</label><input id="a-fb"></div>
+    <div><label for="a-dq">Kuota bawaan</label><input id="a-dq" inputmode="numeric"></div>
+  </div>
+  <p class="note">Kuota 0 = tanpa batas. Kuota dihitung per pengguna per hari (UTC).</p>
+  <div class="row"><button id="a-clr" class="l" type="button">Hapus key</button><button id="a-save" class="g" type="button">Simpan Gemini</button></div>
+  <p id="admsg" role="status"></p>
+  <div class="row"><button id="a-close" class="l" type="button">Tutup</button></div>
+</dialog>
+
+<dialog id="aidlg">
+  <h2>Analisis halaman AI</h2>
+  <p class="note" id="ai-page"></p>
+  <label for="ai-q">Tanyakan sesuatu (opsional)</label>
+  <textarea id="ai-q" rows="2" placeholder="Kosongkan untuk ringkasan dan penjelasan kolom"></textarea>
+  <div class="row"><button id="ai-close" class="l" type="button">Tutup</button><button id="ai-go" class="g" type="button">Analisis</button></div>
+  <p id="ai-err" role="alert" style="color:var(--err);font-size:.85rem;min-height:1.2em"></p>
+  <div id="ai-out"></div>
+  <p class="note">AI hanya menjelaskan isi halaman. Soal ujian atau kuis bernilai tidak dijawab.</p>
+</dialog>
+
+<dialog id="pv">
+  <h2>Jawaban yang akan diisi</h2>
+  <div id="pvlist"></div>
+  <div class="row"><button id="pv-no" class="l" type="button">Batal</button><button id="pv-yes" class="g" type="button">Isi</button></div>
+</dialog>
+
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var BUSY = '#E0A100', OK = '#1F9D63', ERR = '#D9480F', GREY = '#9AA0B4';
+  var S = { profile: '', preview: false, op: 100, bx: -1, by: -1 };
+  try { Object.assign(S, JSON.parse(localStorage.getItem('orbit') || '{}')); } catch (e) {}
+  // Versi lama menyimpan API key di browser. Sekarang key hanya ada di server, jadi buang sisa lamanya.
+  var hadOld = S.key !== undefined || S.model !== undefined || S.fallback !== undefined;
+  delete S.key; delete S.model; delete S.fallback;
+  function save() { try { localStorage.setItem('orbit', JSON.stringify(S)); } catch (e) {} }
+  if (hadOld) save();
+
+  // ---- sesi
+  var T = null, ME = null, PANEL = false;
+  try { T = localStorage.getItem('orbit_t'); } catch (e) {}
+  function setToken(t) { T = t; try { if (t) localStorage.setItem('orbit_t', t); else localStorage.removeItem('orbit_t'); } catch (e) {} }
+  async function call(path, body, signal) {
+    var o = { method: body === undefined ? 'GET' : 'POST', headers: {}, signal: signal };
+    if (T) o.headers.authorization = 'Bearer ' + T;
+    if (body !== undefined) { o.headers['content-type'] = 'application/json'; o.body = JSON.stringify(body); }
+    var r = await fetch(path, o);
+    var j = await r.json().catch(function () { return { error: 'Respons server tidak valid.' }; });
+    if (r.status === 401 && T) { logout('Sesi berakhir. Masuk lagi.'); }
+    if (!r.ok) { var e = new Error(j.error || ('Gagal (' + r.status + ').')); e.status = r.status; throw e; }
+    return j;
+  }
+  function showApp(me) {
+    ME = me; $('#login').classList.add('hide'); $('#app').classList.remove('hide'); maybeOpenBridge();
+    $('#admb').classList.toggle('hide', me.role !== 'admin' || !PANEL);
+    requestAnimationFrame(function () { moveBubble(S.bx < 0 ? stage.clientWidth - SIZE - 12 : S.bx, S.by < 0 ? stage.clientHeight - SIZE - 24 : S.by); });
+  }
+  function logout(msg) {
+    setToken(null); ME = null; showPanel(false);
+    $('#app').classList.add('hide'); $('#login').classList.remove('hide');
+    $('#lerr').textContent = msg || ''; $('#l-pass').value = '';
+  }
+
+  var stage = $('#stage'), bubble = $('#bubble'), panel = $('#panel'), statusEl = $('#status');
+  var goBtn = $('#go'), stopBtn = $('#stop'), fade = $('.fade');
+  var running = false, ctl = null, SIZE = 56;
+
+  // ---- robot 3D (gambar pra-render): menoleh mengikuti kursor/geseran, berkedip
+  var NAMES = ['yn30', 'yn15', 'y0', 'yp15', 'yp30', 'blink'], FR = NAMES.map(function (n) { var i = new Image(); i.src = 'robot/robot_' + n + '.png'; return i; });
+  var robot = $('#robot'), cur = 2, still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function look(i) { cur = Math.max(0, Math.min(4, i)); robot.src = FR[cur].src; }
+  function lookAt(dx, unit) { look(2 + Math.round(Math.max(-1, Math.min(1, dx / unit)) * 2)); }
+  stage.addEventListener('pointermove', function (e) {
+    if (e.pointerType !== 'mouse' || drag) return;
+    var r = bubble.getBoundingClientRect(); lookAt(e.clientX - (r.left + r.width / 2), 260);
+  });
+  if (!still) (function blinkLoop() {
+    setTimeout(function () { robot.src = FR[5].src; setTimeout(function () { look(cur); blinkLoop(); }, 130); }, 3000 + Math.random() * 3000);
+  })();
+
+  function setStatus(t, c) { statusEl.textContent = t; $('#dot').style.background = c; place(); }
+
+  // ---- opasitas: 0% = transparan penuh. Status & STOP minimal 60%, robot samar 30% saat panel terbuka.
+  function applyOp(p) {
+    S.op = p;
+    var a = p / 100, open = panel.classList.contains('open');
+    bubble.style.opacity = open ? Math.max(a, 0.3) : a;
+    goBtn.style.opacity = a;
+    $('#newtab').style.opacity = Math.max(a, 0.6);
+    statusEl.style.opacity = Math.max(a, 0.6);
+    stopBtn.style.opacity = Math.max(a, 0.6);
+    panel.style.background = 'rgba(255,255,255,' + Math.max(a, 0.12) + ')';
+    $('#oplabel').textContent = 'Opasitas ' + p + '%';
+  }
+
+  // ---- posisi robot & panel
+  function clampB(x, y) {
+    return [Math.min(Math.max(0, x), Math.max(0, stage.clientWidth - SIZE)), Math.min(Math.max(0, y), Math.max(0, stage.clientHeight - SIZE))];
+  }
+  function moveBubble(x, y) {
+    var c = clampB(x, y); bubble.style.left = c[0] + 'px'; bubble.style.top = c[1] + 'px'; place();
+  }
+  function place() {
+    if (!panel.classList.contains('open')) return;
+    var w = panel.offsetWidth, h = panel.offsetHeight, bx = bubble.offsetLeft, by = bubble.offsetTop;
+    var x = Math.min(Math.max(8, bx + SIZE - w), Math.max(8, stage.clientWidth - w - 8));
+    var y = by - h - 8; if (y < 8) y = by + SIZE + 8;
+    panel.style.left = x + 'px'; panel.style.top = y + 'px';
+  }
+  function showPanel(v) { panel.classList.toggle('open', v); bubble.setAttribute('aria-expanded', v); applyOp(S.op); place(); }
+
+  var sx, sy, ox, oy, drag = false;
+  bubble.addEventListener('pointerdown', function (e) { bubble.setPointerCapture(e.pointerId); sx = e.clientX; sy = e.clientY; ox = bubble.offsetLeft; oy = bubble.offsetTop; drag = false; });
+  bubble.addEventListener('pointermove', function (e) {
+    if (!bubble.hasPointerCapture(e.pointerId)) return;
+    var dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.hypot(dx, dy) > 6) drag = true;
+    if (drag) { moveBubble(ox + dx, oy + dy); lookAt(dx, 40); }
+  });
+  bubble.addEventListener('pointerup', function () {
+    look(2);
+    if (drag) { S.bx = bubble.offsetLeft; S.by = bubble.offsetTop; save(); }
+    else showPanel(!panel.classList.contains('open'));
+  });
+  bubble.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showPanel(!panel.classList.contains('open')); } });
+  $('#op').addEventListener('input', function (e) { applyOp(+e.target.value); });
+  $('#op').addEventListener('change', save);
+  window.addEventListener('resize', function () { moveBubble(bubble.offsetLeft, bubble.offsetTop); });
+
+  // ---- alur utama
+  function validUrl(u) { try { return /^https?:$/.test(new URL(u).protocol); } catch (e) { return false; } }
+  function busy(b) { running = b; goBtn.style.display = b ? 'none' : 'block'; stopBtn.style.display = b ? 'block' : 'none'; $('#auto').disabled = b; }
+
+  function askPreview(plans) {
+    return new Promise(function (resolve) {
+      var list = $('#pvlist'); list.textContent = plans.map(function (p) { return p.title + '\n→ ' + p.summary; }).join('\n\n');
+      var d = $('#pv'); var done = false;
+      function fin(v) { if (done) return; done = true; d.close(); resolve(v); }
+      $('#pv-yes').onclick = function () { fin(true); }; $('#pv-no').onclick = function () { fin(false); };
+      d.oncancel = function () { fin(false); }; d.showModal();
+    });
+  }
+
+  function isGForm(u) {
+    try { var x = new URL(u); return x.hostname === 'forms.gle' || ((x.hostname === 'docs.google.com' || x.hostname === 'forms.google.com') && /\/forms\//.test(x.pathname)); }
+    catch (e) { return false; }
+  }
+  var PAGE = null;
+  function showPage(j) {
+    PAGE = j; $('#empty').style.display = 'none'; $('#aib').classList.remove('hide');
+    $('#newtab').href = j.finalUrl; $('#newtab').style.display = 'block';
+    if (j.frameable) { var f = $('#frame'); f.src = j.finalUrl; f.style.display = 'block'; $('#reader').classList.add('hide'); return; }
+    $('#frame').style.display = 'none'; $('#frame').src = 'about:blank'; $('#reader').classList.remove('hide');
+    $('#rd-title').textContent = j.title || 'Tanpa judul';
+    var a = $('#rd-link'); a.href = j.finalUrl; a.textContent = j.finalUrl;
+    $('#rd-note').textContent = (j.reason || 'Halaman ditampilkan sebagai teks.') + (j.truncated ? ' Isi dipotong karena terlalu panjang.' : '');
+    var ul = $('#rd-fl'); ul.textContent = ''; $('#rd-fc').textContent = j.fields.length;
+    j.fields.forEach(function (f) {
+      var li = document.createElement('li');
+      li.textContent = f.type + ': ' + (f.label || '(tanpa label)') + (f.options && f.options.length ? ' [' + f.options.join(' | ') + ']' : '');
+      ul.appendChild(li);
+    });
+    $('#rd-text').textContent = j.text || '(tidak ada teks yang bisa dibaca. Halaman mungkin dirender dengan JavaScript atau butuh login)';
+  }
+  async function runPage(u) {
+    setStatus('Membuka halaman…', BUSY);
+    var j = await call('/api/page', { url: u }, ctl.signal);
+    showPage(j);
+    setStatus(j.frameable ? 'Halaman terbuka. Tekan Analisis halaman untuk bantuan AI.' : 'Situs ini tidak boleh ditampilkan di dalam halaman lain, jadi isinya ditampilkan sebagai teks.', OK);
+  }
+
+  async function run() {
+    if (running) return;
+    var u = $('#url').value.trim();
+    if (!u) { setStatus('Tempel link form dulu.', ERR); showPanel(true); return; }
+    if (!/^[a-z]+:\/\//i.test(u)) { u = 'https://' + u; $('#url').value = u; }
+    if (!validUrl(u)) { setStatus('Link tidak valid.', ERR); showPanel(true); return; }
+    ctl = new AbortController(); busy(true); showPanel(true); $('#newtab').style.display = 'none';
+    try {
+      if (!isGForm(u)) { await runPage(u); return; }
+      $('#aib').classList.add('hide'); $('#reader').classList.add('hide'); PAGE = null;
+      setStatus('Membaca & menganalisis form…', BUSY);
+      var j = await call('/api/fill', { url: u, profile: S.profile }, ctl.signal);
+      if (S.preview && !(await askPreview(j.plans))) { setStatus('Dibatalkan.', ERR); return; }
+      var f = $('#frame'); f.src = j.prefill + '&embedded=true'; f.style.display = 'block'; $('#empty').style.display = 'none'; $('#reader').classList.add('hide');
+      $('#newtab').href = j.prefill; $('#newtab').style.display = 'block';
+      setStatus('Selesai: ' + j.filled + ' terisi, ' + (j.total - j.filled) + ' dilewati. Periksa dulu, lalu tekan Kirim sendiri.', OK);
+    } catch (e) {
+      if (e.name === 'AbortError') setStatus('Dihentikan.', ERR);
+      else if (e instanceof TypeError) setStatus('Tidak bisa menghubungi server (' + e.message + ').', ERR);
+      else setStatus(e.message || 'Terjadi kesalahan.', ERR);
+    } finally { busy(false); }
+  }
+  $('#auto').addEventListener('click', run);
+  goBtn.addEventListener('click', run);
+  stopBtn.addEventListener('click', function () { if (ctl) ctl.abort(); });
+  $('#url').addEventListener('keydown', function (e) { if (e.key === 'Enter') run(); });
+
+  // ---- pengaturan
+  function openCfg() {
+    $('#who').textContent = ME ? 'Masuk sebagai ' + ME.username + (ME.role === 'admin' ? ' (admin)' : '') : '';
+    $('#s-prof').value = S.profile; $('#s-prev').checked = S.preview; $('#dlg').showModal();
+  }
+  $('#cfg').addEventListener('click', openCfg);
+  $('#s-cancel').addEventListener('click', function () { $('#dlg').close(); });
+  $('#s-out').addEventListener('click', function () { $('#dlg').close(); logout(''); });
+  $('#s-save').addEventListener('click', function () {
+    S.profile = $('#s-prof').value.trim(); S.preview = $('#s-prev').checked; save(); $('#dlg').close();
+  });
+
+  // ---- analisis halaman (AI)
+  $('#aib').addEventListener('click', function () {
+    if (!PAGE) return;
+    $('#ai-page').textContent = (PAGE.title ? PAGE.title + ' | ' : '') + PAGE.finalUrl; $('#ai-err').textContent = ''; $('#aidlg').showModal();
+  });
+  $('#ai-close').addEventListener('click', function () { $('#aidlg').close(); });
+  $('#ai-go').addEventListener('click', async function () {
+    if (!PAGE) return;
+    $('#ai-go').disabled = true; $('#ai-err').textContent = ''; $('#ai-out').textContent = 'Menganalisis…';
+    try {
+      var j = await call('/api/analyze', { url: PAGE.finalUrl, title: PAGE.title, text: PAGE.text, instruction: $('#ai-q').value });
+      $('#ai-out').textContent = j.text;
+    } catch (e) {
+      $('#ai-out').textContent = ''; $('#ai-err').textContent = e instanceof TypeError ? 'Tidak bisa menghubungi server (' + e.message + ').' : e.message;
+    } finally { $('#ai-go').disabled = false; }
+  });
+
+  // ---- chat AI + jembatan ke situs lain (bookmarklet)
+  var CHAT = [], BR = null, chatBusy = false;
+  var BRIDGE = !!window.opener && location.hash === '#bridge';
+
+  /* Kode ini dijalankan di situs LAIN lewat bookmark. Tanpa komentar // dan semua pernyataan diakhiri titik koma,
+     karena bookmark disimpan sebagai satu baris. */
+  function orbitBookmarklet(O) {
+    try {
+      var d = document, w = window;
+      var T = function (s) { return String(s || '').replace(/\s+/g, ' ').trim(); };
+      if (w.__orbitOff) { try { w.__orbitOff(); } catch (x) {} }
+      var lab = function (e) {
+        var a = T(e.getAttribute('aria-label'));
+        if (a) { return a; }
+        var lb = e.getAttribute('aria-labelledby');
+        if (lb) {
+          var t = T(lb.split(' ').map(function (i) { var n = d.getElementById(i); return n ? n.textContent : ''; }).join(' '));
+          if (t) { return t; }
+        }
+        if (e.labels && e.labels.length) { return T(e.labels[0].textContent); }
+        var p = e.closest ? e.closest('label') : null;
+        if (p) { return T(p.textContent); }
+        return T(e.getAttribute('placeholder') || e.getAttribute('title') || '');
+      };
+      var near = function (e) {
+        var n = e, k = 0;
+        while (n && n !== d.body && k < 6) {
+          var p = n.previousElementSibling, h = 0;
+          while (p && h < 4) {
+            if (!p.querySelector('input,select,textarea')) {
+              var t = T(p.textContent);
+              if (t.length >= 4) { return t.slice(0, 200); }
+            }
+            p = p.previousElementSibling;
+            h++;
+          }
+          n = n.parentElement;
+          k++;
+        }
+        return '';
+      };
+      var gtitle = function (e) {
+        var fs = e.closest ? e.closest('fieldset') : null;
+        var lg = fs ? fs.querySelector('legend') : null;
+        return (lg && T(lg.textContent)) || near(e) || lab(e);
+      };
+      var all = [].slice.call(d.querySelectorAll('input,textarea,select'));
+      var Q = [], byId = {}, rg = {}, cg = {}, cbn = {};
+      all.forEach(function (e) { if (e.tagName === 'INPUT' && e.type === 'checkbox' && e.name) { cbn[e.name] = (cbn[e.name] || 0) + 1; } });
+      var add = function (q) { q.id = 'f' + Q.length; Q.push(q); byId[q.id] = q; return q; };
+      all.forEach(function (e) {
+        if (Q.length >= 60 || e.disabled) { return; }
+        var tag = e.tagName.toLowerCase();
+        var ty = String(e.getAttribute('type') || (tag === 'input' ? 'text' : tag)).toLowerCase();
+        if (['hidden', 'submit', 'button', 'reset', 'image', 'password', 'file', 'range', 'color'].indexOf(ty) >= 0) { return; }
+        if (ty === 'radio' || ty === 'checkbox') {
+          var multi = ty === 'checkbox';
+          var grp = multi ? cg : rg;
+          var key = e.name && (!multi || cbn[e.name] > 1) ? e.name : '#' + all.indexOf(e);
+          var q = grp[key];
+          if (!q) { q = grp[key] = add({ type: multi ? 'multi' : 'single', title: gtitle(e).slice(0, 300), options: [], _e: [] }); }
+          if (q._e.length < 30) { q._e.push(e); q.options.push((lab(e) || e.value || '').slice(0, 200)); }
+          return;
+        }
+        var r = e.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) { return; }
+        if (tag === 'select') {
+          add({ type: 'select', title: (lab(e) || near(e)).slice(0, 300), options: [].slice.call(e.options, 0, 60).map(function (o) { return T(o.textContent).slice(0, 200); }), _e: [e] });
+          return;
+        }
+        add({ type: 'text', title: (lab(e) || near(e)).slice(0, 300), options: [], _e: [e] });
+      });
+      var text = String(d.body ? d.body.innerText : '').replace(/\n{3,}/g, '\n\n').slice(0, 30000);
+      var win = w.open(O + '/#bridge', 'orbit_bridge');
+      if (!win) { alert('Popup diblokir. Izinkan popup untuk situs ini lalu klik bookmark Orbit lagi.'); return; }
+      var msg = {
+        type: 'orbit-page', t: Date.now(), url: String(location.href).slice(0, 500), title: T(d.title).slice(0, 200), text: text,
+        fields: Q.map(function (q) { return { id: q.id, title: q.title, type: q.type, options: q.options }; })
+      };
+      var send = function () { try { win.postMessage(msg, O); } catch (x) {} };
+      var fire = function (e, n) { try { e.dispatchEvent(new Event(n, { bubbles: true })); } catch (x) {} };
+      var mark = function (e) { try { e.style.outline = '2px solid #7B3FE4'; } catch (x) {} };
+      var setV = function (e, v) {
+        var pr = e.tagName === 'TEXTAREA' ? w.HTMLTextAreaElement.prototype : w.HTMLInputElement.prototype;
+        var ds = Object.getOwnPropertyDescriptor(pr, 'value');
+        if (ds && ds.set) { ds.set.call(e, v); } else { e.value = v; }
+        fire(e, 'input');
+        fire(e, 'change');
+      };
+      var pick = function (e) {
+        if (!e.checked) { e.click(); }
+        if (!e.checked) { e.checked = true; fire(e, 'input'); fire(e, 'change'); }
+        mark(e);
+      };
+      var apply = function (A) {
+        var n = 0;
+        (Array.isArray(A) ? A : []).slice(0, 60).forEach(function (a) {
+          if (!a || !Object.prototype.hasOwnProperty.call(byId, a.id)) { return; }
+          var q = byId[a.id];
+          if (q.type === 'text') {
+            if (typeof a.text === 'string' && a.text) { setV(q._e[0], a.text.slice(0, 500)); mark(q._e[0]); n++; }
+            return;
+          }
+          var ch = (Array.isArray(a.choices) ? a.choices : []).filter(function (i) { return Number.isInteger(i) && i >= 0 && i < q.options.length; });
+          if (!ch.length) { return; }
+          if (q.type === 'select') { q._e[0].selectedIndex = ch[0]; fire(q._e[0], 'input'); fire(q._e[0], 'change'); mark(q._e[0]); n++; return; }
+          (q.type === 'multi' ? ch : ch.slice(0, 1)).forEach(function (i) { if (q._e[i]) { pick(q._e[i]); } });
+          n++;
+        });
+        try { win.postMessage({ type: 'orbit-filled', n: n }, O); } catch (x) {}
+      };
+      var on = function (e) {
+        if (e.source !== win || e.origin !== O || !e.data || typeof e.data !== 'object') { return; }
+        if (e.data.type === 'orbit-ready') { send(); } else if (e.data.type === 'orbit-fill') { apply(e.data.answers); }
+      };
+      w.addEventListener('message', on);
+      w.__orbitOff = function () { w.removeEventListener('message', on); };
+      send();
+    } catch (x) { alert('Orbit gagal membaca halaman ini: ' + (x && x.message)); }
+  }
+  function bookmarkletUrl() {
+    return 'javascript:(' + String(orbitBookmarklet).replace(/%/g, '%25').replace(/\s+/g, ' ') + ')(' + JSON.stringify(location.origin) + ');void 0';
+  }
+  $('#bm').href = bookmarkletUrl();
+  $('#bm').addEventListener('click', function (e) { e.preventDefault(); alert('Seret tombol Orbit ini ke bar bookmark browser. Jangan diklik di sini.'); });
+  $('#bm-copy').addEventListener('click', function () {
+    var u = bookmarkletUrl();
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(function () { alert('Kode disalin. Buat bookmark baru lalu tempel kode ini sebagai URL-nya.'); }, function () { prompt('Salin kode ini:', u); });
+    else prompt('Salin kode ini:', u);
+  });
+
+  function addMsg(cls, text) {
+    var m = document.createElement('div'); m.className = 'm ' + cls; m.textContent = text;
+    var log = $('#c-log'); log.appendChild(m); log.scrollTop = log.scrollHeight; return m;
+  }
+  function ctxPage() {
+    if (BR) {
+      var f = BR.fields.map(function (x, i) { return (i + 1) + '. [' + x.type + '] ' + x.title + (x.options.length ? ' | pilihan: ' + x.options.join(' / ') : ''); }).join('\n');
+      return { url: BR.url, title: BR.title, text: (BR.text + (f ? '\n\nKolom isian di halaman:\n' + f : '')).slice(0, 30000) };
+    }
+    if (PAGE && !PAGE.frameable && PAGE.text) return { url: PAGE.finalUrl, title: PAGE.title, text: PAGE.text };
+    return null;
+  }
+  function openChat() {
+    var c = ctxPage(), use = $('#c-use');
+    use.disabled = !c; use.checked = !!c;
+    $('#c-ctx').textContent = c ? 'Halaman: ' + (c.title ? c.title + ' | ' : '') + c.url : 'Tanpa halaman. Buka link lalu chat, atau pakai bookmark Orbit di situs lain (Pengaturan).';
+    $('#c-fill').classList.toggle('hide', !(BR && BR.fields.length));
+    if (!$('#chatdlg').open) $('#chatdlg').showModal();
+    $('#c-in').focus();
+  }
+  function maybeOpenBridge() { if (BR && T) openChat(); }
+  async function sendChat() {
+    var t = $('#c-in').value.trim();
+    if (!t || chatBusy) return;
+    chatBusy = true; $('#c-send').disabled = true; $('#c-in').value = '';
+    CHAT.push({ role: 'user', text: t }); addMsg('u', t);
+    var w = addMsg('a', '…'), c = ctxPage();
+    try {
+      var j = await call('/api/chat', { messages: CHAT.slice(-12), page: $('#c-use').checked && c ? c : undefined });
+      w.textContent = j.text; CHAT.push({ role: 'assistant', text: j.text });
+    } catch (e) {
+      CHAT.pop(); w.classList.add('e'); w.textContent = e instanceof TypeError ? 'Tidak bisa menghubungi server (' + e.message + ').' : e.message;
+    } finally { chatBusy = false; $('#c-send').disabled = false; $('#c-log').scrollTop = $('#c-log').scrollHeight; }
+  }
+  $('#chatb').addEventListener('click', openChat);
+  $('#c-close').addEventListener('click', function () { $('#chatdlg').close(); });
+  $('#c-clr').addEventListener('click', function () { CHAT = []; $('#c-log').textContent = ''; });
+  $('#c-send').addEventListener('click', sendChat);
+  $('#c-in').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendChat(); } });
+
+  $('#c-fill').addEventListener('click', async function () {
+    if (!BR || !BR.fields.length || !window.opener) return;
+    var b = $('#c-fill'); b.disabled = true;
+    var m = addMsg('a', 'Mencari jawaban untuk ' + BR.fields.length + ' kolom…');
+    try {
+      var j = await call('/api/gemini', { profile: S.profile, questions: BR.fields });
+      var byId = {}; BR.fields.forEach(function (f) { byId[f.id] = f; });
+      var A = [], lines = [];
+      (Array.isArray(j.answers) ? j.answers : []).forEach(function (a) {
+        var f = a && byId[a.id]; if (!f || a.skip) return;
+        if (f.type === 'text') { var tx = typeof a.text === 'string' ? a.text.trim().slice(0, 500) : ''; if (tx) { A.push({ id: f.id, text: tx }); lines.push(f.title + ' → ' + tx); } return; }
+        var ch = (Array.isArray(a.choices) ? a.choices : []).filter(function (i, k, arr) { return Number.isInteger(i) && i >= 0 && i < f.options.length && arr.indexOf(i) === k; });
+        if (f.type !== 'multi') ch = ch.slice(0, 1);
+        if (ch.length) { A.push({ id: f.id, choices: ch }); lines.push(f.title + ' → ' + ch.map(function (i) { return f.options[i]; }).join(', ')); }
+      });
+      if (!A.length) { m.classList.add('e'); m.textContent = 'Tidak ada jawaban yang cukup yakin. Isi manual.'; return; }
+      m.textContent = 'Jawaban untuk ' + A.length + ' dari ' + BR.fields.length + ' kolom:\n' + lines.join('\n');
+      var ap = document.createElement('button'); ap.type = 'button'; ap.className = 'g'; ap.textContent = 'Terapkan ke halaman';
+      ap.addEventListener('click', function () {
+        if (!window.opener || window.opener.closed) { m.classList.add('e'); m.textContent = 'Halaman asal sudah ditutup.'; return; }
+        window.opener.postMessage({ type: 'orbit-fill', answers: A }, BR.origin); ap.disabled = true;
+      });
+      m.appendChild(ap);
+    } catch (e) {
+      m.classList.add('e'); m.textContent = e instanceof TypeError ? 'Tidak bisa menghubungi server (' + e.message + ').' : e.message;
+    } finally { b.disabled = false; }
+  });
+
+  window.addEventListener('message', function (e) {
+    if (!BRIDGE || e.source !== window.opener || !e.data || typeof e.data !== 'object') return;
+    var d = e.data;
+    if (d.type === 'orbit-filled') { addMsg('a', 'Terisi ' + Number(d.n || 0) + ' kolom di halaman. Periksa dulu, lalu kirim sendiri.'); return; }
+    if (d.type !== 'orbit-page' || (BR && BR.t === d.t)) return;
+    var str = function (v, n) { return typeof v === 'string' ? v.slice(0, n) : ''; };
+    var fs = (Array.isArray(d.fields) ? d.fields : []).slice(0, 60).map(function (f) {
+      f = f && typeof f === 'object' ? f : {};
+      return { id: str(f.id, 12), title: str(f.title, 300), type: ['single', 'multi', 'text', 'select'].indexOf(f.type) >= 0 ? f.type : 'text',
+        options: (Array.isArray(f.options) ? f.options : []).slice(0, 60).map(function (o) { return str(String(o), 200); }) };
+    }).filter(function (f) { return f.id; });
+    BR = { origin: e.origin, t: d.t, url: str(d.url, 500), title: str(d.title, 200), text: str(d.text, 30000), fields: fs };
+    CHAT = []; $('#c-log').textContent = '';
+    maybeOpenBridge(); if ($('#chatdlg').open) openChat();
+  });
+  if (BRIDGE) { try { window.opener.postMessage({ type: 'orbit-ready' }, '*'); } catch (e) {} }
+
+  // ---- login
+  async function doLogin() {
+    var u = $('#l-user').value.trim(), p = $('#l-pass').value;
+    if (!u || !p) { $('#lerr').textContent = 'Isi username dan password.'; return; }
+    $('#l-go').disabled = true; $('#lerr').textContent = '';
+    try {
+      var j = await call('/api/login', { username: u, password: p });
+      setToken(j.token); showApp({ username: j.username, role: j.role });
+    } catch (e) {
+      $('#lerr').textContent = e instanceof TypeError ? 'Tidak bisa menghubungi server.' : e.message;
+    } finally { $('#l-go').disabled = false; }
+  }
+  $('#l-go').addEventListener('click', doLogin);
+  $('#l-pass').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+
+  // ---- admin
+  function cell(tr, text) { var td = document.createElement('td'); td.textContent = text; tr.appendChild(td); return td; }
+  function renderAdmin(d) {
+    var tb = $('#utb'); tb.textContent = '';
+    d.users.forEach(function (u) {
+      var tr = document.createElement('tr');
+      cell(tr, u.username); cell(tr, (u.role === 'admin' ? 'Admin, ' : '') + (u.active ? 'Aktif' : 'Nonaktif'));
+      var q = u.quota === null ? d.settings.defaultQuota : u.quota;
+      cell(tr, u.usedToday + ' / ' + (q ? q : '∞') + (u.quota === null ? ' (bawaan)' : ''));
+      var td = cell(tr, '');
+      [['Nonaktifkan', 'Aktifkan', function () { return { action: 'setActive', username: u.username, active: !u.active }; }],
+       ['Reset password', null, function () { var p = prompt('Password baru untuk ' + u.username + ' (min. 8 karakter):'); return p ? { action: 'resetPassword', username: u.username, password: p } : null; }],
+       ['Kuota', null, function () { var v = prompt('Kuota harian untuk ' + u.username + ' (kosong = bawaan, 0 = tanpa batas):', u.quota === null ? '' : u.quota); return v === null ? null : { action: 'setQuota', username: u.username, quota: v.trim() }; }],
+       ['Hapus', null, function () { return confirm('Hapus pengguna ' + u.username + '?') ? { action: 'deleteUser', username: u.username } : null; }]
+      ].forEach(function (a, i) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'l';
+        b.textContent = i === 0 && !u.active ? a[1] : a[0];
+        b.addEventListener('click', function () { var body = a[2](); if (body) adm(body); });
+        td.appendChild(b);
+      });
+      tb.appendChild(tr);
+    });
+    var st = d.settings;
+    $('#a-keystat').textContent = 'API key: ' + (st.hasKey ? 'tersimpan (berakhir …' + st.keyLast4 + ')' : (st.envKey ? 'memakai GEMINI_API_KEY dari environment Vercel' : 'BELUM DIISI. Pengguna belum bisa memakai AI.'));
+    $('#a-model').value = st.model; $('#a-fb').value = st.fallback; $('#a-dq').value = st.defaultQuota; $('#a-key').value = '';
+  }
+  async function adm(body, okMsg) {
+    $('#admsg').style.color = '';
+    try { renderAdmin(await call('/api/admin', body)); $('#admsg').textContent = okMsg || ''; return true; }
+    catch (e) { $('#admsg').style.color = 'var(--err)'; $('#admsg').textContent = e.message; return false; }
+  }
+  $('#admb').addEventListener('click', function () { $('#adm').showModal(); adm({ action: 'list' }); });
+  $('#a-close').addEventListener('click', function () { $('#adm').close(); });
+  $('#a-add').addEventListener('click', async function () {
+    var ok = await adm({ action: 'createUser', username: $('#a-u').value, password: $('#a-p').value, quota: $('#a-q').value.trim(), role: $('#a-r').value }, 'Pengguna ditambahkan. Berikan username dan password ke orangnya.');
+    if (ok) { $('#a-u').value = ''; $('#a-p').value = ''; $('#a-q').value = ''; }
+  });
+  $('#a-save').addEventListener('click', function () {
+    adm({ action: 'setSettings', geminiKey: $('#a-key').value, model: $('#a-model').value, fallback: $('#a-fb').value, defaultQuota: $('#a-dq').value.trim() }, 'Pengaturan disimpan.');
+  });
+  $('#a-clr').addEventListener('click', function () { if (confirm('Hapus API key yang tersimpan?')) adm({ action: 'setSettings', clearKey: true }, 'Key dihapus.'); });
+
+  // ---- init
+  $('#op').value = S.op; applyOp(S.op);
+  (async function boot() {
+    try {
+      var st = await call('/api/status');
+      if (!st.configured) { $('#login').classList.remove('hide'); $('#lerr').textContent = st.message || 'Server belum dikonfigurasi.'; return; }
+      PANEL = !!st.panel;
+      if (!st.adminReady) $('#lerr').textContent = 'ADMIN_USERNAME dan ADMIN_PASSWORD belum diisi di Vercel.';
+    } catch (e) { $('#login').classList.remove('hide'); $('#lerr').textContent = 'Tidak bisa menghubungi server.'; return; }
+    if (!T) { $('#login').classList.remove('hide'); return; }
+    try { showApp(await call('/api/me')); }
+    catch (e) { if (e.status !== 401) { $('#login').classList.remove('hide'); $('#lerr').textContent = 'Tidak bisa menghubungi server.'; } }
+  })();
+})();
+</script>
+</body>
+</html>

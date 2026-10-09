@@ -1,0 +1,25 @@
+'use strict';
+process.env.ORBIT_MEMORY_DB = '1';
+const assert = require('assert');
+process.env.SESSION_SECRET = 'rahasia-sesi-yang-panjang-sekali-0123456789';
+const api = require('../lib/api');
+const { resetMemory } = require('../lib/db');
+(async () => {
+  resetMemory();
+  assert.strictEqual((await api.status()).body.adminReady, false, 'tanpa env admin');
+  process.env.ADMIN_USERNAME = 'Admin-Uji!'; process.env.ADMIN_PASSWORD = 'pw-admin-dari-env';
+  assert.strictEqual((await api.status()).body.adminReady, true, 'ada env admin');
+  assert.strictEqual((await api.login({ username: 'admin-uji!', password: 'salah' })).status, 401);
+  let r = await api.login({ username: ' Admin-Uji! ', password: 'pw-admin-dari-env' });
+  assert.strictEqual(r.status, 200); assert.strictEqual(r.body.role, 'admin');
+  assert.strictEqual((await api.me({}, { auth: 'Bearer ' + r.body.token })).status, 200);
+  const r2 = await api.login({ username: 'admin-uji!', password: 'pw-admin-dari-env' });
+  assert.strictEqual(r2.status, 200);
+  assert.strictEqual((await api.me({}, { auth: 'Bearer ' + r.body.token })).status, 200, 'login ulang tidak mencabut sesi lama');
+  assert.strictEqual((await api.admin({ action: 'list' }, { auth: 'Bearer ' + r2.body.token })).status, 200, 'admin env bisa buka panel Admin');
+  process.env.ADMIN_PASSWORD = 'pw-baru';
+  assert.strictEqual((await api.login({ username: 'admin-uji!', password: 'pw-admin-dari-env' })).status, 401, 'password lama ditolak setelah env diganti');
+  assert.strictEqual((await api.login({ username: 'admin-uji!', password: 'pw-baru' })).status, 200);
+  assert.strictEqual((await api.me({}, { auth: 'Bearer ' + r.body.token })).status, 401, 'ganti password mencabut sesi lama');
+  console.log('TES ADMIN ENV LULUS');
+})().catch(e => { console.error(e); process.exit(1); });
