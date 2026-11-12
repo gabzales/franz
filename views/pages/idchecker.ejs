@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<%
+/*
+  FranzzStore — Cek ID Game (7 Nov 2026)
+  Tampilan ala halaman ID Checker PointGo. File ini HANYA presentasi.
+  Variabel dari route: settings, user, turnstileSiteKey, game
+  game = { name, needsZone, userLabel, zoneLabel }   (lihat server-idchecker-snippet.js)
+*/
+const pageTitle = settings?.siteName || 'FranzzStore';
+const g = Object.assign({ name: 'Mobile Legend', needsZone: true, userLabel: 'User ID', zoneLabel: 'Zone ID' }, game || {});
+%>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check ID <%= g.name %> - <%= pageTitle %></title>
+  <link rel="icon" type="image/png" href="<%= settings?.logoUrl || '/uploads/logo-main.png' %>">
+  <script>window.IconifyPreload = <%- typeof iconBundle !== 'undefined' ? iconBundle : '[]' %>;</script>
+  <script src="/js/iconify-icon.min.js" defer></script>
+</head>
+<body>
+<%- include('../partials/navbar', { active: '' }) %>
+
+<main class="idc-wrap">
+  <section class="idc-card" aria-labelledby="idc-title">
+    <span class="idc-badge" aria-hidden="true"><iconify-icon icon="mdi:gamepad-variant"></iconify-icon></span>
+    <h1 id="idc-title">Check ID <%= g.name %></h1>
+
+    <label class="idc-label" for="idc-user"><%= g.userLabel %></label>
+    <input class="idc-input" id="idc-user" type="text" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="Masukkan <%= g.userLabel %>">
+
+    <% if (g.needsZone) { %>
+    <label class="idc-label" for="idc-zone"><%= g.zoneLabel %></label>
+    <input class="idc-input" id="idc-zone" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="Masukkan <%= g.zoneLabel %>">
+    <% } %>
+
+    <div class="idc-actions">
+      <div class="idc-captcha">
+        <% if (turnstileSiteKey) { %>
+        <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-theme="dark"></div>
+        <% } %>
+      </div>
+      <button type="button" class="idc-search" id="idc-btn" aria-label="Cek ID">
+        <iconify-icon icon="mdi:magnify"></iconify-icon>
+      </button>
+    </div>
+
+    <div class="idc-result" id="idc-result" role="status" aria-live="polite" hidden></div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>
+
+<% if (turnstileSiteKey) { %>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<% } %>
+<script>
+(function () {
+  const needsZone = <%- JSON.stringify(!!g.needsZone) %>;
+  const hasCaptcha = <%- JSON.stringify(!!turnstileSiteKey) %>;
+  const userEl = document.getElementById('idc-user');
+  const zoneEl = document.getElementById('idc-zone');
+  const btn = document.getElementById('idc-btn');
+  const out = document.getElementById('idc-result');
+
+  function show(kind, text, nickname) {
+    out.hidden = false;
+    out.className = 'idc-result ' + kind;
+    out.textContent = '';
+    const icon = document.createElement('iconify-icon');
+    icon.setAttribute('icon', kind === 'ok' ? 'mdi:check-circle' : 'mdi:alert-circle');
+    const box = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = text;
+    box.appendChild(title);
+    if (nickname) {
+      const nick = document.createElement('span');
+      nick.textContent = nickname;
+      box.appendChild(nick);
+    }
+    out.appendChild(icon);
+    out.appendChild(box);
+  }
+
+  async function check() {
+    const gameUserId = userEl.value.trim();
+    const gameZoneId = zoneEl ? zoneEl.value.trim() : undefined;
+    if (!/^\d{4,20}$/.test(gameUserId)) return show('err', '<%= g.userLabel %> tidak valid (hanya angka).');
+    if (needsZone && !/^\d{1,10}$/.test(gameZoneId || '')) return show('err', '<%= g.zoneLabel %> tidak valid (hanya angka).');
+    const tokenEl = document.querySelector('[name="cf-turnstile-response"]');
+    const token = tokenEl ? tokenEl.value : '';
+    if (hasCaptcha && !token) return show('err', 'Selesaikan verifikasi keamanan dulu.');
+
+    btn.disabled = true; btn.classList.add('loading');
+    try {
+      const r = await fetch('/api/idchecker', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameUserId, gameZoneId, 'cf-turnstile-response': token })
+      });
+      const d = await r.json().catch(() => ({}));
+      if (d && d.success) show('ok', 'ID ditemukan', d.nickname);
+      else show('err', (d && (d.message || d.error)) || 'Gagal mengecek ID. Coba lagi.');
+    } catch (e) {
+      show('err', 'Koneksi bermasalah. Coba lagi.');
+    } finally {
+      btn.disabled = false; btn.classList.remove('loading');
+      if (window.turnstile) { try { window.turnstile.reset(); } catch (e) {} }
+    }
+  }
+  btn.addEventListener('click', check);
+  [userEl, zoneEl].forEach(el => el && el.addEventListener('keydown', e => { if (e.key === 'Enter') check(); }));
+})();
+</script>
+</body>
+</html>
